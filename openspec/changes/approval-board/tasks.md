@@ -13,7 +13,7 @@
 
 ## 3. Record
 - [x] 3.1 Record button on every screen, audio stored with timestamp (compression: later)
-- [ ] 3.2 Transcription on the Mac into `local/resources/voice/<ts>.txt`
+- [x] 3.2 Transcription on the Mac into `local/resources/voice/<ts>.txt`
 
 ## 4. Verify
 - [ ] 4.1 Anton opens the board on the phone with the Mac asleep and on the Mac in Safari, presses Post on a test card, nightly run reads it

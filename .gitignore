@@ -16,3 +16,4 @@ library/**
 __pycache__/
 config.local.yaml
 board/data/
+pipeline/models/*.bin

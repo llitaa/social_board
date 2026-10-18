@@ -23,9 +23,13 @@ def push():
         if os.path.isdir(src): rsync([src + "/", f"{ALIAS}:{R}/data/{d}/"])
 
 def pull():
-    for d in ("decisions", "uploads"):
+    os.makedirs(os.path.join(BOARD_LOCAL, "decisions"), exist_ok=True)
+    rsync([f"{ALIAS}:{R}/data/decisions/", os.path.join(BOARD_LOCAL, "decisions") + "/"])
+    # uploads are MOVED to the Mac: once pulled they leave the server, so "pending" on the board = not yet pulled
+    for d in ("uploads/photos", "uploads/memos"):
         os.makedirs(os.path.join(BOARD_LOCAL, d), exist_ok=True)
-        rsync([f"{ALIAS}:{R}/data/{d}/", os.path.join(BOARD_LOCAL, d) + "/"])
+        rsync(["--remove-source-files", f"{ALIAS}:{R}/data/{d}/", os.path.join(BOARD_LOCAL, d) + "/"])
+    subprocess.run(["rsync", "-az", "--ignore-missing-args", f"{ALIAS}:{R}/data/uploads/photo-notes.json", os.path.join(BOARD_LOCAL, "uploads") + "/"], capture_output=True)
     for item in ("settings.json", "overlay.json"):
         subprocess.run(["rsync", "-az", "--ignore-missing-args", f"{ALIAS}:{R}/data/{item}", BOARD_LOCAL + "/"], capture_output=True)
 
