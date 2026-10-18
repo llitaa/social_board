@@ -1,9 +1,9 @@
 # Tasks
 
 ## 1. Repo and layout
-- [ ] 1.1 Create `~/dev/linkedin-system`, move `openspec/` and the opsx commands/skills there, `.gitignore` for library media
-- [ ] 1.2 `config.yaml` with the path to the campaign CSVs
-- [ ] 1.3 Create `library/{photos,memos,drafts,published}` with empty index files
+- [x] 1.1 Create `~/dev/linkedin-system`, move `openspec/` and the opsx commands/skills there, `.gitignore` for library media
+- [x] 1.2 `config.yaml` with the path to the campaign CSVs
+- [x] 1.3 Create `library/{photos,memos,drafts,published}` with empty index files
 
 ## 2. Migration
 - [ ] 2.1 Move existing photos and used-up list into `library/photos` (with photo-pool task 2.3)

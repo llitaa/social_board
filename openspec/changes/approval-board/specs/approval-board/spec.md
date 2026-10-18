@@ -47,6 +47,10 @@ The Post screen SHALL show one card per scheduled post: channel, slot, text opti
 - **WHEN** Anton presses Skip and then one of the two optional reasons, "not the topic" or "not the form"
 - **THEN** the reason is stored with the card and content-generation lowers that topic or form in the next ranking
 
+#### Scenario: Mark posted
+- **WHEN** Anton has posted an approved card himself and presses Mark posted, optionally with the post URL
+- **THEN** the card status becomes posted, the URL is written to posts-log.csv and the content plan row is set to posted
+
 ### Requirement: Shared decision state
 Every decision SHALL be persisted in a shared state that automated runs read; the state SHALL record card id, decision, option, image id, note and timestamp.
 

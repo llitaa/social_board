@@ -1,0 +1,9 @@
+Options -Indexes
+Header set X-Robots-Tag "noindex, nofollow, noarchive"
+Header set Cache-Control "no-store"
+<FilesMatch "\.(jsonl|json)$">
+  Require all denied
+</FilesMatch>
+<FilesMatch "^(api|index)\.php$">
+  Require all granted
+</FilesMatch>
