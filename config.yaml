@@ -1,0 +1,11 @@
+campaign_repo: /Users/anton/dev/campaign
+content_plan: /Users/anton/dev/campaign/content-plan.csv
+posts_log: /Users/anton/dev/campaign/posts-log.csv
+post_texts: /Users/anton/dev/campaign/local/reports/out
+post_images: /Users/anton/dev/campaign/local/resources/post-images
+legacy_photos: /Users/anton/dev/campaign/local/resources/anton-photos
+library: ./library
+board:
+  ssh_alias: hostinger-alpitype
+  remote_dir: ~/domains/alpitype.com/public_html/board
+  url: https://alpitype.com/board/

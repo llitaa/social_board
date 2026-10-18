@@ -1,0 +1,17 @@
+library/**
+!library/
+!library/*/
+!library/*/index.csv
+!library/log/
+*.jpg
+*.jpeg
+*.png
+*.heic
+*.m4a
+*.mp3
+*.wav
+*.webm
+*.pdf
+.DS_Store
+__pycache__/
+config.local.yaml

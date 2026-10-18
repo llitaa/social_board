@@ -1,0 +1,39 @@
+schema: spec-driven
+
+context: |
+  Project: Anton's LinkedIn content system (personal profile DE, company page EN). Source plan:
+  local/reports/docs/rep_v13_social_automation_plan.md (v3, 17.10.2026). Artifacts in English.
+  Hard constraints an agent cannot infer from code:
+  - Nothing touches other people's LinkedIn content without Anton pressing the button himself. Comments, likes and
+    messages are drafted only; a human posts them. Publishing Anton's own posts via the official
+    LinkedIn API is allowed. No scraping tooling, no browser extension that posts.
+  - No iCloud anywhere (Anton's iCloud is full). Photos and voice memos travel phone -> board store
+    -> Mac, nothing else. No new paid service.
+  - Handwerk outreach is a separate motion and is out of scope for every capability here.
+  - Post facts come only from CV v2 (~/dev/career/cv) and ~/.claude/alpitype/company-context.md.
+    No audience address ("richtet sich an..."), no freelance CTA, no AlpiType on the personal
+    profile, never a photo from the same shoot as the previous post.
+  - Tools and models may be the subject of a post; nothing is ever credited to an assistant as
+    author. No AI attribution in commits, docs or posts.
+  - Channels: LinkedIn only. Instagram, Shorts, Facebook are out until Anton decides otherwise.
+  - Repo data files are the truth: content-plan.csv, posts-log.csv, local/resources/anton-photos/index.csv.
+  - Anton approves behaviour from documents, not code; keep specs readable by him.
+  - System-wide architecture, token budget and model choice live in docs/system-overview.md;
+    design.md of a change covers only that change. Specs are horizontal (per capability);
+    implementation goes in vertical slices as listed there.
+
+rules:
+  proposal:
+    - Under 400 words; state what is out of scope
+  specs:
+    - One behaviour per requirement; edge cases go into scenarios
+  tasks:
+    - Each task completable in one session; name the file it touches
+
+operations:
+  apply:
+    guidance:
+      - Nothing publishes or posts during implementation; use dry-run flags
+  archive:
+    guidance:
+      - State which done-date from the plan the change fulfils
