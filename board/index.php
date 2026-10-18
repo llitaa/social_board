@@ -84,7 +84,9 @@ const post=async(o)=>{const r=await fetch(api,{method:'POST',headers:{'Content-T
 const fmtSlot=s=>{const d=new Date(s);return d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'})+' · '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})};
 const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 async function load(){S=await (await fetch(api+'?a=state&_='+Date.now())).json();render()}
-document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));['post','comments','photos'].forEach(t=>$('#'+t).hidden=t!==tab)});
+function showTab(n){tab=n;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===n));['post','comments','photos'].forEach(t=>$('#'+t).hidden=t!==tab);history.replaceState(null,'','#'+n)}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
+if(['post','comments','photos'].includes(location.hash.slice(1))) showTab(location.hash.slice(1));
 function render(){
   const open=S.cards.filter(c=>!['posted','skipped'].includes(c.status)).length, qOpen=S.queue.cards.filter(c=>!c.state).length;
   $('#sub').textContent=`${open} post${open===1?'':'s'} · ${qOpen} comment${qOpen===1?'':'s'} · until ${S.queue.expiry}`;
