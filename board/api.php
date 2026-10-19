@@ -16,14 +16,34 @@ function decide(array $d): void {
 function out($v): never { echo json_encode($v, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES); exit; }
 function settings(): array { global $D; return array_merge(['expiry' => '18:00', 'review' => 'Sat 08:00'], jread("$D/settings.json", [])); }
 
-// Apply local overlays (decisions taken since the last Mac push) so the UI reflects them immediately.
+// Overlays = decisions taken here since the last Mac push, so the UI reflects them immediately.
+// The Mac pushes applied.json {until: ts} once a decision is folded into the CSVs; older overlay entries are then ignored.
+function fresh(?array $st): bool {
+  global $D; if (!$st) return false; $u = jread("$D/applied.json", [])['until'] ?? '';
+  return !$u || empty($st['ts']) || strtotime($st['ts']) > strtotime($u);
+}
 function overlay_cards(array $cards): array {
   global $D; $ov = jread("$D/overlay.json", []);
-  foreach ($cards as &$c) { if (isset($ov['cards'][$c['id']])) $c = array_merge($c, $ov['cards'][$c['id']]); }
+  foreach ($cards as &$c) { $st = $ov['cards'][$c['id']] ?? null; if (fresh($st)) $c = array_merge($c, $st); }
   return $cards;
 }
+function overlay_photos(array $ph): array {
+  global $D; $ov = jread("$D/overlay.json", [])['photos'] ?? [];
+  foreach ($ph['shoots'] ?? [] as &$s) {
+    $ss = $ov[$s['id']] ?? null; $shoot_used = fresh($ss) && $ss['state'] === 'mark_used';
+    if (fresh($ss) && $ss['state'] === 'use_friday') $s['label'] = 'friday';
+    foreach ($s['photos'] as &$p) {
+      $ps = $ov[$p['id']] ?? null;
+      if ($shoot_used || (fresh($ps) && $ps['state'] === 'mark_used')) { if ($p['status'] !== 'used') { $p['status'] = 'used'; $p['used_in'] = $p['used_in'] ?: 'manual'; } }
+      if (fresh($ps) && $ps['state'] === 'use_friday') $p['label'] = 'friday';
+    } unset($p);
+    $st = array_unique(array_column($s['photos'], 'status'));
+    $s['status'] = ($st === ['used']) ? 'used' : (in_array('new', $st, true) ? 'new' : 'ready');
+  } unset($s);
+  return $ph;
+}
 function set_overlay(string $kind, string $id, array $patch): void {
-  global $D; $ov = jread("$D/overlay.json", []); $ov[$kind][$id] = array_merge($ov[$kind][$id] ?? [], $patch); jwrite("$D/overlay.json", $ov);
+  global $D; $ov = jread("$D/overlay.json", []); $ov[$kind][$id] = array_merge($ov[$kind][$id] ?? [], $patch, ['ts' => date('c')]); jwrite("$D/overlay.json", $ov);
 }
 function today_queue(): array {
   global $D; $s = settings(); $today = date('Y-m-d'); $f = "$D/queue/$today.json";
@@ -33,7 +53,7 @@ function today_queue(): array {
   $out = [];
   foreach ($q['cards'] as $c) {
     $st = $ov['queue'][$c['id']] ?? [];
-    $c = array_merge($c, $st);
+    $c = array_merge($c, $st); unset($c['ts']);
     if (empty($c['state'])) {
       if ($now > $exp && empty($c['kept'])) { $c['state'] = 'expired'; set_overlay('queue', $c['id'], ['state' => 'expired']); decide(['type'=>'comment','card_id'=>$c['id'],'decision'=>'expired']); }
     }
@@ -51,13 +71,14 @@ if (($_SERVER['CONTENT_TYPE'] ?? '') === 'application/json') { $body = json_deco
 switch ($a) {
   case 'state':
     $cards = overlay_cards(jread("$D/cards.json", []));
-    $photos = jread("$D/photos.json", ['shoots' => []]);
+    $photos = overlay_photos(jread("$D/photos.json", ['shoots' => []]));
+    $pipe = jread("$D/pipeline.json", ['upcoming' => [], 'published' => []]);
     $pending = [];
     foreach (glob("$D/uploads/photos/*") as $f) { $pending[] = ['id' => basename($f), 'url' => 'data/uploads/photos/' . rawurlencode(basename($f)), 'ts' => date('c', filemtime($f))]; }
     $memos = [];
     foreach (glob("$D/uploads/memos/*") as $f) { $memos[] = ['id' => basename($f), 'ts' => date('c', filemtime($f)), 'bytes' => filesize($f)]; }
     $msg = jread("$D/messages.json", []);
-    out(['cards' => $cards, 'queue' => today_queue(), 'photos' => $photos, 'pending' => $pending, 'memos' => $memos, 'settings' => settings(), 'messages' => $msg, 'now' => date('c')]);
+    out(['cards' => $cards, 'pipeline' => $pipe, 'queue' => today_queue(), 'photos' => $photos, 'pending' => $pending, 'memos' => $memos, 'settings' => settings(), 'messages' => $msg, 'now' => date('c')]);
 
   case 'decide': // post card: post | change | skip | posted
     $id = (string)($body['card_id'] ?? ''); $dec = (string)($body['decision'] ?? '');

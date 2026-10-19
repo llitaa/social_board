@@ -24,17 +24,18 @@ def main():
     done = jload(STATE, {})
     plan, pf = read_csv(CFG["content_plan"]); plog, lf = read_csv(CFG["posts_log"])
     cards = {c["id"]: c for c in jload(os.path.join(BOARD_LOCAL, "cards.json"), [])}
-    changed_plan = changed_log = False
+    changed_plan = changed_log = False; last_ts = jload(os.path.join(BOARD_LOCAL, "applied.json"), {}).get("until", "")
     for f in sorted(glob.glob(os.path.join(BOARD_LOCAL, "decisions", "*.jsonl"))):
         lines = open(f, encoding="utf-8").read().splitlines()
         start = done.get(os.path.basename(f), 0)
         for ln in lines[start:]:
             try: d = json.loads(ln)
             except json.JSONDecodeError: continue
-            t = d.get("type")
+            t = d.get("type"); last_ts = max(last_ts, d.get("ts", ""))
             if t == "post":
                 cid = d["card_id"]; card = cards.get(cid, {})
-                status = {"post": "approved", "change": "change", "skip": "skipped", "posted": "posted"}[d["decision"]]
+                status = {"post": "approved", "change": "change", "skip": "skipped", "posted": "posted"}.get(d["decision"])
+                if not status: continue
                 for r in plan:
                     if r["id"] == card.get("plan_row"):
                         r["status"] = status
@@ -58,6 +59,8 @@ def main():
     if changed_plan: write_csv(CFG["content_plan"], plan, pf); log("content-plan.csv updated")
     if changed_log: write_csv(CFG["posts_log"], plog, lf); log("posts-log.csv updated")
     jdump(os.path.join(BOARD_LOCAL, "cards.json"), list(cards.values()))
-    jdump(STATE, done); log("decisions applied")
+    # everything up to the newest applied decision is now in the CSVs; the board drops overlay entries older than this
+    if last_ts: jdump(os.path.join(BOARD_LOCAL, "applied.json"), {"until": last_ts, "at": datetime.now().isoformat(timespec="seconds")})
+    jdump(STATE, done); log("decisions applied", "until", last_ts or "-")
 
 if __name__ == "__main__": main()

@@ -1,8 +1,8 @@
 id,file,taken,shoot,note,status,used_in,crop,face,label,added
 img0614,photos/shoots/2026-09-05_shoot/IMG_0614.HEIC,2026-09-05T18:13:58,2026-09-05_shoot,,used,li-post-09,"0,258,4284",yes,,2026-10-18T12:43:58
 img5153,photos/shoots/2026-05-12_shoot/IMG_5153.HEIC,2026-05-12T15:12:34,2026-05-12_shoot,,used,li-post-08,"0,330,4284",yes,,2026-10-18T12:44:00
-img5881,photos/shoots/2026-09-03_shoot/IMG_5881.HEIC,2026-09-03T14:43:06,2026-09-03_shoot,"holding the open book box, indoors; fits book posts",ready,,"0,0,4284",yes,,2026-10-18T12:44:01
-img9192,photos/shoots/2026-05-20_shoot/IMG_9192.HEIC,2026-05-20T19:25:06,2026-05-20_shoot,"Horseshoe Bend, red rock, canyon",ready,,"0,935,6048",yes,,2026-10-18T12:44:04
+img5881,photos/shoots/2026-09-03_shoot/IMG_5881.HEIC,2026-09-03T14:43:06,2026-09-03_shoot,"holding the open book box, indoors; fits book posts",used,manual,"0,0,4284",yes,,2026-10-18T12:44:01
+img9192,photos/shoots/2026-05-20_shoot/IMG_9192.HEIC,2026-05-20T19:25:06,2026-05-20_shoot,"Horseshoe Bend, red rock, canyon",used,manual,"0,935,6048",yes,friday,2026-10-18T12:44:04
 img9362,photos/shoots/2026-05-22_shoot/IMG_9362.HEIC,2026-05-22T18:50:04,2026-05-22_shoot,,used,li-post-12,"0,149,6048",yes,,2026-10-18T12:44:06
 img9485,photos/shoots/2026-06-04_shoot/IMG_9485.HEIC,2026-06-04T20:09:52,2026-06-04_shoot,,used,li-post-10,"0,133,3024",yes,,2026-10-18T12:44:07
 img9505,photos/shoots/2026-06-06_shoot/IMG_9505.HEIC,2026-06-06T15:46:36,2026-06-06_shoot,"same trip and outfit as img9485 (lake), never back-to-back",ready,,"0,1722,6048",yes,,2026-10-18T12:44:10
