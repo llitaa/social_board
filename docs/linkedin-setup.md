@@ -2,7 +2,10 @@
 
 Until this is done, an approved card says "you post it <slot>": at the slot you press Copy text, save the image and post in the LinkedIn app. After it, approved personal posts go out by themselves at the slot (`pipeline/publish.py`). Nothing here is done by the assistant: the app, the login and the consent are yours.
 
-## 1. Create the app (10 min)
+## 0. You already have one
+The app **AlpiType Analytics** (created 28.05.2026, under the AlpiType page, company verified) does the job; skip step 1. Its client id is already in `config.local.linkedin.json`; only the secret is missing. If the Analytics app ever needs different scopes than posting, a second app is still possible later.
+
+## 1. Create the app (10 min, only without an existing app)
 1. Open https://www.linkedin.com/developers/apps while logged in as yourself, press **Create app**.
 2. App name: `AlpiType Board`. LinkedIn Page: **AlpiType** (the company page; you are its admin). Privacy policy URL: `https://alpitype.de/datenschutz/` (or the current page). Upload the logo. Accept the legal terms, press Create app.
 3. **Settings** tab → **Verify** next to the page name → Generate URL → open that URL (you are the page admin) → Verify. The app status becomes "Verified".
