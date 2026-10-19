@@ -4,11 +4,11 @@ whether it is healthy, and writes board/data/health.json; the board shows a red 
 last log line. The page itself adds "Mac not seen for N min" from the timestamp, so a dead Mac shows too."""
 import json, os, glob
 from datetime import datetime, date, timedelta
-from common import CFG, LIB, BOARD_LOCAL, read_csv, jdump, log
+from common import CFG, LIB, BOARD_LOCAL, read_csv, jdump, jload, log
 
 STEPS = os.path.join(LIB, "log", "steps.jsonl")
 NAMES = {"pull": "server sync (pull)", "apply": "decisions → CSV", "learn": "notes → preferences", "transcribe": "memo transcription", "photos": "photo pool",
-         "redraft": "notes → redraft", "publish": "LinkedIn publishing", "draft": "slot filling", "cards": "cards + pipeline", "push": "server sync (push)"}
+         "redraft": "notes → redraft", "publish": "LinkedIn publishing", "mail": "mailbox watch (read only)", "draft": "slot filling", "cards": "cards + pipeline", "push": "server sync (push)"}
 LI = os.path.join(os.path.dirname(LIB), "config.local.linkedin.json"); LI_ORG = os.path.join(os.path.dirname(LIB), "config.local.linkedin-org.json")
 
 def linkedin():
@@ -65,6 +65,10 @@ def main():
         for r in read_csv(calls)[0]:
             if r["ts"][:7] == today.isoformat()[:7]: cost += float(r["cost_usd"] or 0); failed += r["ok"] == "no"
     if failed: issues.append({"what": "model calls", "since": today.isoformat(), "times": failed, "log": f"{failed} failed claude -p calls this month", "fix": "run `claude -p 'ok'` by hand; check the subscription limit"})
+    mail = jload(os.path.join(BOARD_LOCAL, "mail.json"), {})
+    for m in mail.get("linkedin_developer", [])[:3]:
+        if (date.today() - date.fromisoformat(m["ts"][:10])).days <= 14:
+            issues.append({"what": "LinkedIn mail", "since": m["ts"][:10], "times": 1, "log": f"{m['ts'][:10]} {m['subject']} — {m['preview'][:140]}", "fix": "read it in anton@alpitype.com; if the Community Management API is granted: python3 pipeline/linkedin_auth.py --org"})
     if li["connected"] and li["days_left"] < 7: issues.append({"what": "LinkedIn token", "since": today.isoformat(), "times": 1, "log": f"expires in {li['days_left']} days", "fix": "run: python3 pipeline/linkedin_auth.py"})
     rules = [l for l in open(os.path.join(LIB, "style-rules.txt"), encoding="utf-8") if l.strip() and not l.startswith("#")] if os.path.isfile(os.path.join(LIB, "style-rules.txt")) else []
     jdump(os.path.join(BOARD_LOCAL, "health.json"), {"ts": datetime.now().isoformat(timespec="seconds"), "issues": issues, "ok": ok, "month_cost_usd": round(cost, 2), "slots_planned": len(slots), "topics_unused": unused,
