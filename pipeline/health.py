@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+"""The watchdog. Reads library/log/steps.jsonl (one line per step per run) and the state files, decides per component
+whether it is healthy, and writes board/data/health.json; the board shows a red line with the failing step and its
+last log line. The page itself adds "Mac not seen for N min" from the timestamp, so a dead Mac shows too."""
+import json, os, glob
+from datetime import datetime, date, timedelta
+from common import CFG, LIB, BOARD_LOCAL, read_csv, jdump, log
+
+STEPS = os.path.join(LIB, "log", "steps.jsonl")
+NAMES = {"pull": "server sync (pull)", "apply": "decisions → CSV", "transcribe": "memo transcription", "photos": "photo pool",
+         "redraft": "notes → redraft", "draft": "slot filling", "cards": "cards + pipeline", "push": "server sync (push)"}
+
+def last_runs(n=3):
+    rows = [json.loads(l) for l in open(STEPS, encoding="utf-8")] if os.path.isfile(STEPS) else []
+    by = {}
+    for r in rows: by.setdefault(r["step"], []).append(r)
+    return {k: v[-n:] for k, v in by.items()}
+
+def main():
+    issues, ok = [], []
+    runs = last_runs()
+    for step, name in NAMES.items():
+        rs = runs.get(step, [])
+        if not rs: continue
+        bad = [r for r in rs if r["rc"] != 0]
+        if rs[-1]["rc"] != 0: issues.append({"what": name, "since": bad[0]["ts"], "times": len(bad), "log": rs[-1]["last"], "fix": f"run: python3 pipeline/{ {'pull':'board_sync.py pull','push':'board_sync.py push'}.get(step, step + '.py') } and read library/log/board-sync.err"})
+        else: ok.append(name)
+    # content checks
+    plan, _ = read_csv(CFG["content_plan"]); today = date.today(); horizon = today + timedelta(days=int(CFG.get("horizon_days", 14)))
+    slots = [r for r in plan if r["channel"].startswith("linkedin") and r["status"] in ("draft", "approved", "scheduled", "change") and today.isoformat() <= (r.get("planned") or "")[:10] <= horizon.isoformat()]
+    if len(slots) < 4: issues.append({"what": "slot filling", "since": today.isoformat(), "times": 1, "log": f"only {len(slots)} posts planned in the next 14 days", "fix": "check library/log/draft.out, inventory.csv (unused topics) and the photo pool"})
+    stuck = [r for r in plan if r["status"] == "change" and "[redraft failed" in r.get("notes", "")]
+    for r in stuck: issues.append({"what": "notes → redraft", "since": today.isoformat(), "times": 1, "log": r["notes"][:160], "fix": "decide the card again or rephrase the note"})
+    inv, _ = read_csv(os.path.join(LIB, "inventory.csv")); unused = sum(1 for r in inv if r["status"] == "unused" and r["pillar"] != "company")
+    if unused < 4: issues.append({"what": "material", "since": today.isoformat(), "times": 1, "log": f"{unused} unused personal topics left", "fix": "record memos or run inventory.py"})
+    calls = os.path.join(LIB, "log", "llm-calls.csv"); failed = 0; cost = 0.0
+    if os.path.isfile(calls):
+        for r in read_csv(calls)[0]:
+            if r["ts"][:7] == today.isoformat()[:7]: cost += float(r["cost_usd"] or 0); failed += r["ok"] == "no"
+    if failed: issues.append({"what": "model calls", "since": today.isoformat(), "times": failed, "log": f"{failed} failed claude -p calls this month", "fix": "run `claude -p 'ok'` by hand; check the subscription limit"})
+    jdump(os.path.join(BOARD_LOCAL, "health.json"), {"ts": datetime.now().isoformat(timespec="seconds"), "issues": issues, "ok": ok, "month_cost_usd": round(cost, 2), "slots_planned": len(slots), "topics_unused": unused})
+    log(f"health: {len(issues)} issue(s)" + (": " + "; ".join(i["what"] for i in issues) if issues else ""))
+
+if __name__ == "__main__": main()

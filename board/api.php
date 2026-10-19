@@ -80,7 +80,8 @@ switch ($a) {
     $memos = [];
     foreach (glob("$D/uploads/memos/*") as $f) { $memos[] = ['id' => basename($f), 'ts' => date('c', filemtime($f)), 'bytes' => filesize($f)]; }
     $msg = jread("$D/messages.json", []);
-    out(['cards' => $cards, 'pipeline' => $pipe, 'queue' => today_queue(), 'photos' => $photos, 'pending' => $pending, 'memos' => $memos, 'settings' => settings(), 'messages' => $msg, 'now' => date('c')]);
+    $health = jread("$D/health.json", ['ts' => '', 'issues' => []]);
+    out(['health' => $health, 'cards' => $cards, 'pipeline' => $pipe, 'queue' => today_queue(), 'photos' => $photos, 'pending' => $pending, 'memos' => $memos, 'settings' => settings(), 'messages' => $msg, 'now' => date('c')]);
 
   case 'decide': // post card: post | change | skip | posted
     $id = (string)($body['card_id'] ?? ''); $dec = (string)($body['decision'] ?? '');

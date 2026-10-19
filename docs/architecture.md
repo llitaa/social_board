@@ -92,7 +92,19 @@ All nine domains (alpitype.de, alpitype.com, alpitype.ai, alpi-m.de, aux-valley.
 
 `draft.py` runs in every sync. For each weekday slot in the next 14 days without a post (max 3 personal + 1 company per week, posts you scheduled yourself count): pillar = the one least used in the surrounding 14 days that still has material (a fresh voice memo comes first) → topic = strongest unused row of `library/inventory.csv` → photo = `photo_index.pick()` (never used before re-used, taken within 24 months before older, newest first, solo photos first, never the shoot of the post before or after, 90 days until a used photo is free again) or, for company posts, a 1200×1200 graphic from `pipeline/templates/company-card.html` rendered by headless Chrome → one text from Opus with the CV (personal) or the company context (company) as the only facts and three recent posts as voice → `rules_check.py` (banned patterns, question at the end, length) → `library/drafts/` + a content-plan row with status draft. 19.10.: 5 drafts in about 9 minutes.
 
-## 5. Tokens: measured today, and the decision
+## 5. Logs and the watchdog
+
+Every run of the chain writes one line per step to `library/log/steps.jsonl` (step, time, seconds, exit code, last log line); full output is in `library/log/board-sync.err`, model calls in `llm-calls.csv`, board presses in `post-decisions.csv` / `board-events.csv`. `health.py` is the agent: after each run it reads those lines plus the content state (posts planned in the next 14 days, stuck notes, unused topics, failed model calls) and writes `health.json` to the server. The board's first line is that report: green "system ok · last run n min ago · 9 posts planned · $1.21 this month", or a red block per problem with the failing step, its last log line and the fix command. The page adds "Mac not seen for n min" from the timestamp itself, so a sleeping Mac shows without any process on the server. Shared hosting cannot run a daemon; this needs none.
+
+**Why transcription runs on the Mac, not the server:** whisper.cpp needs ffmpeg, a 466 MB model, about 1 GB RAM and real CPU time (your 4 s memo took 1.4 s on the M-series chip; on the shared Hostinger CPU it would be a minute and may be killed). The hosting plan allows no long-running processes and no binaries we install. A VPS could do it for about 5 € a month; the Mac does it for nothing, and the Mac runs anyway for the drafts.
+
+## 6. LinkedIn API: what exists, what you have to do once
+
+`pipeline/linkedin_auth.py` (one-time authorisation in your browser; I never sign in for you) and `pipeline/publish.py` (approved cards → Posts API at the slot, image upload, URL into posts-log, `--dry` to preview) are written and wait for an app: create it at linkedin.com/developers under the AlpiType page, add "Share on LinkedIn" and "Sign In with LinkedIn using OpenID Connect", redirect URL `http://localhost:8765/callback`, put client id and secret into `config.local.linkedin.json`, run the auth script. Personal posts work from that moment. The company page needs the "Community Management API" product, which LinkedIn reviews (days to weeks); until then company cards keep Copy text and Save image.
+
+**What the system knows about your previous posts, honestly:** 22 posts since 30.07. in `posts-log.csv`, numbers for 6 of them (li-post-02 19 reactions, li-post-06 3121 impressions / 16 reactions, li-comp-05 7 / 4, li-comp-06 147 impressions, li-post-01 847, li-post-06-legacy 263); the LinkedIn data export on the Mac (31.07.) has your comments, reactions and 17 media uploads but no posts file. Nothing was read from LinkedIn itself; there is no API read scope and the browser profile is not logged in. `metrics_import.py` now takes LinkedIn's analytics exports (page: Analytics → Content → Export; personal: post → analytics → Export) from `library/metrics/inbox/` into posts-log, matched by date and hook.
+
+## 7. Tokens: measured today, and the decision
 
 `claude -p` works from a script on your subscription for all three models. Measured 19.10., one comment draft (a realistic 180-word prompt), Mac, no session open:
 

@@ -15,7 +15,7 @@ def rsync(args):
     if r.returncode: log("rsync failed:", " ".join(cmd), r.stderr.strip()); sys.exit(1)
 
 def push():
-    for item in ("cards.json", "pipeline.json", "photos.json", "messages.json", "applied.json"):
+    for item in ("cards.json", "pipeline.json", "photos.json", "messages.json", "applied.json", "health.json"):
         f = os.path.join(BOARD_LOCAL, item)
         if os.path.isfile(f): rsync([f, f"{ALIAS}:{R}/data/"])
     for d in ("queue", "img"):

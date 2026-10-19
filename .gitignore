@@ -20,3 +20,4 @@ pipeline/models/*.onnx
 library/log/.run.lock
 library/log/.applied.json
 library/sources/
+config.local.linkedin.json

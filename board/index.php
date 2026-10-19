@@ -87,6 +87,10 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--m);m
 .set{font-size:13px;color:var(--m);margin:16px 0 0}
 .set input{width:70px;padding:4px 6px;font-size:14px}
 .msg{border:1.5px solid var(--c);background:var(--bg);border-radius:10px;padding:12px;margin:0 0 12px}
+.sys{border-radius:10px;padding:10px 12px;margin:0 0 12px;font-size:13px;background:var(--warn);border:1px solid #f3d9a4;color:#7a4b00}
+.sys b{display:block;font-size:14px;color:#8a2a00}
+.sys code{display:block;white-space:pre-wrap;font-size:12px;background:#fff;padding:6px 8px;border-radius:6px;margin:4px 0}
+.sys.ok{background:#fff;border-color:var(--b);color:var(--m)}
 #side{display:none}
 @media(min-width:960px){
   main{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:28px;align-items:start}
@@ -176,8 +180,15 @@ function postHtml(c){
                                  :`<div class="ava">AL</div><div><div class="n">Anton Lytvynenko</div><div class="s">personal · ${esc(c.lang)} · ${fmtSlot(c.slot)}${c.pillar?' · '+esc(c.pillar):''}</div></div>`;
   return `<div class="who">${who}</div><div class="txt" id="t-${c.id}">${esc(c.text)}</div>${c.image?`<div class="img"><img src="${esc(c.image.url)}" alt=""></div>`:'<div class="q" style="padding:0 14px 10px">no image</div>'}`;
 }
+function systemHtml(){
+  const H=S.health||{}; const seen=H.ts?Math.round((new Date(S.now)-new Date(H.ts))/60000):null; const issues=[...(H.issues||[])];
+  if(seen===null) issues.unshift({what:'Mac',log:'no health report yet',fix:'check launchctl list | grep board-sync on the Mac'});
+  else if(seen>45) issues.unshift({what:'Mac',log:`last run ${seen} min ago, presses wait on the server`,fix:'wake the Mac; if awake: launchctl kickstart gui/501/com.alpitype.board-sync, then library/log/board-sync.err'});
+  if(!issues.length) return `<div class="sys ok">system ok · last run ${seen} min ago · ${H.slots_planned||0} posts planned · ${H.topics_unused||0} topics left · $${H.month_cost_usd||0} this month</div>`;
+  return issues.map(i=>`<div class="sys"><b>${esc(i.what)} needs a fix${i.times>1?' · '+i.times+' times':''}</b>${esc(i.log||'')}<code>${esc(i.fix||'')}</code></div>`).join('');
+}
 function renderPost(){
-  const el=$('#post'); let h='';
+  const el=$('#post'); let h=systemHtml();
   for(const m of (S.messages||[])){ if(m.answer) continue; h+=`<div class="msg"><div class="q" style="margin:0 0 6px">${esc(m.kind||'question')}</div><div style="white-space:pre-wrap">${esc(m.text)}</div><div class="row"><button class="b p" onclick="answer('${m.id}','yes')">Yes</button><button class="b" onclick="answer('${m.id}','no')">No</button><button class="b s" onclick="answer('${m.id}','later')">Later</button></div></div>`; }
   const cards=[...S.cards].sort((a,b)=>(needs(a)?0:1)-(needs(b)?0:1)||a.slot.localeCompare(b.slot));
   if(!cards.some(needs)) h+='<div class="empty">Nothing to decide. New drafts appear here as soon as a slot opens.</div>';
