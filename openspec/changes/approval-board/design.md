@@ -8,11 +8,13 @@ The board must work from the phone and from the Mac without a Claude session. Th
 **Non-Goals:** user accounts, multi-user, editing post text on the phone beyond a note, analytics on the board.
 
 ## Decisions
-- Hosting: a published artifact page with shared-state and file-store capabilities (verify on build day); fallback: a small static page on the Mac exposed only via the Claude session (Remote Control) until the artifact path is confirmed.
-- State model: one JSON document per day (`decisions/YYYY-MM-DD.json`) mirrored into the repo at `local/board/` by the nightly sync; the repo copy is the truth after sync.
-- Record: browser MediaRecorder → audio file in the board store → nightly sync → `local/resources/voice/`; transcription on the Mac (local Whisper), never cloud.
+- Hosting: PHP page + JSON API on alpitype.com under a secret path (`board/<token>/`), shared hosting, no accounts; the Mac syncs with rsync every 10 minutes (`pipeline/run.sh`, launchd).
+- State model: decisions appended as JSONL per day on the server, pulled to `board/data/decisions/`, folded into `content-plan.csv` by `apply_decisions.py`; the CSV is the truth, the board shows an overlay until the Mac confirms (`applied.json`).
+- Card = post preview (author line, text, image), three actions. A note is an instruction, not a conversation: `redraft.py` applies it and approves. No option A/B, no crop, no photo choice on the card.
+- Record: browser MediaRecorder → `uploads/memos/` → moved to the Mac → whisper.cpp → `library/memos/<ts>.txt` → next personal draft.
 - Copy text and Save image on every card, always; at slot time an approved card says "post it yourself" until linkedin-publishing is live.
+- Desktop ≥ 960 px: cards left with the action column beside the preview, pipeline right; phone: one column, pipeline under the cards.
 
 ## Risks / Trade-offs
-- Artifact file-store limits (size per file) → compress audio and photos on the phone before upload.
-- If shared state is unavailable, decisions fall back to Remote Control replies; the day still works, slower.
+- Mac asleep: presses are stored on the server and applied at the next run; a note waits until then. Known and accepted.
+- A note the model misreads is approved without Anton seeing it: the updated card stays visible until the slot and can be skipped; the rules gate blocks the worst cases.

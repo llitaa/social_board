@@ -1,0 +1,15 @@
+„Wir haben einen KI-Use-Case." Ich höre den Satz jede Woche. Meistens ist es ein Wunsch, kein Use Case.
+
+Ein Use Case ist für mich erst einer, wenn drei Dinge auf dem Tisch liegen:
+
+Das Problem. Nicht „Mails automatisieren", sondern: Rechnungen kommen per Mail, zwei Leute tippen sie ab, jede fünfte hat einen Fehler.
+
+Die Lösung. Was das System tut und was es nicht tut. Wer die Ausnahmen sieht. Wer freigibt. Wer haftet, wenn es falsch bucht.
+
+Die Umgebung. Wo es läuft, mit welchen Daten, über welche Schnittstelle. Ich hatte dieses Jahr einen Fall, da war alles klar bis zu dem Tag, an dem sich zeigte: Das Werkzeug, aus dem die Daten kommen sollten, hat keine Schnittstelle. Der Use Case war fertig gedacht und nicht lösbar.
+
+Gelöst ist ein Use Case, wenn er in der Umgebung des Kunden läuft und ein Mensch die Ausnahmen trägt. Nicht, wenn die Demo läuft.
+
+Welchen Use Case in Ihrer Firma hat die Demo gelöst, aber nicht der Betrieb?
+
+#KIUseCase #Automatisierung #7030

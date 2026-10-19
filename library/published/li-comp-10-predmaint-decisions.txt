@@ -1,0 +1,21 @@
+84 percent of predictive maintenance pilots are still pilots a year later.
+
+The model is rarely the reason. The reasons are four decisions that were never made.
+
+1. Where does the analytics run?
+Cloud bills you monthly for data and compute. On-premise bills you for the people who run the server. Edge bills you for every update to a machine in the field. For a proof of concept we start central. The production architecture is decided after we have seen the data, not before.
+
+2. Which competencies do you buy, and which do you build?
+The competence you do not have is a recurring cost either way. Decide early who carries it.
+
+3. Which data do you actually have?
+Failures are rare. Most machines log cycle counts and error codes, not motor currents and travel times. So the first useful result is condition monitoring: a baseline, trends a service technician recognises, interpretable thresholds. Prediction comes when the history exists.
+
+4. Time to solution or time to production?
+A working PoC takes weeks. Production means security review, write-back into the service workflow, rollout across machine variants. The gap between the two is where most pilots die, because it was never budgeted.
+
+None of this requires rebuilding the machine. It requires looking at what the machine already measures and being honest about what is missing.
+
+If you build machines and are weighing these decisions: 30 minutes with an engineer, no sales team.
+
+#PredictiveMaintenance #Maschinenbau #IndustrialAI #EdgeComputing

@@ -1,0 +1,11 @@
+Acht Monate Defense. Der Auftrag: mehrere Softwareprodukte entwickeln und ausliefern, als Softwarearchitekt und technischer Koordinator eines Teams aus sechs Entwicklern plus Product Owner.
+
+Der Teil, der die Zeit kostet: Die neue Software muss an Bestandscode andocken. Code, der im Einsatz ist und den man nicht mal eben umschreibt.
+
+Also kein Rewrite. Stattdessen: Kernkomponenten selbst entworfen und gebaut, die Integration mit dem Bestand selbst verantwortet, Scrum eingeführt, damit das Team parallel liefern kann. C++20, Qt/QML, SQLite, CMake, Linux.
+
+Ergebnis: technische Serienreife nach fünf Monaten. Neu und Alt laufen zusammen, der alte Teil wurde nicht gebrochen.
+
+Wenn Ihre neue Software an alten Code muss, ohne dass die Anlage steht: Das ist genau meine Arbeit.
+
+#Cpp #Qt #SoftwareArchitektur

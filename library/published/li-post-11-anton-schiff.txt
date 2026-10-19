@@ -1,0 +1,15 @@
+Dieses Schiff fährt noch? Legacy-Code auch?
+
+Was ich in Projekten zuerst rosten sehe:
+
+Die Architektur. Dasselbe Programm startet beim Kunden in zwanzig Konfigurationen. Jede ein eigener Pfad durch denselben Kern, und keiner weiß mehr, welche davon noch jemand benutzt.
+
+Das Wissen. Irgendwo im Parser ein Block mit Bit-Shifts. Kein Kommentar, kein Test. Ich frage dann: Wer hat das geschrieben? Der Kollege, der vor zwanzig Jahren drei Jahre daran saß. Das war ein Forward Deployment, bevor es das Wort gab. Der Code ging so in Produktion. Er läuft bis heute. Niemand fasst ihn an.
+
+Das Zielsystem. Neues OS, neuer Compiler, neue Qt-Version. Der Build bricht an Stellen, die seit zehn Jahren niemand gelesen hat.
+
+Keine der drei Stellen sieht man am Produkt. Der Kunde zahlt, die Maschine läuft. Man sieht sie, wenn eine Änderung drei Wochen dauert statt drei Tage.
+
+Wo rostet es bei Ihnen zuerst?
+
+#LegacyCode #Cpp #SoftwareArchitektur

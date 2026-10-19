@@ -1,0 +1,18 @@
+{
+ "id": "li-post-15",
+ "channel": "personal",
+ "pillar": "trend",
+ "topic": "t025",
+ "memo": "",
+ "photo": "img4515",
+ "neighbour_shoots": [
+  "2026-05-22_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-19T11:42:29",
+ "versions": [],
+ "graphic": null,
+ "photo_history": [
+  "img3863"
+ ]
+}

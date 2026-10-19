@@ -30,15 +30,17 @@ function overlay_cards(array $cards): array {
 function overlay_photos(array $ph): array {
   global $D; $ov = jread("$D/overlay.json", [])['photos'] ?? [];
   foreach ($ph['shoots'] ?? [] as &$s) {
-    $ss = $ov[$s['id']] ?? null; $shoot_used = fresh($ss) && $ss['state'] === 'mark_used';
+    $ss = $ov[$s['id']] ?? null; $shoot_used = fresh($ss) && $ss['state'] === 'mark_used'; $shoot_hold = fresh($ss) && $ss['state'] === 'hold';
     if (fresh($ss) && $ss['state'] === 'use_friday') $s['label'] = 'friday';
     foreach ($s['photos'] as &$p) {
       $ps = $ov[$p['id']] ?? null;
-      if ($shoot_used || (fresh($ps) && $ps['state'] === 'mark_used')) { if ($p['status'] !== 'used') { $p['status'] = 'used'; $p['used_in'] = $p['used_in'] ?: 'manual'; } }
+      if ($shoot_used || (fresh($ps) && $ps['state'] === 'mark_used')) { if ($p['status'] !== 'used') { $p['status'] = 'used'; $p['used_in'] = $p['used_in'] ?: 'manual'; $p['eligible'] = false; } }
+      if ($shoot_hold || (fresh($ps) && $ps['state'] === 'hold')) { $p['status'] = 'hold'; $p['eligible'] = false; }
       if (fresh($ps) && $ps['state'] === 'use_friday') $p['label'] = 'friday';
     } unset($p);
-    $st = array_unique(array_column($s['photos'], 'status'));
-    $s['status'] = ($st === ['used']) ? 'used' : (in_array('new', $st, true) ? 'new' : 'ready');
+    $st = array_values(array_unique(array_column($s['photos'], 'status')));
+    $s['status'] = ($st === ['used']) ? 'used' : ($st === ['hold'] ? 'hold' : (in_array('new', $st, true) ? 'new' : 'ready'));
+    $s['eligible'] = (bool)array_filter($s['photos'], fn($p) => !empty($p['eligible']));
   } unset($s);
   return $ph;
 }
@@ -102,9 +104,9 @@ switch ($a) {
     decide(['type'=>'comment','card_id'=>$id,'decision'=>$dec,'reason'=>$body['reason'] ?? null]);
     out(['ok'=>true]);
 
-  case 'photo': // use_friday | mark_used | delete  (id = photo id or shoot id)
+  case 'photo': // hold | use_friday | mark_used | delete  (id = photo id or shoot id)
     $dec = (string)($body['decision'] ?? ''); $id = (string)($body['id'] ?? '');
-    if ($id === '' || !in_array($dec, ['use_friday','mark_used','delete'], true)) out(['error' => 'bad request']);
+    if ($id === '' || !in_array($dec, ['hold','use_friday','mark_used','delete'], true)) out(['error' => 'bad request']);
     if ($dec === 'delete' && is_file("$D/uploads/photos/$id") && preg_match('/^[\w.\-]+$/', $id)) unlink("$D/uploads/photos/$id");
     set_overlay('photos', $id, ['state' => $dec]);
     decide(['type'=>'photo','id'=>$id,'decision'=>$dec]);

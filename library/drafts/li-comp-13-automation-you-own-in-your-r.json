@@ -1,0 +1,23 @@
+{
+ "id": "li-comp-13",
+ "channel": "company",
+ "pillar": "company",
+ "topic": "t030",
+ "memo": "",
+ "photo": "",
+ "neighbour_shoots": [],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-19T11:42:47",
+ "versions": [],
+ "graphic": {
+  "eyebrow": "Automation you own",
+  "title": "Your code. Your data.\nYour exit.",
+  "lines": [
+   "Source code lives in your own repository",
+   "Data stays where it is produced",
+   "Exit built into the architecture",
+   "A person approves the 30 percent"
+  ],
+  "footer": "70/30"
+ }
+}

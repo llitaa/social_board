@@ -1,0 +1,15 @@
+Anderthalb Jahre Halbleiterindustrie. Der Auftrag: mehrere Softwareprodukte entwerfen und liefern.
+
+Der Teil, der nicht im Auftrag stand: Die Produkte müssen ohne mich weiterleben. Gepflegt von Entwicklern mit weniger Erfahrung. Ohne dass ein Release Bestehendes zerlegt.
+
+Das ist keine Personalfrage. Das ist Architektur.
+
+Also habe ich Kernarchitektur und Kernfunktionen selbst gebaut, eng mit den Fachexperten statt mit Annahmen. Der Rest ist so aufgebaut, dass das Team ihn weiterentwickeln kann, ohne Bestehendes zu brechen. C++, Python, Qt/PyQt, Linux.
+
+Ergebnis: Die Releases liefen durch. Das Team kann die Produkte selbst weiterpflegen.
+
+Wenn Ihre Software an einer Person hängt: Das lässt sich ändern. Ohne Neuentwicklung.
+
+Für das nächste Projekt bin ich offen für Gespräche. Schreiben Sie mir.
+
+#Cpp #Qt #Freelance

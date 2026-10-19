@@ -1,19 +1,22 @@
-library/**
-!library/
-!library/*/
-!library/*/index.csv
-!library/log/
+# media never in git; texts, indexes, logs and drafts are tracked
 *.jpg
 *.jpeg
 *.png
 *.heic
+*.HEIC
 *.m4a
 *.mp3
 *.wav
 *.webm
 *.pdf
+!board/icon.png
 .DS_Store
 __pycache__/
 config.local.yaml
+config.local.token
 board/data/
 pipeline/models/*.bin
+pipeline/models/*.onnx
+library/log/.run.lock
+library/log/.applied.json
+library/sources/

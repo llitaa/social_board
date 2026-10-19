@@ -1,0 +1,15 @@
+{
+ "id": "li-post-17",
+ "channel": "personal",
+ "pillar": "case",
+ "topic": "t003",
+ "memo": "",
+ "photo": "img3802",
+ "neighbour_shoots": [
+  "2026-01-25_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-19T11:45:19",
+ "versions": [],
+ "graphic": null
+}

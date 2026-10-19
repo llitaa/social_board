@@ -1,0 +1,17 @@
+The day a client stops working with us, nothing stops running. The code is in their repository, the data is on their servers, and the automation keeps doing its 70 percent.
+
+That is the test we build against. Industrial or office, the automation we write is code inside the client's own environment: their Microsoft 365, or software next to the machine, on-premise. Not a platform they rent access to.
+
+What the client keeps:
+
+The source. Every rule, every exception path, every integration is readable and versioned in their own repository. The next request is a change in code, not a ticket to a vendor.
+
+The data. It stays where it is produced. Nothing is copied into a third-party platform to be processed there.
+
+The exit. If they want to continue with their own team or with someone else, they can. That is a property of the architecture, not a clause in a contract.
+
+The 30 percent stays theirs as well. Exceptions go to a person on their side who approves them, and who trains, who controls, who is accountable stays written down.
+
+If your automation ended with its subscription tomorrow, what would you still have?
+
+#Automation #OnPremise #7030

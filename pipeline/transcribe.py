@@ -30,7 +30,7 @@ def main():
         except Exception as e: log("transcribe failed", f, e); text = ""
         open(os.path.splitext(dst)[0] + ".txt", "w", encoding="utf-8").write(text)
         out.append({"id": f, "file": os.path.relpath(dst, LIB), "recorded": datetime.fromtimestamp(os.path.getmtime(dst)).isoformat(timespec="seconds"),
-                    "seconds": "", "words": str(len(text.split())), "status": "new" if text else "failed", "used_in": "", "note": note}); n += 1
+                    "seconds": "", "words": str(len(text.split())), "status": ("new" if len(text.split()) >= 15 else "short") if text else "failed", "used_in": "", "note": note}); n += 1
     with open(INDEX, "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=FIELDS); w.writeheader(); w.writerows(out)
     log(f"memos transcribed: {n}")

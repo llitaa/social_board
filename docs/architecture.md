@@ -1,5 +1,5 @@
 title: LinkedIn system — architecture on one page
-subtitle: Data flow, storage, feedback, tokens · state 19.10.2026 · measured, not estimated
+subtitle: Data flow, storage, feedback, tokens · state 19.10.2026 evening · measured, not estimated
 footer: AlpiType · Intern · Architecture · 19.10.2026
 
 <style>table{page-break-inside:auto} tr{page-break-inside:avoid} svg{max-width:100%;height:auto;display:block;margin:4px 0 8px} td,th{font-size:9pt} h2{margin-top:14px}</style>
@@ -20,7 +20,7 @@ footer: AlpiType · Intern · Architecture · 19.10.2026
 </g>
 <g fill="#1f2d3a" text-anchor="middle">
 <text x="120" y="82" font-weight="600">Board page</text><text x="120" y="98" font-size="11">Post · Comments · Photos · Record</text>
-<text x="120" y="146" font-weight="600">Decision press</text><text x="120" y="162" font-size="11">Post / Change / Skip / Mark posted</text>
+<text x="120" y="146" font-weight="600">Decision press</text><text x="120" y="162" font-size="11">Post as is / Post with changes / Skip</text>
 <text x="120" y="210" font-weight="600">Add photo</text><text x="120" y="226" font-size="11">camera roll, original stays on phone</text>
 <text x="120" y="274" font-weight="600">Record</text><text x="120" y="290" font-size="11">MediaRecorder, m4a</text>
 <text x="410" y="82" font-weight="600">cards.json · pipeline.json · photos.json</text><text x="410" y="98" font-size="11">read only, written by the Mac</text>
@@ -28,11 +28,11 @@ footer: AlpiType · Intern · Architecture · 19.10.2026
 <text x="410" y="210" font-weight="600">uploads/photos/</text><text x="410" y="226" font-size="11">waits ≤10 min, then moved off</text>
 <text x="410" y="274" font-weight="600">uploads/memos/</text><text x="410" y="290" font-size="11">waits ≤10 min, then moved off</text>
 <text x="790" y="82" font-weight="600">apply_decisions → content-plan.csv · posts-log.csv</text><text x="790" y="98" font-size="11">the truth; status, reason, URL; git in ~/dev/campaign</text>
-<text x="690" y="146" font-weight="600">cards.py</text><text x="690" y="162" font-size="11">CSV → cards + pipeline</text>
-<text x="885" y="146" font-weight="600">photo_index.py</text><text x="885" y="162" font-size="11">EXIF, shoot, face crop, index.csv</text>
+<text x="690" y="146" font-weight="600">cards.py</text><text x="690" y="162" font-size="11">CSV → cards, pipeline, material</text>
+<text x="885" y="146" font-weight="600">photo_index.py</text><text x="885" y="162" font-size="11">Downloads scan, tags, 90-day reuse, pick</text>
 <text x="690" y="210" font-weight="600">transcribe.py</text><text x="690" y="226" font-size="11">whisper.cpp, 1–20 s, local</text>
 <text x="885" y="210" font-weight="600">library/</text><text x="885" y="226" font-size="11">photos · memos · drafts · log</text>
-<text x="790" y="274" font-weight="600">model jobs (not built yet)</text><text x="790" y="290" font-size="11">comment drafts · Saturday draft run · tags · report</text>
+<text x="790" y="274" font-weight="600">draft.py · redraft.py · inventory.py · llm.py</text><text x="790" y="290" font-size="11">fill every slot 14 days ahead (Opus) · apply notes · tags (Haiku)</text>
 <text x="285" y="348" font-weight="600">LinkedIn</text><text x="285" y="364" font-size="11">today: Copy text + Save image, post or schedule by hand · from 06.11.: API</text>
 <text x="790" y="348" font-weight="600">Signals for the comment queue (slice 2)</text><text x="790" y="364" font-size="11">local browser script on the watch list, once a day, zero tokens</text>
 </g>
@@ -48,9 +48,10 @@ footer: AlpiType · Intern · Architecture · 19.10.2026
 
 | What | Lives on | Copy on the server | In git |
 |---|---|---|---|
-| Post texts and graphics | Mac, `~/dev/campaign/local/` (reports/out, resources/post-images) | web copy of the current cards only, deleted when posted | **no** (local/ is ignored) → move to `library/published` is next |
+| Post texts and graphics | `library/drafts/<id>.txt/.json/.png` (new drafts, versions `.v1.txt`), `library/published/` (everything posted so far, copied 19.10.) | web copy of the current cards only | texts yes, images no |
+| Topic inventory | `library/inventory.csv` (39 topics, status unused/drafted/published) | counts in pipeline.json | yes |
 | Status, slot, reasons, numbers | `content-plan.csv`, `posts-log.csv` in `~/dev/campaign` | cards.json, pipeline.json (derived, read only) | yes |
-| Photos | originals on the phone; HEIC copy in `library/photos/shoots/`, square crop in `square/`, `index.csv` | 400 px thumbnails | index only, never media |
+| Photos | originals on the phone or in `~/Downloads`; copy in `library/photos/shoots/`, square crop in `square/`, `index.csv` with scene, tags, used_at | 400 px thumbnails of available photos | index only, never media |
 | Voice memos | `library/memos/<ts>.m4a` + `.txt` transcript + `index.csv` | nothing after the next pull | index only |
 | Every press on the board | `decisions/*.jsonl` on the server, folded into `library/log/*.csv` | stays (small, append only) | log CSVs yes |
 | Secrets | board token `config.local.token`; Graph creds in alpi_marketer; LinkedIn token later | none | never |
@@ -59,9 +60,14 @@ footer: AlpiType · Intern · Architecture · 19.10.2026
 
 1. A press writes one JSON line on the server and an overlay entry, so the page shows the new state at once.
 2. Within 10 minutes the Mac pulls the line and writes it into `content-plan.csv` (status approved / change / skipped / posted, the reason or note in front of the row's notes) and into `posts-log.csv` (posted date, URL). `applied.json` tells the server which overlay entries are now folded in.
-3. `cards.py` rebuilds the cards from the CSV, so the board and the CSV never disagree for more than one cycle.
-4. Reasons accumulate in `library/log/post-decisions.csv` and `comment-log.csv`: "not the topic" / "not the form" for posts, "not the topic" / "not the author" for comments. The Saturday draft run and the comment drafting read the last reasons as rules; a question card is raised at most once a week and only on a pattern. (Specified in content-generation and comment-queue, not built yet.)
-5. "Mark shoot used" and "Use Friday" go the same way into `photos/index.csv`; used shoots disappear from the Ready list immediately.
+3. **Post with these changes:** `redraft.py` reads the note, rewrites the text with it (Opus, the current text and your note, nothing else), swaps the photo when the note says so ("anderes Foto" → next ranked photo), keeps the old text as `<id>.v1.txt`, runs the rules gate and sets the row to **approved**. The card shows "updated per your note · posts <slot>". You do not come back; you can still Skip it until the slot.
+4. **Skip:** the slot opens again; `draft.py` fills it with the next topic in the same run. The reason ("not the topic" / "not the form") is stored with the row and in `library/log/post-decisions.csv`; the drafting prompt gets the last reasons as rules (next step).
+5. `cards.py` rebuilds the cards from the CSV, so the board and the CSV never disagree for more than one cycle.
+6. "Don't use these" on a shoot goes into `photos/index.csv` (status hold); the shoot disappears from the available list at once and is never picked.
+
+## 3a. How a slot gets its post
+
+`draft.py` runs in every sync. For each weekday slot in the next 14 days without a post (max 3 personal + 1 company per week, posts you scheduled yourself count): pillar = the one least used in the surrounding 14 days that still has material (a fresh voice memo comes first) → topic = strongest unused row of `library/inventory.csv` → photo = `photo_index.pick()` (never used before re-used, taken within 24 months before older, newest first, solo photos first, never the shoot of the post before or after, 90 days until a used photo is free again) or, for company posts, a 1200×1200 graphic from `pipeline/templates/company-card.html` rendered by headless Chrome → one text from Opus with the CV (personal) or the company context (company) as the only facts and three recent posts as voice → `rules_check.py` (banned patterns, question at the end, length) → `library/drafts/` + a content-plan row with status draft. 19.10.: 5 drafts in about 9 minutes.
 
 ## 4. Tokens: measured today, and the decision
 
@@ -75,8 +81,16 @@ footer: AlpiType · Intern · Architecture · 19.10.2026
 
 The 22k context is the Claude Code system prompt and tool list that `claude -p` always carries; the job itself is 300 tokens. It is almost entirely cache reads, which is why Opus is cheaper than Sonnet here. On the subscription this counts against the 5-hour usage window, not against money.
 
-**Where tokens are used at all** (everything else is local and free): comment drafts ≈ 100 calls/month (Sonnet), Saturday draft run ≈ 40 calls/month (Opus, two options per post), memo → draft ≤ 10/month (Opus), photo tags ≈ 10/month (Haiku vision), monthly report 1 (Opus). About 160 calls, ≈ 3.5M context tokens of which ≈ 90 % cache reads, ≈ 60k output tokens. At list prices through the API: **$6–9 per month**. Through `claude -p`: **0 € extra**, roughly one short interactive session per day of your quota. Triage of candidate posts for the queue is rules (watch list, keywords), not a model.
+**Built 19.10. and measured with real jobs** (`library/log/llm-calls.csv` logs every call):
 
-**Decision for you, with my recommendation:** start with `claude -p` on the subscription. It exists today, costs nothing extra, and 160 calls a month is far below the limits. One function `llm(model, prompt)` in the pipeline, backend set in `config.yaml`; the API key becomes the backend only if the quota collides with your own sessions or the volume grows tenfold (for example a browser-reading queue). That is a config line, not a second path in the code.
+| Step | Model | Calls 19.10. | Per call | Cost 19.10. |
+|---|---|---|---|---|
+| Photo tags (scene, tags, who) | Haiku 5.5, image | 44 | 4.7 s, $0.002 | $0.08 |
+| Topic inventory (CV + context → 39 topics) | Opus 5.5 | 1 | 96 s, $0.34 | $0.34 |
+| Post draft (CV or context + 3 examples → text) | Opus 5.5 | 5 | ≈ 100 s, ≈ $0.15 | ≈ $0.75 |
+
+Text-only steps run with the tool list switched off, so the context is the job itself (5k), not the 22k of the Claude Code system prompt. **Monthly:** 16 drafts + ≈ 8 redrafts (Opus, ≈ $3.50), tags for new photos (cents), comment drafts later ≈ 100 (Sonnet, ≈ $3). At list prices through the API: **$6–8 per month**; through `claude -p`: **0 € extra**. Which model runs which step is `config.yaml` (`llm.models`), the backend too (`llm.backend: claude-p | api`).
+
+**Decision for you, with my recommendation:** stay with `claude -p` on the subscription; it is what runs now. The API key becomes the backend only if the quota collides with your own sessions or the volume grows tenfold. That is a config line, not a second path in the code.
 
 **Dropped:** the LinkedIn notification-mail idea. You do not need to care about it. The queue's signal source will be a local browser script reading the watch list in your own logged-in Chrome profile, once a day, zero tokens; the model only drafts. You log in to LinkedIn in that Chrome profile once.

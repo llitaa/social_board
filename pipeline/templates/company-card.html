@@ -1,0 +1,18 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>AlpiType card</title>
+<style>
+*{box-sizing:border-box;margin:0}html,body{background:#fff}
+body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.canvas{width:1200px;height:1200px;position:relative;overflow:hidden;color:#0f3a50;background:linear-gradient(180deg,rgba(94,168,211,.20) 0%,rgba(94,168,211,.08) 35%,rgba(255,255,255,0) 65%),linear-gradient(0deg,rgba(94,168,211,.10) 0%,rgba(94,168,211,0) 25%),#fff}
+.stripe{position:absolute;left:0;top:0;width:24px;height:100%;background:linear-gradient(180deg,#42F45D 0%,#01BC56 30%,#00BEE6 65%,#08E3FB 100%)}
+.logo{position:absolute;right:64px;top:56px;width:210px}
+.eyebrow{position:absolute;left:96px;top:92px;font-size:26px;letter-spacing:.26em;text-transform:uppercase;color:#20B8D0;font-weight:800}
+h1{position:absolute;left:96px;top:180px;width:800px;font-size:74px;line-height:1.06;font-weight:800;letter-spacing:-2.2px}
+.lines{position:absolute;left:96px;right:72px;top:470px;display:flex;flex-direction:column;gap:30px}
+.line{display:flex;gap:26px;align-items:flex-start;font-size:40px;line-height:1.22;font-weight:600}
+.line .n{flex:0 0 70px;height:70px;border-radius:20px;background:#0f3a50;color:#fff;font-size:36px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.line.last .n{background:#20B8D0}
+.site{position:absolute;left:96px;bottom:60px;font-size:40px;font-weight:800;letter-spacing:-1px}
+.foot{position:absolute;right:64px;bottom:66px;font-size:28px;color:#20B8D0;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+</style></head><body><div class="canvas"><div class="stripe"></div><img class="logo" src="data:image/png;base64,{{LOGO}}">
+<div class="eyebrow">{{EYEBROW}}</div><h1>{{TITLE}}</h1><div class="lines">{{LINES}}</div>
+<div class="site">alpitype.de</div><div class="foot">{{FOOTER}}</div></div></body></html>

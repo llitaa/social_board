@@ -1,0 +1,17 @@
+A machine raises an alarm at 2:40 in the morning. This is what happens next in a system we build for machine builders:
+
+1. The alarm is read from the machine's own data path. No extra sensor, no second network.
+
+2. Context is attached: which machine, which variant, which recipe, how many cycles since the last service.
+
+3. The pattern is compared with the fleet. Known pattern: the service ticket is written automatically, with the likely cause.
+
+4. Unknown pattern, or a known pattern on a machine that should not show it: the case goes to a service technician, with the data that made it unusual.
+
+Step four is the 30 percent. The machine does the other 70. We do not ship a system without step four, because a monitoring system that closes unknown cases on its own is not monitoring, it is noise with a timestamp.
+
+What this is not: a dashboard nobody opens, a cloud subscription per machine, a rewrite of the PLC. It is software next to the machine, it runs where the data already is, and the next request from the service team is a change in code.
+
+Where do the unknown alarms go in your fleet today?
+
+#Maschinenbau #PredictiveMaintenance #7030

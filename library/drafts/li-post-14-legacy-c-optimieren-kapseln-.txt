@@ -1,0 +1,19 @@
+Irgendwann muss jemand die Flagge heben und sagen, was mit der alten C++-Codebasis passiert.
+
+Meist liegen drei Optionen auf dem Tisch.
+
+Optimieren. Den Code behalten und gezielt schneller machen. In einer großen Legacy-Codebasis waren so bis zu 30 % weniger Laufzeit drin, ohne neu zu schreiben. Ohne reproduzierbare Messung wäre jede dieser Prozentzahlen nur eine Behauptung gewesen.
+
+Kapseln. Den alten Kern hinter eine Schnittstelle stellen und Neues daneben bauen. Das trägt nur, wenn Tests die Grenze halten. Ohne Tests verschiebt man das Risiko an die Schnittstelle, statt es zu senken.
+
+Neu schreiben. Verlockend, weil der alte Code niemandem mehr gehört. Teuer, weil in ihm Wissen steckt, das nirgends sonst steht.
+
+Was den Ausschlag gibt, sind für mich drei Fragen.
+
+Können Sie messen, was besser werden soll? Haben Sie Tests, die Ihnen sagen, dass Sie nichts kaputt gemacht haben? Und wer versteht den Code morgen noch, wenn die zwei Leute, die ihn heute kennen, nicht mehr da sind?
+
+Wer zweimal Nein sagt, entscheidet noch nicht. Er baut zuerst Messung und Tests. Das ist keine Verzögerung, das ist die Entscheidungsgrundlage. Erst dann zeigt sich, ob Optimieren reicht, ob Kapseln trägt oder ob Neuschreiben wirklich billiger ist.
+
+Welche der drei Fragen können Sie für Ihre Codebasis heute mit Ja beantworten?
+
+#LegacyCode #Cpp #SoftwareArchitektur

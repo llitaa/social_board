@@ -1,0 +1,13 @@
+Two days at the Internationales Forum Mechatronik in Memmingen, and the conversations are still running. Thank you, Bayern Innovativ and the Cluster Mechatronik & Automation, for a well-organised event.
+
+The stand did its job. While the team was in conversations, the roll-up explained who we are: control software, machine vision, predictive maintenance. The books on the table ran out. Some copies are now on their way to our clients by post.
+
+The level was high. Real innovation in mechatronics, strong talks, and conversations that reached expert depth within minutes.
+
+One pattern came up again and again. Most discussions already implied a software solution, and often one built on the output of a prompt. For some areas that is fine. For production it is not. Where the goal is production optimisation, a language model alone optimises nothing. The bigger task, and the one that pays, is mechatronic: automating the manual parts of the process with software that runs where the machines run.
+
+The equation behind every one of these projects is the same: domain expertise, production know-how, and digital solutions that are actually capable of the task. The first two exist in the plant. The third is our part: shaping the digital solution so it is the most efficient one for the line, not the most fashionable one. Architecture, control and HMI software in C++/Qt, computer vision, AI where it earns its place, on-premise and at the edge. With technical responsibility after go-live.
+
+We look forward to continuing the conversations from Memmingen and to contributing to measurable improvements in industrial systems.
+
+#Mechatronics #IndustrialAI #Robotics

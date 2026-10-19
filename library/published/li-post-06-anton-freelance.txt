@@ -1,0 +1,14 @@
+Seit drei Jahren arbeite ich als Freelancer. C++/Qt, Desktop-Software, Softwarearchitektur. 13 Jahre C++ in Halbleiter, Defense, Luftfahrt, Vermessung und Medizintechnik.
+
+Was ich mache: Software, die niemand mehr anfassen will, wieder änderbar machen. Ohne Neuentwicklung. Ohne dass die Produktion steht.
+
+Drei Fälle aus den letzten Jahren:
+→ Defense: neue Software an Legacy-Code angebunden, ohne den alten Teil zu brechen. C++20, Qt/QML, Linux.
+→ Halbleiter: Architektur so aufgesetzt, dass weniger erfahrene Entwickler das Produkt weiterpflegen können, ohne Bestehendes zu zerlegen. C++, Python, PyQt.
+→ Luftfahrt: als erster Entwickler das Fundament eines Server-Backends gelegt, Team auf sieben skaliert, 10 % weniger Ausfallzeit. C++20, Qt, Redis.
+
+Für das nächste Projekt bin ich jetzt offen für Gespräche.
+
+Wenn bei Ihnen so etwas liegt: schreiben Sie mir.
+
+#Cpp #Qt #Freelance

@@ -1,0 +1,13 @@
+Als Entwicklungsleiter würde ich heute ein Ziel setzen: schneller liefern. Und das Team würde zu Recht fragen, woher die Zeit dafür kommen soll.
+
+Die ehrliche Antwort: aus dem Teil der Arbeit, der mich früher ausgemacht hat.
+
+Lange war ich tief im C++. Neue Sprachfeatures kannte ich, bevor sie im Projekt ankamen. Heute frage ich mich zweimal, ob ich ein Feature wirklich früher kennen muss als der Generator, der es mir vorschlägt.
+
+Wer schneller liefert, hat weniger Zeit für Implementierungsdetails. Das ist keine Nachlässigkeit, das ist Rechnen. Nur zieht es eine Konsequenz nach sich, die in vielen Zielvereinbarungen fehlt: Nicht jede Zeile braucht denselben Blick. Kritische Algorithmen und Infrastruktur muss die Entwicklungsleitung ausdrücklich vor dem Lieferdruck schützen. Der Rest wird gelesen, bewertet, abgenommen. Nicht mehr geschrieben.
+
+Ingenieure landen damit dort, wo MBA-Studenten in Harvard längst sind: Sie lesen rund 500 Fälle in zwei Jahren und werden zur Hälfte danach bewertet, ob ihre Frage den Fall trifft.
+
+Wozu lernen Sie noch neue Sprachfeatures?
+
+#SoftwareArchitektur #KIEntwicklung #Cpp

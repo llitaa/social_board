@@ -1,0 +1,17 @@
+Grün heißt nicht getestet. Am deutlichsten sehe ich das, wenn ein Coding-Agent gmock-Tests für eine Legacy-Klasse schreibt.
+
+Das Setup ist eine Klasse, wie sie in vielen älteren C++-Projekten steht. Der Konstruktor öffnet die Datenbank, die Methoden lesen Konfiguration aus einem Singleton, die Zeit kommt direkt von der Systemuhr. Der Auftrag an den Agent: GTest/gmock-Tests dafür.
+
+Danach sortiere ich in drei Stapel.
+
+Was kompiliert. Das ist fast alles. Interessant ist, wie es dorthin kommt. Wenn der Agent die Abhängigkeit nicht mocken kann, zieht er ein Interface ein oder ändert die Klasse selbst. Das kann richtig sein, es ist aber eine Architekturentscheidung, und niemand hat sie bestellt.
+
+Was etwas prüft. Ich ändere absichtlich eine Zeile in der Klasse, etwa eine Grenzbedingung. Wird ein Test rot, prüft er etwas. Bleibt alles grün, prüft er nichts.
+
+Was nur grün ist. Ein EXPECT_CALL, der festhält, dass die Methode aufgerufen wird, die der Test selbst aufruft. Ein Mock, der genau das zurückgibt, was danach mit EXPECT_EQ verglichen wird. Solche Tests sehen sauber aus und testen den Mock.
+
+Mein Fazit: Das Gerüst schreibt der Agent schneller als ich. Mocks, Fixtures, CMake-Eintrag, das passt meistens. Die Frage, was diese Klasse eigentlich garantieren soll, beantwortet er nicht. Die muss vorher jemand stellen, der den Code kennt.
+
+Woran erkennen Sie in Ihrem Projekt einen Test, der nur grün ist?
+
+#Cpp #LegacyCode #KIEntwicklung

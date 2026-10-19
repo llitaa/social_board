@@ -1,0 +1,11 @@
+One question for everyone coming to Memmingen on 23–24 September:
+
+Which piece of your control or HMI software would you not dare to touch this year — and what would it take to change that?
+
+That's the conversation we'd like to have at our stand at the Internationales Forum Mechatronik. Not a sales talk. Bring the real thing: the Qt 4 HMI nobody wants to open, the vision pipeline that only works when one specific person is on shift, the AI pilot that never made it past the demo.
+
+We'll sketch a safe first step on paper — 20 minutes, an engineer, no slides.
+
+Message us and we'll reserve a slot on Wednesday or Thursday.
+
+#Mechatronics #IndustrialAI #Robotics

@@ -1,0 +1,21 @@
+Heute habe ich mit Tobias Schwalm über OpenSpec gesprochen. Hängen geblieben ist eine Frage, die sich in jedem Projekt stellt, ob man ein neues Produkt plant, ein bestehendes System pflegt oder eines übernimmt: Auf welcher Ebene arbeitet das Team mit dem Coding-Agenten?
+
+Es gibt drei Wege:
+
+1. Direkt implementieren, dann den Fix im Code reviewen.
+2. Über Tests iterieren: erst die Prüfung, dann so lange generieren, bis sie grün ist.
+3. Über eine Spezifikation iterieren: erst die Vereinbarung, dann der Code.
+
+OpenSpec ist der dritte Weg. Vor dem Code wird die Änderung kurz beschrieben: Absicht, Design, Aufgaben und was sich an der bestehenden Spezifikation ändert. Nach der Umsetzung wird dieses Delta Teil der Spezifikation. Die Spec wächst mit dem System.
+
+Die Frage ist also nicht, ob OpenSpec gut ist. Die Frage ist, wo das Risiko sitzt.
+
+Am Code, wenn die Änderung in einer Sitzung fertig wird und eine Person sie überblickt. In den Tests, wenn das Verhalten feststeht und nur die Umsetzung offen ist. In der Vereinbarung, wenn drei Dinge zusammenkommen: Die Änderung überdauert eine Sitzung, jemand anderes muss sie freigeben oder übernehmen, und das gewünschte Verhalten steht nicht im Code.
+
+Das ist der Fall bei Produkten, die über Monate von mehreren Personen gebaut werden. Bei Änderungen, die durch mehrere Module gehen. Und bei jeder Übergabe, in beide Richtungen. Es ist nicht der Fall bei Prototypen, Analysen oder Bugfixes mit bekannter Ursache. Dort ist der Code die Spezifikation.
+
+Was ich mitnehme: Ohne Vereinbarung füllt der Agent die Absicht mit Annahmen. Das kostet nichts, solange die Annahme billig ist. Es kostet viel, sobald ein Team auf ihr aufbaut.
+
+Wer tiefer in OpenSpec einsteigen will: Tobias Schwalm gibt Trainings dazu. Sprechen Sie ihn an.
+
+#SoftwareArchitektur #SpecDrivenDevelopment #KIEntwicklung

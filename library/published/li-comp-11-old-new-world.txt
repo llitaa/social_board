@@ -1,0 +1,13 @@
+Old world: many tools, many logins, and one person copying between them.
+
+That is what office automation looks like in most companies we visit. Invoices arrive by mail, someone types them into the accounting system, someone else checks the VAT, a third person answers the phone and writes it all down afterwards.
+
+The click-tool answer is to wire those tools together with workflows nobody owns. It works until the first exception, then it is one more tool to log into.
+
+New world, the way we build it: one code core that runs inside the client's own Microsoft 365. Mail triage, invoice extraction, VAT monitoring, voice intake, all on the same base, configured per client, not rebuilt per client. The machine does 70 percent. The remaining 30 percent, the exceptions, go to a person who approves them. Who trains, who controls, who is accountable stays written down.
+
+No new logins. No tool to administer. And when the client comes with the next request, it is a change in code, not a new subscription.
+
+The whole principle is in our book, free as PDF: alpitype.de/buch-en
+
+#Automation #Microsoft365 #7030
