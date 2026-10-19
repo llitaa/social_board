@@ -13,10 +13,14 @@ from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from common import ROOT
 
-CFG_FILE = os.path.join(ROOT, "config.local.linkedin.json")
+# Two apps, because LinkedIn puts the Community Management API only on an app without other products:
+#   config.local.linkedin.json      app "AlpiType Analytics": openid profile w_member_social  -> Anton's profile
+#   config.local.linkedin-org.json  app "AlpiType Board" (CM API): w_organization_social ...   -> the company page (--org)
+ORG = "--org" in sys.argv
+CFG_FILE = os.path.join(ROOT, "config.local.linkedin-org.json" if ORG else "config.local.linkedin.json")
 REDIRECT = "http://localhost:8765/callback"
 SCOPES_MEMBER = "openid profile w_member_social"
-SCOPES_ORG = "w_organization_social r_organization_social"
+SCOPES_ORG = "openid profile w_organization_social r_organization_social"
 
 def load(): return json.load(open(CFG_FILE)) if os.path.isfile(CFG_FILE) else {}
 def save(d): json.dump(d, open(CFG_FILE, "w"), indent=1); os.chmod(CFG_FILE, 0o600)
@@ -24,7 +28,8 @@ def save(d): json.dump(d, open(CFG_FILE, "w"), indent=1); os.chmod(CFG_FILE, 0o6
 def main():
     c = load()
     if not c.get("client_id") or not c.get("client_secret"): sys.exit(f"put client_id and client_secret into {CFG_FILE} first (see the docstring)")
-    scopes = SCOPES_MEMBER + (" " + SCOPES_ORG if "--org" in sys.argv else "")
+    if ORG and not c.get("org_urn"): sys.exit(f"put the company page id into {CFG_FILE} as \"org_urn\": \"urn:li:organization:<number>\" (the number from the page's admin URL)")
+    scopes = SCOPES_ORG if ORG else SCOPES_MEMBER
     state = secrets.token_urlsafe(16)
     url = "https://www.linkedin.com/oauth/v2/authorization?" + urllib.parse.urlencode({"response_type": "code", "client_id": c["client_id"], "redirect_uri": REDIRECT, "state": state, "scope": scopes})
     got = {}

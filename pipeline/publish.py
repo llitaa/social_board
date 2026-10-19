@@ -7,13 +7,14 @@ import json, os, re, sys, urllib.request
 from datetime import datetime
 from common import CFG, ROOT, read_csv, write_csv, resolve, log
 
-CFG_FILE = os.path.join(ROOT, "config.local.linkedin.json")
+CFG_FILE = os.path.join(ROOT, "config.local.linkedin.json"); ORG_FILE = os.path.join(ROOT, "config.local.linkedin-org.json")
 API = "https://api.linkedin.com/rest"; VERSION = "202509"
 
-def creds():
-    c = json.load(open(CFG_FILE)) if os.path.isfile(CFG_FILE) else {}
-    if not c.get("access_token"): raise RuntimeError("no LinkedIn token: run pipeline/linkedin_auth.py")
-    if c.get("expires", "9999") < datetime.now().isoformat(): raise RuntimeError("LinkedIn token expired: run pipeline/linkedin_auth.py")
+def creds(org=False):
+    f = ORG_FILE if org else CFG_FILE
+    c = json.load(open(f)) if os.path.isfile(f) else {}
+    if not c.get("access_token"): raise RuntimeError(("company page: no API yet" if org else "no LinkedIn token") + ": run pipeline/linkedin_auth.py" + (" --org" if org else ""))
+    if c.get("expires", "9999") < datetime.now().isoformat(): raise RuntimeError("LinkedIn token expired: run pipeline/linkedin_auth.py" + (" --org" if org else ""))
     return c
 
 def call(c, method, path, body=None, raw=None, ctype="application/json"):
@@ -27,8 +28,10 @@ def upload_image(c, owner, path):
     call(c, "PUT", v["uploadUrl"], raw=open(path, "rb").read(), ctype="application/octet-stream")
     return v["image"]
 
-def publish(c, row, dry=False):
+def publish(row, dry=False):
     channel = "company" if row["channel"] == "linkedin-company" else "personal"
+    try: c = creds(channel == "company")
+    except RuntimeError as e: return None, str(e)
     author = c.get("org_urn") if channel == "company" else c["person_urn"]
     if not author: return None, "company page: no API yet"
     text = open(resolve(row["caption_ref"]), encoding="utf-8").read().strip()
@@ -46,7 +49,7 @@ def publish(c, row, dry=False):
 
 def main():
     dry = "--dry" in sys.argv; now = datetime.now()
-    plan, pf = read_csv(CFG["content_plan"]); plog, lf = read_csv(CFG["posts_log"]); c = creds(); n = 0
+    plan, pf = read_csv(CFG["content_plan"]); plog, lf = read_csv(CFG["posts_log"]); n = 0
     for r in plan:
         if r["status"] != "approved" or not r["channel"].startswith("linkedin"): continue
         slot = r.get("planned", "")
@@ -57,7 +60,7 @@ def main():
             if dry: log(f"approved, waits for its slot: {cid} @ {slot}")
             continue
         try:
-            urn, url = publish(c, r, dry)
+            urn, url = publish(r, dry)
             if urn == "dry": log(f"would publish {cid} @ {slot}: {url}"); continue
             if not urn: log(f"{cid}: {url}"); continue
             r["status"] = "posted"; r["notes"] = f"[published via API {now:%Y-%m-%d %H:%M} {url}] " + r.get("notes", ""); n += 1

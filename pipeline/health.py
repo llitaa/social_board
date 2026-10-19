@@ -9,7 +9,7 @@ from common import CFG, LIB, BOARD_LOCAL, read_csv, jdump, log
 STEPS = os.path.join(LIB, "log", "steps.jsonl")
 NAMES = {"pull": "server sync (pull)", "apply": "decisions → CSV", "learn": "notes → preferences", "transcribe": "memo transcription", "photos": "photo pool",
          "redraft": "notes → redraft", "publish": "LinkedIn publishing", "draft": "slot filling", "cards": "cards + pipeline", "push": "server sync (push)"}
-LI = os.path.join(os.path.dirname(LIB), "config.local.linkedin.json")
+LI = os.path.join(os.path.dirname(LIB), "config.local.linkedin.json"); LI_ORG = os.path.join(os.path.dirname(LIB), "config.local.linkedin-org.json")
 
 def linkedin():
     """What the board says next to an approved card: posts itself, or 'you post it' until the app exists."""
@@ -19,7 +19,13 @@ def linkedin():
         except json.JSONDecodeError: c = {}
     exp = c.get("expires", "")
     ok = bool(c.get("access_token")) and exp > datetime.now().isoformat()
-    return {"connected": ok, "org": bool(c.get("org_urn")), "expires": exp[:10], "days_left": (date.fromisoformat(exp[:10]) - date.today()).days if ok else 0}
+    o = {}
+    if os.path.isfile(LI_ORG):
+        try: o = json.load(open(LI_ORG))
+        except json.JSONDecodeError: o = {}
+    org_ok = bool(o.get("access_token")) and o.get("expires", "") > datetime.now().isoformat() and bool(o.get("org_urn"))
+    if org_ok and o["expires"] < exp: exp = o["expires"]
+    return {"connected": ok, "org": org_ok, "expires": exp[:10], "days_left": (date.fromisoformat(exp[:10]) - date.today()).days if ok else 0}
 
 def last_runs(n=3):
     rows = [json.loads(l) for l in open(STEPS, encoding="utf-8")] if os.path.isfile(STEPS) else []

@@ -81,11 +81,28 @@ If the terminal prints "no code received: …" instead, copy that line to me.
 ```
 It lists each approved card with slot, channel, length and image, and publishes nothing. The real publishing step runs inside the worker at the slot; the first real post is the next approved personal card after this, and its URL lands in `posts-log.csv` and on the card.
 
-## Step 6 · Company page (later; LinkedIn review)
+## Step 6 · Company page: a second app (LinkedIn review, days to weeks)
 
-Posting as AlpiType needs the product **Community Management API**. If step 2 showed it: run step 4 again with `--org` at the end of the command, press Allow again, done; company cards then say "posts itself" too.
+Posting as AlpiType needs the product **Community Management API**. LinkedIn puts it only on an app that has no other products (19.10.: "cannot be requested because there are other provisioned products" on AlpiType Analytics). So the company page gets its own, otherwise empty app:
 
-If it was not there: Products tab → Community Management API → *Request access*. The form asks for the use case; a fitting answer: "Publishing our own company page posts from an internal scheduling tool. Single page (AlpiType), own content only, no third-party pages, no data collection." Review takes days to a few weeks; LinkedIn mails you. Then the `--org` run above. Until then company cards stay "you post it".
+1. https://www.linkedin.com/developers/apps → **Create app**. App name `AlpiType Board`, LinkedIn Page **AlpiType**, privacy policy URL `https://alpitype.de/datenschutz/`, logo, accept, Create app.
+2. **Settings** tab → *Verify* next to the page → Generate URL → open it → Verify.
+3. **Products** tab → **Community Management API** → *Request access*. Add nothing else to this app, ever. The form asks for the use case; a fitting answer: "Publishing our own company page's posts from an internal scheduling tool. One page (AlpiType), own content only, no third-party pages, no reading or storing of member data." Submit. LinkedIn reviews (days to a few weeks) and mails you.
+4. Meanwhile, **Auth** tab of the new app: add the redirect URL `http://localhost:8765/callback`; copy Client ID and Primary Client Secret into a second local file:
+   ```
+   ~/dev/linkedin-system/config.local.linkedin-org.json
+   ```
+   ```
+   {"client_id": "…", "client_secret": "…", "org_urn": "urn:li:organization:NUMBER"}
+   ```
+   NUMBER = the id of the AlpiType page: open the page as admin, the address bar shows `linkedin.com/company/NUMBER/admin/…` (or copy the number from the page's *Admin tools → Manage page* URL). Tell me if only a name shows there; there is a lookup for that.
+5. When LinkedIn's mail says the product is granted:
+   ```
+   ! /opt/anaconda3/bin/python3 ~/dev/linkedin-system/pipeline/linkedin_auth.py --org
+   ```
+   Log in, Allow. The board's system line then says "incl. company page" and company cards post themselves. Until then they come to the top of the board as "waits for you: post it by hand".
+
+The personal profile keeps using AlpiType Analytics (step 4); the two tokens live in two local files and expire separately, the board warns for either.
 
 ## Every 60 days
 
