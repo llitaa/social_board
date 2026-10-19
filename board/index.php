@@ -108,7 +108,7 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--m);m
   .tabs button{font-size:15px}
   .card.full{display:grid;grid-template-columns:minmax(0,1fr) 300px}
   .card.full .post{min-width:0;border-right:1px solid var(--b)}
-  .card.full .act{border-top:0;position:sticky;top:100px;align-self:start}
+  .card.full .act{border-top:0;align-self:start}
   .img img{max-height:560px}
   .grid{grid-template-columns:repeat(6,1fr)}
 }
