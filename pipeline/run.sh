@@ -24,6 +24,8 @@ step learn       $P pipeline/learn.py
 if [ "$MODE" = full ]; then
 step transcribe  $P pipeline/transcribe.py
 step photos      $P pipeline/photo_index.py
+else
+step photos      $P pipeline/photo_index.py fast
 fi
 step redraft     $P pipeline/redraft.py
 step publish     $P pipeline/publish.py

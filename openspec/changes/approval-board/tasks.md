@@ -14,6 +14,8 @@
 - [x] 2.7 `learn.py`: notes, edits, skip reasons → `library/style-rules.txt` → draft and redraft prompts (19.10.)
 - [x] 2.8 Scheduled rows past their time become posted (19.10.)
 - [x] 2.9 Compact rows: explicit grid columns (19.10.: tools were auto-placed into the date column)
+- [x] 2.10 Post now / Schedule (datetime) / Unschedule / Drop; Next photo / Upload another image per card; Copy text and Download image only for hand posting; sidebar link scrolls under the sticky header (19.10., all exercised through the server API on throwaway rows)
+- [x] 2.11 Pull fixed: macOS openrsync has no --ignore-missing-args, so settings/overlay/photo-notes were silently never pulled (19.10.)
 - [x] 2.5 Pipeline list: next 14 days without empty slots, published with numbers, material counts (19.10.)
 
 ## 3. Record

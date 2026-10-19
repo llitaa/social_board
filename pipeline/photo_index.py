@@ -12,12 +12,12 @@ Rules (spec photo-pool):
 - each photo gets scene/tags/people once from the tags model (Haiku) so drafts can match picture and topic
 Re-runnable; index.csv is the truth.
 """
-import csv, json, math, os, re, shutil, tempfile
+import sys, csv, json, math, os, re, shutil, tempfile
 from datetime import datetime, date, timedelta
 import cv2
 from PIL import Image, ImageOps
 import pillow_heif
-from common import CFG, LIB, BOARD_LOCAL, p, jload, jdump, log, read_csv
+from common import CFG, LIB, BOARD_LOCAL, p, jload, jdump, log, read_csv, write_csv, resolve
 
 pillow_heif.register_heif_opener()
 PH = os.path.join(LIB, "photos"); SHOOTS, SQUARE = (os.path.join(PH, d) for d in ("shoots", "square"))
@@ -245,12 +245,56 @@ def export_board():
                                                        "next_free": nxt[0] if nxt else "", "reuse_days": REUSE}, "generated": datetime.now().isoformat(timespec="seconds")})
     return out
 
-def main():
-    n = 0
+def card_rows():
+    """plan rows of cards on the board by card id, with the plan list and fields for writing back."""
+    plan, f = read_csv(CFG["content_plan"]); by = {}
+    for r in plan:
+        if r.get("channel", "").startswith("linkedin") and r.get("caption_ref"): by["-".join(os.path.basename(r["caption_ref"]).split("-")[0:3])] = r
+    return plan, f, by
+
+def set_card_image(r, photo, why):
+    """The row's asset and the draft's meta point to this photo; square crop for personal posts, the file itself for company cards."""
+    personal = r["channel"] == "linkedin"
+    r["asset"] = f"{os.path.basename(photo['file'])} (square: library/photos/square/{photo['id']}_sq.png, {why})" if personal else f"library/photos/{photo['file']} ({why})"
+    tp = resolve(r.get("caption_ref", "")); mp = os.path.splitext(tp)[0] + ".json" if tp else ""
+    if mp and os.path.isfile(mp):
+        meta = jload(mp, {}); hist = set(meta.get("photo_history", [])) | ({meta["photo"]} if meta.get("photo") else set())
+        meta["photo_history"] = sorted(hist); meta["photo"] = photo["id"]; jdump(mp, meta)
+
+def card_images(uploaded):
+    """Board requests for one card's image: 'next photo' (notes marker) and uploads made on the card (uploaded = {card id: index row})."""
+    plan, f, by = card_rows(); rows = read_index(); changed = 0; now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    for cid, r in by.items():
+        if r["status"] in ("posted", "skipped", "dropped"): continue
+        m = re.search(r"\[board [^\]]*? photo: next\] ", r.get("notes", ""))
+        if m:
+            tp = resolve(r.get("caption_ref", "")); meta = jload(os.path.splitext(tp)[0] + ".json", {}) if tp else {}
+            ex = set(meta.get("photo_history", [])) | {meta.get("photo", "")}
+            try: day = date.fromisoformat((r.get("planned") or "")[:10])
+            except ValueError: day = date.today()
+            cands = pick(day, meta.get("neighbour_shoots", []), exclude_ids=ex) if r["channel"] == "linkedin" else []
+            r["notes"] = r["notes"].replace(m.group(0), f"[photo changed {now}] " if cands else f"[photo: no other photo available {now}] ")
+            if cands: set_card_image(r, cands[0], cands[0]["scene"][:60]); changed += 1
+        if cid in uploaded:
+            ph = uploaded[cid]; set_card_image(r, ph, f"uploaded for {cid}"); changed += 1
+            for x in rows:
+                if x["id"] == ph["id"]: x["status"], x["used_in"], x["used_at"] = "used", cid, (r.get("planned") or "")[:10]
+    if changed: write_csv(CFG["content_plan"], plan, f); write_index(rows); log(f"card images changed: {changed}")
+
+def main(fast=False):
+    n = 0; uploaded = {}
     notes = jload(os.path.join(BOARD_LOCAL, "uploads", "photo-notes.json"), {})
     up = os.path.join(BOARD_LOCAL, "uploads", "photos")
     for f in sorted(os.listdir(up)) if os.path.isdir(up) else []:
-        if f.lower().endswith((".jpg", ".jpeg", ".png", ".heic", ".heif", ".webp")) and ingest(os.path.join(up, f), notes.get(f, ""), "ready", copy=False, src="board"): n += 1
+        if not f.lower().endswith((".jpg", ".jpeg", ".png", ".heic", ".heif", ".webp")): continue
+        note = notes.get(f, ""); card = note[5:] if note.startswith("card:") else ""
+        row = ingest(os.path.join(up, f), note, "used" if card else "ready", copy=False, src="board")
+        if row: n += 1
+        elif card: row = next((r for r in read_index() if os.path.basename(r["file"]) == f), None)   # already in the pool
+        if card and row: uploaded[card] = row
+        if card and not row: log("card upload not usable:", f)
+    card_images(uploaded)
+    if fast: export_board(); return
     srcs = [CFG.get("legacy_photos")] + [os.path.expanduser(s) for s in CFG.get("photo_sources", [])]
     for d in srcs:
         if not d or not os.path.isdir(d): continue
@@ -265,4 +309,4 @@ def main():
     shoots = export_board()
     log(f"ingested {n}, tagged {t}; shoots: " + ", ".join(f"{s['id']}[{s['status']}:{len(s['photos'])}]" for s in shoots))
 
-if __name__ == "__main__": main()
+if __name__ == "__main__": main(fast="fast" in sys.argv)

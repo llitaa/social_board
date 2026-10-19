@@ -21,11 +21,27 @@ The board SHALL be a single web page reachable via a private URL from Anton's ph
 - **THEN** the board still loads and accepts button presses; they are applied at the next automated run
 
 ### Requirement: Post card = the post
-The Post screen SHALL show every open card as the post will appear on LinkedIn: author line (Anton or AlpiType), slot, the full text and the image the system chose, with exactly three actions: Post, Update the post (a note), Skip. The text of a card to decide is editable in place (tap, type); Post takes the text as shown. Cards that need a decision come first; cards without a decision due are one line each (slot, status, hook, Copy, Image, Show). The card SHALL NOT offer picture choice, text options or crop tools; the system picks the photo and a note changes it ("anderes Foto").
+The Post screen SHALL show every open card as the post will appear on LinkedIn: author line (Anton or AlpiType), slot, the full text and the image the system chose, with these actions, the same on every card: Post now, Schedule (date and time, prefilled with the slot), Update the post (a note), Drop; under the image: Next photo from the pool (personal) and Upload another image. The text of a card to decide is editable in place (tap, type); Post now and Schedule take the text as shown. A scheduled card offers Post now and Unschedule (back to decide). A post Anton scheduled himself in the LinkedIn app shows "scheduled by you in the LinkedIn app" and only Unschedule, with the note that he must cancel it in LinkedIn first. Copy text and Download image appear only when he has to post by hand (channel not connected). Cards that need a decision come first; cards without a decision due are one line each (slot, status, hook, Copy, Image, Show). The card SHALL NOT offer picture choice, text options or crop tools; the system picks the photo and a note changes it ("anderes Foto").
 
-#### Scenario: Post
-- **WHEN** Anton presses Post
-- **THEN** the card's status becomes approved and shows "posts itself <slot>" when LinkedIn is connected, otherwise "approved · you post it <slot>" with "LinkedIn not connected"; nothing else is asked
+#### Scenario: Post now
+- **WHEN** Anton presses Post now
+- **THEN** the row's time becomes now, the worker publishes it within about 20 seconds when the channel is connected (card: "posting now …", then gone, under Published with its URL); when the channel is not connected the card says "post it yourself now · Copy text · Download image" with Mark posted; the original slot is free and gets a new draft
+
+#### Scenario: Schedule
+- **WHEN** Anton picks a date and time (prefilled with the slot) and presses Schedule
+- **THEN** the row moves to that time with status approved, the card says "scheduled · posts itself <time>" (or "scheduled <time>" plus "not connected: you post it then"); Post now and Unschedule stay available until then
+
+#### Scenario: Unschedule
+- **WHEN** Anton presses Unschedule on a scheduled card
+- **THEN** it is back to decide, nothing is posted; for a post he scheduled in the LinkedIn app the card tells him to cancel it there first, because the board cannot reach it
+
+#### Scenario: Drop
+- **WHEN** Anton presses Drop (optionally with "not the topic" / "not the form")
+- **THEN** the post is removed for good (text stays in the drafts library), the slot gets a new draft at the next full run, the reason goes through learning
+
+#### Scenario: Another picture
+- **WHEN** Anton presses "Next photo from the pool" or uploads an image on the card
+- **THEN** within about 20 seconds the card shows the next ranked pool photo (never one it had before) or the uploaded image (square crop for personal posts, as is for company cards); the text does not change; the uploaded image is marked used by that post and never offered elsewhere
 
 #### Scenario: Post with a small edit
 - **WHEN** Anton changes a word in the card's text and presses Post

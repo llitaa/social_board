@@ -22,7 +22,10 @@ header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:2px solid v
 .tabs button{flex:1;border:0;background:none;padding:8px 0 10px;font-size:14px;color:var(--m);border-bottom:3px solid transparent;cursor:pointer}
 .tabs button.on{color:var(--d);font-weight:600;border-bottom-color:var(--d)}
 main{max-width:1240px;margin:0 auto;padding:12px 14px 90px;overflow-x:hidden}
-.card{border:1px solid var(--b);border-radius:12px;background:#fff;margin:0 0 14px;overflow:hidden}
+.card{border:1px solid var(--b);border-radius:12px;background:#fff;margin:0 0 14px;overflow:hidden;scroll-margin-top:104px}
+input[type=datetime-local]{width:100%;border:1px solid var(--b);border-radius:8px;padding:9px;font:inherit;font-size:15px;background:#fff}
+.imgtools{display:flex;gap:6px;padding:8px 14px 0;flex-wrap:wrap;align-items:center}
+.lbl{display:inline-block;border:1px solid var(--d);background:#fff;color:var(--d);border-radius:6px;padding:5px 9px;font-size:13px;cursor:pointer}
 .card.done{opacity:.6}
 .who{display:flex;align-items:center;gap:10px;padding:12px 14px 0}
 .ava{width:40px;height:40px;border-radius:50%;background:var(--d);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:0 0 40px}
@@ -148,13 +151,15 @@ function render(){
   $('#clock').textContent=new Date(S.now).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
   $('#side').innerHTML=renderPipeline(); renderPost(); renderComments(); renderPhotos();
 }
+function isAuto(c){const li=(S.health||{}).linkedin||{};return !!(li.connected&&(c.channel==='personal'||li.org))}
 function statusPill(c){
   const past=new Date(c.slot)<new Date(S.now);
   if(c.status==='scheduled') return `<span class="pill li">scheduled in LinkedIn · ${fmtTime(c.slot)}</span>`;
-  const li=(S.health||{}).linkedin||{}, auto=li.connected&&(c.channel==='personal'||li.org);
+  const auto=isAuto(c);
   if(c.status==='change') return c.failed?`<span class="pill warn">update failed · decide again</span>`:`<span class="pill warn">being updated · about a minute</span>`;
-  if(c.status==='approved') return past?`<span class="pill ok">approved · post it yourself now · Copy text</span>`:auto?`<span class="pill ok">posts itself ${fmtSlot(c.slot)}</span>`:`<span class="pill ok">approved · you post it ${fmtSlot(c.slot)}</span> <span class="pill">LinkedIn not connected</span>`;
-  if(c.status==='draft') return c.updated?`<span class="pill ok">updated per your note</span> <span class="pill todo">read · edit · Post</span>`:`<span class="pill todo">to decide</span>`;
+  if(c.status==='scheduled') return `<span class="pill li">scheduled by you in the LinkedIn app · ${fmtSlot(c.slot)}</span>`;
+  if(c.status==='approved') return past?(auto?`<span class="pill ok">posting now …</span>`:`<span class="pill warn">post it yourself now · Copy text · Download image</span>`):auto?`<span class="pill ok">scheduled · posts itself ${fmtSlot(c.slot)}</span>`:`<span class="pill ok">scheduled ${fmtSlot(c.slot)}</span> <span class="pill warn">${c.channel==='company'?'company page not connected: you post it then':'LinkedIn not connected: you post it then'}</span>`;
+  if(c.status==='draft') return (c.updated?`<span class="pill ok">updated per your note</span> `:'')+(c.image_pending?`<span class="pill warn">image being changed · about 20 s</span> `:'')+`<span class="pill todo">to decide</span>`;
   return `<span class="pill">${esc(STATUS[c.status]||c.status)}</span>`;
 }
 function renderPipeline(){
@@ -165,7 +170,7 @@ function renderPipeline(){
     const link=S.cards.some(c=>c.id===u.id);
     h+=`<div class="r ${link?'link':''} ${u.when.slice(0,10)===today?'today':''}" ${link?`onclick="goCard('${u.id}')"`:''}>
       <div class="d">${fmtDay(u.when)}<br>${fmtTime(u.when)}</div>
-      <div><span class="pill ${u.status==='scheduled'?'li':u.status==='approved'?'ok':u.status==='draft'?'todo':u.status==='change'?'warn':''}">${esc(u.status==='scheduled'?'LinkedIn':u.status==='draft'?'decide':u.status==='change'?'updating':u.status)}</span><span class="pill">${esc(u.channel)}${u.pillar?' · '+esc(u.pillar):''}</span><div class="h">${esc(u.hook)}</div></div></div>`;
+      <div><span class="pill ${u.status==='scheduled'?'li':u.status==='approved'?'ok':u.status==='draft'?'todo':u.status==='change'?'warn':''}">${esc(u.status==='scheduled'?'LinkedIn (you)':u.status==='draft'?'decide':u.status==='change'?'updating':u.status==='approved'?'scheduled':u.status)}</span><span class="pill">${esc(u.channel)}${u.pillar?' · '+esc(u.pillar):''}</span><div class="h">${esc(u.hook)}</div></div></div>`;
   }
   if(!up.length) h+='<div class="r"><div class="d"></div><div class="h">drafts arrive with the next run</div></div>';
   if(P.upcoming.length>8) h+=`<button class="more" onclick="showAllUp=!showAllUp;render()">${showAllUp?'less':'all '+P.upcoming.length}</button>`;
@@ -185,7 +190,8 @@ function postHtml(c){
   const who=c.channel==='company'?`<div class="ava co">A</div><div><div class="n">AlpiType</div><div class="s">company page · ${esc(c.lang)} · ${fmtSlot(c.slot)}${c.pillar?' · '+esc(c.pillar):''}</div></div>`
                                  :`<div class="ava">AL</div><div><div class="n">Anton Lytvynenko</div><div class="s">personal · ${esc(c.lang)} · ${fmtSlot(c.slot)}${c.pillar?' · '+esc(c.pillar):''}</div></div>`;
   const ed=needs(c);
-  return `<div class="who">${who}</div><div class="txt" id="t-${c.id}" ${ed?'contenteditable="plaintext-only" spellcheck="false"':''}>${esc(c.text)}</div>${ed?'<div class="hint">tap the text to change a word; Post takes what you see</div>':''}${c.image?`<div class="img"><img src="${esc(c.image.url)}" alt=""></div>`:'<div class="q" style="padding:0 14px 10px">no image</div>'}`;
+  const imgTools=(ed||c.status==='approved')?`<div class="imgtools">${c.channel==='personal'?`<button class="sm s" onclick="decide('${c.id}','photo_next')">Next photo from the pool</button>`:''}<label class="lbl">Upload another image<input type="file" accept="image/*" style="display:none" onchange="uploadFor('${c.id}',this)"></label><span class="hint" style="padding:0">replaces the picture, text stays</span></div>`:'';
+  return `<div class="who">${who}</div><div class="txt" id="t-${c.id}" ${ed?'contenteditable="plaintext-only" spellcheck="false"':''}>${esc(c.text)}</div>${ed?'<div class="hint">tap the text to change a word; Post takes what you see</div>':''}${c.image?`<div class="img"><img src="${esc(c.image.url)}" alt=""></div>`:'<div class="q" style="padding:0 14px 10px">no image</div>'}${imgTools}`;
 }
 function systemHtml(){
   const H=S.health||{}; const seen=H.ts?Math.round((new Date(S.now)-new Date(H.ts))/60000):null; const issues=[...(H.issues||[])];
@@ -203,22 +209,30 @@ function renderPost(){
   for(const c of cards){
     const past=new Date(c.slot)<new Date(S.now), act=needs(c), done=['posted','skipped'].includes(c.status);
     if(!act&&!expanded[c.id]){
-      const tools=`<div class="tools"><button class="sm s" onclick="copyText('${c.id}')">Copy</button>${c.image?`<a class="sm s" href="${esc(c.image.final||c.image.url)}" download="${esc(c.id)}.jpg">Image</a>`:''}<button class="sm s" onclick="expanded['${c.id}']=true;renderPost()">Show</button></div>`;
+      const manual=c.status==='approved'&&!isAuto(c);
+      const tools=`<div class="tools">${manual?`<button class="sm s" onclick="copyText('${c.id}')">Copy</button>${c.image?`<a class="sm s" href="${esc(c.image.final||c.image.url)}" download="${esc(c.id)}.jpg">Image</a>`:''}`:''}<button class="sm s" onclick="expanded['${c.id}']=true;renderPost()">Show</button></div>`;
       h+=`<div class="card ${done?'done':''}" id="c-${c.id}"><div class="compact"><div class="d">${fmtDay(c.slot)}<br>${fmtTime(c.slot)}</div><div class="h"><b>${esc(c.channel)}</b> · ${esc(c.text.split('\n')[0])}</div>${tools}<div class="pills">${statusPill(c)}</div></div><div hidden id="t-${c.id}">${esc(c.text)}</div></div>`;
       continue;
     }
     h+=`<div class="card full ${done?'done':''}" id="c-${c.id}"><div class="post">${postHtml(c)}
       ${c.note?`<div class="note ${c.failed?'fail':''}">${c.failed?'could not apply: ':(c.updated?'applied: ':'your note: ')}${esc(c.note)}</div>`:''}
-      <div style="padding:8px 14px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">${statusPill(c)}${c.versions?`<span class="pill">v${c.versions+1}</span>`:''}<button class="sm s" onclick="copyText('${c.id}')">Copy text</button>${c.image?`<a class="sm s" href="${esc(c.image.final||c.image.url)}" download="${esc(c.id)}.jpg">Save image</a>`:''}${act?'':`<button class="sm s" onclick="expanded['${c.id}']=false;renderPost()">Hide</button>`}</div></div>
+      <div style="padding:8px 14px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">${statusPill(c)}${c.versions?`<span class="pill">v${c.versions+1}</span>`:''}${(c.status==='approved'&&!isAuto(c))?`<button class="sm s" onclick="copyText('${c.id}')">Copy text</button>${c.image?`<a class="sm s" href="${esc(c.image.final||c.image.url)}" download="${esc(c.id)}.jpg">Download image</a>`:''}`:''}${act?'':`<button class="sm s" onclick="expanded['${c.id}']=false;renderPost()">Hide</button>`}</div></div>
       <div class="act">
-        ${act?`<button class="b p" style="width:100%" onclick="decide('${c.id}','post')">Post</button>
+        ${act?`<button class="b p" style="width:100%" onclick="decide('${c.id}','post')">Post now</button>
+        <div class="q" style="margin:4px 0 0;font-size:13px">${isAuto(c)?'goes out within about 20 seconds':'LinkedIn not connected for this channel: it becomes "post it yourself now" with Copy text and Download image'}</div>
+        <input type="datetime-local" id="w-${c.id}" value="${esc(c.slot.slice(0,16))}" style="margin-top:12px">
+        <button class="b" style="width:100%;margin-top:6px" onclick="decide('${c.id}','schedule')">Schedule</button>
+        <div class="q" style="margin:4px 0 0;font-size:13px">${isAuto(c)?'posts itself at that time; Unschedule until then':'kept until that time, then you post it'}</div>
         <textarea id="n-${c.id}" rows="3" placeholder="or tell it what to change (kürzer, anderes Foto, ohne den Harvard-Vergleich …)" style="margin-top:12px"></textarea>
-        <button class="b" style="width:100%;margin-top:8px" onclick="decide('${c.id}','change')">Update the post</button>
-        <div class="q" style="margin:6px 0 0;font-size:13px">the post is rewritten in about a minute and comes back here; your notes also shape future drafts</div>
-        <div class="row"><button class="b s" onclick="skipPost('${c.id}')">Skip</button></div>
+        <button class="b" style="width:100%;margin-top:6px" onclick="decide('${c.id}','change')">Update the post</button>
+        <div class="q" style="margin:4px 0 0;font-size:13px">rewritten in about a minute, comes back here to decide; your notes also shape future drafts</div>
+        <div class="row"><button class="b s" onclick="skipPost('${c.id}')">Drop</button></div>
+        <div class="q" style="margin:4px 0 0;font-size:13px">removes this post for good; the slot gets a new draft</div>
         <div class="reasons" id="r-${c.id}"><button class="sm s" onclick="decide('${c.id}','skip','not the topic')">not the topic</button><button class="sm s" onclick="decide('${c.id}','skip','not the form')">not the form</button><button class="sm s" onclick="decide('${c.id}','skip','')">no reason</button></div>`
-        :c.status==='approved'?`<input type="url" id="u-${c.id}" placeholder="LinkedIn post URL (optional)"><div class="row"><button class="b" onclick="markPosted('${c.id}')">Mark posted</button><button class="b s" onclick="skipPost('${c.id}')">Skip</button></div><div class="reasons" id="r-${c.id}"><button class="sm s" onclick="decide('${c.id}','skip','not the topic')">not the topic</button><button class="sm s" onclick="decide('${c.id}','skip','not the form')">not the form</button><button class="sm s" onclick="decide('${c.id}','skip','')">no reason</button></div>`
-        :c.status==='change'?`<div class="q">being rewritten on the Mac with your note; it comes back approved</div>`
+        :c.status==='approved'?(past&&!isAuto(c)?`<input type="url" id="u-${c.id}" placeholder="LinkedIn post URL (optional)"><div class="row"><button class="b p" onclick="markPosted('${c.id}')">Mark posted</button></div><div class="row"><button class="b s" onclick="decide('${c.id}','unschedule')">Back to decide</button></div>`
+          :`${past?'':`<button class="b p" style="width:100%" onclick="decide('${c.id}','post')">Post now</button>`}<div class="row"><button class="b" onclick="decide('${c.id}','unschedule')">Unschedule</button></div><div class="q" style="margin:4px 0 0;font-size:13px">back to decide; nothing is posted</div>`)
+        :c.status==='scheduled'?`<div class="row"><button class="b" onclick="decide('${c.id}','unschedule')">Unschedule</button></div><div class="q" style="margin:4px 0 0;font-size:13px">you scheduled this one in the LinkedIn app; the board cannot reach it. Cancel it there first, then press Unschedule here and it comes back to decide</div>`
+        :c.status==='change'?`<div class="q">being rewritten with your note; it comes back here to decide</div>`
         :`<div class="q">${esc(STATUS[c.status]||c.status)}</div>`}
       </div></div>`;
   }
@@ -232,13 +246,15 @@ async function decide(id,dec,reason){
   if(dec==='change'&&!note.trim()){toast('write what to change first');return}
   const o={a:'decide',card_id:id,decision:dec,note:note,reason:reason||''};
   const el=$('#t-'+id), c=S.cards.find(x=>x.id===id);
-  if(dec==='post'&&el&&c&&el.innerText.trim()!==c.text.trim()) o.text=el.innerText.trim();
+  if((dec==='post'||dec==='schedule')&&el&&c&&el.isContentEditable&&el.innerText.trim()!==c.text.trim()) o.text=el.innerText.trim();
+  if(dec==='schedule'){o.when=($('#w-'+id)||{}).value||'';if(o.when.length<16){toast('pick date and time first');return}}
   const r=await post(o);
-  toast(r.ok?({post:o.text?'posted as edited':'approved',change:'noted · updating …',skip:'skipped'}[dec]):'error');
-  if(dec==='change') watchUntil=Date.now()+240000;
+  toast(r.ok?({post:isAuto(c)?'posting …':'approved · post it yourself',schedule:'scheduled',change:'noted · updating …',skip:'dropped',unschedule:'back to decide',photo_next:'changing the photo …'}[dec]):'error');
+  if(dec==='change'||dec==='photo_next'||dec==='post') watchUntil=Date.now()+240000;
   load();
 }
 function skipPost(id){$('#r-'+id).classList.toggle('on')}
+async function uploadFor(id,inp){const fd=new FormData();fd.append('a','upload');fd.append('card_id',id);for(const f of inp.files)fd.append('photos[]',f);toast('uploading …');const r=await (await fetch(api,{method:'POST',body:fd})).json();toast(r.ok?'uploaded · the picture changes in about 20 s':'upload failed');watchUntil=Date.now()+240000;load()}
 async function markPosted(id){const url=($('#u-'+id)||{}).value||'';const r=await post({a:'decide',card_id:id,decision:'posted',url});toast(r.ok?'logged as posted':'error');load()}
 async function copyText(id){const t=$('#t-'+id).textContent;try{await navigator.clipboard.writeText(t);toast('text copied')}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('text copied')}}
 async function answer(id,a){await post({a:'answer',id,answer:a});toast('noted');load()}
@@ -295,7 +311,7 @@ $('#rec').onclick=async()=>{
     mr.start();$('#rec').classList.add('on');toast('recording … press again to stop')}catch(e){toast('microphone not available: '+(e.name||e))}
 };
 load(); setInterval(load,60000);
-setInterval(()=>{if(document.activeElement&&document.activeElement.isContentEditable)return; if(S&&(Date.now()<watchUntil||S.cards.some(c=>c.status==='change'&&!c.failed)))load()},5000);
+setInterval(()=>{if(document.activeElement&&document.activeElement.isContentEditable)return; if(S&&(Date.now()<watchUntil||S.cards.some(c=>(c.status==='change'&&!c.failed)||c.image_pending)))load()},5000);
 </script>
 </body>
 </html>

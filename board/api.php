@@ -88,14 +88,18 @@ switch ($a) {
     $health = jread("$D/health.json", ['ts' => '', 'issues' => []]);
     out(['health' => $health, 'cards' => $cards, 'pipeline' => $pipe, 'queue' => today_queue(), 'photos' => $photos, 'pending' => $pending, 'memos' => $memos, 'settings' => settings(), 'messages' => $msg, 'now' => date('c')]);
 
-  case 'decide': // post card: post | change | skip | posted
+  case 'decide': // post card: post (now) | schedule (when) | change (note) | skip | posted | unschedule | photo_next
     $id = (string)($body['card_id'] ?? ''); $dec = (string)($body['decision'] ?? '');
-    if ($id === '' || !in_array($dec, ['post','change','skip','posted'], true)) out(['error' => 'bad request']);
-    $patch = ['status' => ['post'=>'approved','change'=>'change','skip'=>'skipped','posted'=>'posted'][$dec], 'decided' => date('c')];
-    foreach (['option','image_id','note','reason','url','text'] as $k) if (isset($body[$k]) && $body[$k] !== '') $patch[$k] = $body[$k];
+    if ($id === '' || !in_array($dec, ['post','schedule','change','skip','posted','unschedule','photo_next'], true)) out(['error' => 'bad request']);
+    $status = ['post'=>'approved','schedule'=>'approved','change'=>'change','skip'=>'skipped','posted'=>'posted','unschedule'=>'draft'][$dec] ?? null;
+    $patch = ['decided' => date('c')]; if ($status) $patch['status'] = $status;
+    if ($dec === 'post') $patch['slot'] = date('Y-m-d\TH:i');
+    if ($dec === 'schedule') { $w = preg_replace('/[^0-9T:-]/', '', (string)($body['when'] ?? '')); if (strlen($w) < 16) out(['error' => 'when missing']); $patch['slot'] = substr($w, 0, 16); $body['when'] = $patch['slot']; }
+    if ($dec === 'photo_next') $patch['image_pending'] = true;
+    foreach (['option','image_id','note','reason','url','text','when'] as $k) if (isset($body[$k]) && $body[$k] !== '') $patch[$k] = $body[$k];
     set_overlay('cards', $id, $patch);   // text: the post as Anton edited it on the card; shown at once, written to the draft by the worker
-    decide(['type'=>'post','card_id'=>$id,'decision'=>$dec] + array_intersect_key($patch, array_flip(['option','image_id','note','reason','url','text'])));
-    out(['ok' => true, 'status' => $patch['status']]);
+    decide(['type'=>'post','card_id'=>$id,'decision'=>$dec] + array_intersect_key($patch, array_flip(['option','image_id','note','reason','url','text','when'])));
+    out(['ok' => true, 'status' => $patch['status'] ?? '']);
 
   case 'queue': // comment card: used | skip | keep | clear
     $dec = (string)($body['decision'] ?? ''); $id = (string)($body['card_id'] ?? '');
@@ -130,9 +134,10 @@ switch ($a) {
         if (move_uploaded_file($_FILES['photos']['tmp_name'][$i], "$D/uploads/photos/$name")) $saved[] = $name;
       }
     }
-    $note = trim((string)($_POST['note'] ?? ''));
+    $note = trim((string)($_POST['note'] ?? '')); $card = preg_replace('/[^\w-]/', '', (string)($_POST['card_id'] ?? ''));
+    if ($card !== '') { $note = "card:$card"; if ($saved) set_overlay('cards', $card, ['image_pending' => true]); }   // image for one post, not for the pool
     if ($note !== '' && $saved) { $notes = jread("$D/uploads/photo-notes.json", []); foreach ($saved as $s) $notes[$s] = $note; jwrite("$D/uploads/photo-notes.json", $notes); }
-    decide(['type'=>'upload','files'=>$saved,'note'=>$note]);
+    decide(['type'=>'upload','files'=>$saved,'note'=>$note,'card_id'=>$card]);
     out(['ok'=>true,'saved'=>$saved]);
 
   case 'memo': // multipart audio

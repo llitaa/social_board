@@ -29,9 +29,10 @@ def pull():
     for d in ("uploads/photos", "uploads/memos"):
         os.makedirs(os.path.join(BOARD_LOCAL, d), exist_ok=True)
         rsync(["--remove-source-files", f"{ALIAS}:{R}/data/{d}/", os.path.join(BOARD_LOCAL, d) + "/"])
-    subprocess.run(["rsync", "-az", "--ignore-missing-args", f"{ALIAS}:{R}/data/uploads/photo-notes.json", os.path.join(BOARD_LOCAL, "uploads") + "/"], capture_output=True)
+    # macOS ships openrsync without --ignore-missing-args (19.10.: that flag silently skipped these three files for two days); a missing file is simply ignored
+    subprocess.run(["rsync", "-az", f"{ALIAS}:{R}/data/uploads/photo-notes.json", os.path.join(BOARD_LOCAL, "uploads") + "/"], capture_output=True)
     for item in ("settings.json", "overlay.json"):
-        subprocess.run(["rsync", "-az", "--ignore-missing-args", f"{ALIAS}:{R}/data/{item}", BOARD_LOCAL + "/"], capture_output=True)
+        subprocess.run(["rsync", "-az", f"{ALIAS}:{R}/data/{item}", BOARD_LOCAL + "/"], capture_output=True)
 
 def deploy():
     """Code only: index.php, api.php, .htaccess, icon."""

@@ -64,11 +64,15 @@ def main():
             t = d.get("type"); last_ts = max(last_ts, d.get("ts", ""))
             if t == "post":
                 cid = d["card_id"]; card = cards.get(cid, {})
-                status = {"post": "approved", "change": "change", "skip": "skipped", "posted": "posted"}.get(d["decision"])
-                if not status: continue
+                status = {"post": "approved", "schedule": "approved", "change": "change", "skip": "skipped", "posted": "posted", "unschedule": "draft", "photo_next": None}.get(d["decision"], "")
+                if status == "": continue
                 for r in plan:
                     if r["id"] == card.get("plan_row"):
-                        r["status"] = status
+                        if status: r["status"] = status
+                        if d["decision"] == "post": r["planned"] = d["ts"][:16].replace("T", " ")          # Post now: the row's slot is now, publish.py takes it in this run
+                        if d["decision"] == "schedule" and d.get("when"): r["planned"] = d["when"][:16].replace("T", " ")
+                        if d["decision"] == "unschedule": r["notes"] = f"[board {d['ts'][:16]} unscheduled] " + r.get("notes", "")
+                        if d["decision"] == "photo_next": r["notes"] = f"[board {d['ts'][:16]} photo: next] " + r.get("notes", "")
                         if d.get("note"): r["notes"] = f"[board {d['ts'][:16]} {d['decision']}: {d['note']}] " + r.get("notes", "")
                         if d.get("reason"): r["notes"] = f"[board skip: {d['reason']}] " + r.get("notes", "")
                         if d.get("text") and status in ("approved", "posted") and write_edit(r, d["text"], d["ts"]): r["notes"] = f"[board {d['ts'][:16]} edited on the card] " + r.get("notes", ""); d["edited"] = "yes"
@@ -79,12 +83,12 @@ def main():
                             r["note"] = f"POSTED via board {d['ts'][:10]}. " + r.get("note", "")
                             if d.get("url"): r["link"] = d["url"]
                             changed_log = True
-                if card: card["status"] = status
-                append(os.path.join(LOGDIR, "post-decisions.csv"), ["ts", "card_id", "decision", "option", "note", "reason", "url", "edited"], d)
+                if card and status: card["status"] = status
+                append(os.path.join(LOGDIR, "post-decisions.csv"), ["ts", "card_id", "decision", "option", "note", "reason", "url", "edited", "when"], d)
             elif t == "comment":
                 append(os.path.join(LOGDIR, "comment-log.csv"), ["ts", "card_id", "decision", "reason"], d)
             elif t in ("photo", "upload", "memo", "settings", "answer"):
-                append(os.path.join(LOGDIR, "board-events.csv"), ["ts", "type", "id", "decision", "files", "file", "note", "answer", "expiry", "review"],
+                append(os.path.join(LOGDIR, "board-events.csv"), ["ts", "type", "id", "decision", "files", "file", "note", "answer", "expiry", "review", "card_id"],
                        {**d, "files": ",".join(d.get("files", []) or [])})
         done[os.path.basename(f)] = len(lines)
     if promote_scheduled(plan, plog): changed_plan = changed_log = True
