@@ -21,3 +21,4 @@ library/log/.run.lock
 library/log/.applied.json
 library/sources/
 config.local.linkedin.json
+config.local.linkedin-org.json
