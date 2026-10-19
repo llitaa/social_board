@@ -7,8 +7,8 @@ legacy_photos: /Users/anton/dev/campaign/local/resources/anton-photos
 library: ./library
 board:
   ssh_alias: hostinger-alpitype
-  remote_dir: ~/domains/alpitype.com/public_html/board
-  url: https://alpitype.com/board/
+  remote_dir: ~/domains/alpitype.de/public_html/board
+  url: https://alpitype.de/board/
 photo_sources:            # scanned for camera photos with a face; copies go to library/photos, originals stay
   - ~/Downloads
 photo_reuse_days: 90      # a used photo is eligible again after this many days

@@ -63,8 +63,22 @@ def web_copy(src, dst_base):
     if not (os.path.isfile(final) and os.path.isfile(web) and os.path.getmtime(final) >= os.path.getmtime(src)):
         im = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
         im.save(final, "JPEG", quality=92); im.thumbnail((1600, 1600)); im.save(web, "JPEG", quality=85)
-    im = Image.open(web)
-    return {"url": "data/img/" + os.path.basename(web), "final": "data/img/" + os.path.basename(final), "w": im.width, "h": im.height}
+    im = Image.open(web); v = int(os.path.getmtime(final))
+    return {"url": f"data/img/{os.path.basename(web)}?v={v}", "final": f"data/img/{os.path.basename(final)}?v={v}", "w": im.width, "h": im.height}
+
+def prune_images(keep_ids):
+    """Card images for posts that left the board are deleted 7 days after their slot (spec: storage rule);
+    the push mirrors img/ with delete, so the server never holds more than the current cards + thumbnails."""
+    d = os.path.join(BOARD_LOCAL, "img"); n = 0; total = 0
+    for f in os.listdir(d) if os.path.isdir(d) else []:
+        fp = os.path.join(d, f)
+        if not os.path.isfile(fp): continue
+        cid = re.sub(r"(-final)?\.jpg$", "", f)
+        if cid not in keep_ids and (datetime.now().timestamp() - os.path.getmtime(fp)) > 7 * 86400: os.remove(fp); n += 1; continue
+        total += os.path.getsize(fp)
+    for f in os.listdir(os.path.join(d, "thumbs")) if os.path.isdir(os.path.join(d, "thumbs")) else []: total += os.path.getsize(os.path.join(d, "thumbs", f))
+    if total > 200 * 1024 * 1024: log(f"WARNING board images {total // 1048576} MB on the server, above the 200 MB rule")
+    return n, total
 
 def main():
     rows, _ = read_csv(PLAN)
@@ -97,6 +111,7 @@ def main():
         published.append({"id": r["post_id"], "date": r["date"], "channel": "company" if "company" in r["channel"] else "personal",
                           "hook": (r.get("hook") or "")[:110], "impressions": r.get("impressions", ""), "reactions": r.get("reactions", ""), "comments": r.get("comments", "")})
     published.sort(key=lambda p: p["date"], reverse=True)
+    pruned, total = prune_images({c["id"] for c in cards})
     jdump(os.path.join(BOARD_LOCAL, "cards.json"), cards)
     inv, _ = read_csv(os.path.join(LIB, "inventory.csv")); material = {}
     for r in inv:
@@ -105,6 +120,6 @@ def main():
     jdump(os.path.join(BOARD_LOCAL, "pipeline.json"), {"upcoming": upcoming, "published": published[:12], "material": material,
           "memos": [{"id": m["id"], "recorded": m["recorded"], "words": m["words"], "status": m["status"], "used_in": m["used_in"]} for m in memos[-5:] if m["status"] in ("new", "drafted")],
           "generated": now.isoformat(timespec="seconds")})
-    log(f"{len(cards)} cards: " + ", ".join(f"{c['id']}@{c['slot'][:16]}[{c['status']}]" for c in cards) + f"; {len(upcoming)} upcoming, {len(published)} published")
+    log(f"{len(cards)} cards: " + ", ".join(f"{c['id']}@{c['slot'][:16]}[{c['status']}]" for c in cards) + f"; {len(upcoming)} upcoming, {len(published)} published; images {total // 1024} KB, pruned {pruned}")
 
 if __name__ == "__main__": main()

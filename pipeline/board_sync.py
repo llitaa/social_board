@@ -20,7 +20,7 @@ def push():
         if os.path.isfile(f): rsync([f, f"{ALIAS}:{R}/data/"])
     for d in ("queue", "img"):
         src = os.path.join(BOARD_LOCAL, d)
-        if os.path.isdir(src): rsync([src + "/", f"{ALIAS}:{R}/data/{d}/"])
+        if os.path.isdir(src): rsync(["--delete", src + "/", f"{ALIAS}:{R}/data/{d}/"])   # mirror: pruned images leave the server too
 
 def pull():
     os.makedirs(os.path.join(BOARD_LOCAL, "decisions"), exist_ok=True)

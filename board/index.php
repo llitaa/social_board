@@ -21,7 +21,7 @@ header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:2px solid v
 .tabs{display:flex;max-width:1240px;margin:0 auto}
 .tabs button{flex:1;border:0;background:none;padding:8px 0 10px;font-size:14px;color:var(--m);border-bottom:3px solid transparent;cursor:pointer}
 .tabs button.on{color:var(--d);font-weight:600;border-bottom-color:var(--d)}
-main{max-width:1240px;margin:0 auto;padding:12px 14px 90px}
+main{max-width:1240px;margin:0 auto;padding:12px 14px 90px;overflow-x:hidden}
 .card{border:1px solid var(--b);border-radius:12px;background:#fff;margin:0 0 14px;overflow:hidden}
 .card.done{opacity:.6}
 .who{display:flex;align-items:center;gap:10px;padding:12px 14px 0}
@@ -54,13 +54,14 @@ button.sm.s,a.sm.s{color:var(--m);border-color:var(--b)}
 .reasons.on{display:flex}
 .empty{color:var(--m);text-align:center;padding:30px 10px}
 h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--m);margin:18px 0 8px;font-weight:600}
-.compact{display:grid;grid-template-columns:52px 1fr auto;gap:4px 12px;padding:10px 14px;align-items:center}
+.compact{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:4px 12px;padding:10px 14px;align-items:center}
+.compact>div{min-width:0}
 .compact .d{font-size:12px;color:var(--m);line-height:1.25}
 .compact .h{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .compact .pills{grid-column:2;display:flex;gap:4px;flex-wrap:wrap}
 .compact .tools{display:flex;gap:6px;grid-row:1/3}
 .pipe{border:1px solid var(--b);border-radius:12px;overflow:hidden;margin:0 0 12px;background:#fff}
-.pipe .r{display:grid;grid-template-columns:62px 1fr;gap:2px 10px;padding:8px 12px;border-top:1px solid var(--b);font-size:13px;align-items:start}
+.pipe .r{display:grid;grid-template-columns:62px minmax(0,1fr);gap:2px 10px;padding:8px 12px;border-top:1px solid var(--b);font-size:13px;align-items:start}
 .pipe .r>div{min-width:0}
 .pipe .r:first-child{border-top:0}
 .pipe .r.link{cursor:pointer}

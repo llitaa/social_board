@@ -1,50 +1,73 @@
 title: LinkedIn system — architecture on one page
-subtitle: Data flow, storage, feedback, tokens · state 19.10.2026 evening · measured, not estimated
+subtitle: Data flow with token plugs, hosting, storage, feedback · state 19.10.2026 · measured, not estimated
 footer: AlpiType · Intern · Architecture · 19.10.2026
 
 <style>table{page-break-inside:auto} tr{page-break-inside:avoid} svg{max-width:100%;height:auto;display:block;margin:4px 0 8px} td,th{font-size:9pt} h2{margin-top:14px}</style>
 
-## 1. Data flow (what runs where)
+## 1. Data flow (what runs where, and where tokens are spent)
+
+Everything is local and free except the four orange boxes. Grey = your devices and the server, blue = the Mac jobs.
 
 <div class="figwrap">
-<svg viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="12">
+<svg viewBox="0 0 1000 470" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="12">
 <defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0f3a50"/></marker></defs>
-<g stroke="#d6e2ea" fill="#f2f9fb"><rect x="10" y="10" width="220" height="380" rx="8"/><rect x="260" y="10" width="300" height="380" rx="8"/><rect x="590" y="10" width="400" height="380" rx="8"/></g>
-<g fill="#0f3a50" font-weight="700" font-size="13"><text x="20" y="30">PHONE or MAC BROWSER</text><text x="270" y="30">SERVER alpitype.com (PHP)</text><text x="600" y="30">MAC, launchd every 10 min</text></g>
-<g fill="#5a6b7a" font-size="11"><text x="20" y="46">nothing installed, nothing stored</text><text x="270" y="46">/board/&lt;secret&gt;/ · data/ not readable from web</text><text x="600" y="46">python, whisper.cpp, OpenCV · zero tokens</text></g>
+<g stroke="#d6e2ea" fill="#f8fafb"><rect x="10" y="10" width="190" height="450" rx="8"/><rect x="220" y="10" width="200" height="450" rx="8"/></g>
+<rect x="440" y="10" width="550" height="450" rx="8" stroke="#d6e2ea" fill="#f2f9fb"/>
+<g fill="#0f3a50" font-weight="700" font-size="13"><text x="20" y="30">YOU · phone or Mac browser</text><text x="230" y="30">SERVER · alpitype.de/board/…</text><text x="450" y="30">MAC · pipeline/run.sh, launchd every 10 min</text></g>
+<g fill="#5a6b7a" font-size="11"><text x="20" y="46">nothing installed</text><text x="230" y="46">PHP, rsync target, 7 MB</text><text x="450" y="46">python, whisper.cpp, OpenCV, Chrome · `claude -p` for the orange boxes</text></g>
 <g stroke="#0f3a50" stroke-width="1.5" fill="#fff">
-<rect x="20" y="60" width="200" height="54" rx="6"/><rect x="20" y="124" width="200" height="54" rx="6"/><rect x="20" y="188" width="200" height="54" rx="6"/><rect x="20" y="252" width="200" height="54" rx="6"/>
-<rect x="270" y="60" width="280" height="54" rx="6"/><rect x="270" y="124" width="280" height="54" rx="6"/><rect x="270" y="188" width="280" height="54" rx="6"/><rect x="270" y="252" width="280" height="54" rx="6"/>
-<rect x="600" y="60" width="380" height="54" rx="6" fill="#BEF7FF"/><rect x="600" y="124" width="180" height="54" rx="6"/><rect x="790" y="124" width="190" height="54" rx="6"/><rect x="600" y="188" width="180" height="54" rx="6"/><rect x="790" y="188" width="190" height="54" rx="6"/><rect x="600" y="252" width="380" height="54" rx="6"/>
-<rect x="20" y="326" width="530" height="54" rx="6" stroke-dasharray="4 3"/><rect x="600" y="326" width="380" height="54" rx="6" stroke-dasharray="4 3"/>
+<rect x="20" y="62" width="170" height="60" rx="6"/><rect x="20" y="134" width="170" height="60" rx="6"/><rect x="20" y="206" width="170" height="60" rx="6"/><rect x="20" y="278" width="170" height="60" rx="6"/>
+<rect x="230" y="62" width="180" height="60" rx="6"/><rect x="230" y="134" width="180" height="60" rx="6"/><rect x="230" y="206" width="180" height="60" rx="6"/><rect x="230" y="278" width="180" height="60" rx="6"/>
+<rect x="450" y="62" width="255" height="60" rx="6"/><rect x="720" y="62" width="260" height="60" rx="6" fill="#fff3e0" stroke="#e08a00"/>
+<rect x="450" y="134" width="255" height="60" rx="6"/><rect x="720" y="134" width="260" height="60" rx="6" fill="#fff3e0" stroke="#e08a00"/>
+<rect x="450" y="206" width="255" height="60" rx="6"/><rect x="720" y="206" width="260" height="60" rx="6" fill="#fff3e0" stroke="#e08a00"/>
+<rect x="450" y="278" width="255" height="60" rx="6"/><rect x="720" y="278" width="260" height="60" rx="6" fill="#fff3e0" stroke="#e08a00"/>
+<rect x="450" y="350" width="530" height="44" rx="6" fill="#BEF7FF"/>
+<rect x="20" y="404" width="390" height="44" rx="6" stroke-dasharray="4 3"/><rect x="450" y="404" width="530" height="44" rx="6" stroke-dasharray="4 3"/>
 </g>
 <g fill="#1f2d3a" text-anchor="middle">
-<text x="120" y="82" font-weight="600">Board page</text><text x="120" y="98" font-size="11">Post · Comments · Photos · Record</text>
-<text x="120" y="146" font-weight="600">Decision press</text><text x="120" y="162" font-size="11">Post as is / Post with changes / Skip</text>
-<text x="120" y="210" font-weight="600">Add photo</text><text x="120" y="226" font-size="11">camera roll, original stays on phone</text>
-<text x="120" y="274" font-weight="600">Record</text><text x="120" y="290" font-size="11">MediaRecorder, m4a</text>
-<text x="410" y="82" font-weight="600">cards.json · pipeline.json · photos.json</text><text x="410" y="98" font-size="11">read only, written by the Mac</text>
-<text x="410" y="146" font-weight="600">decisions/YYYY-MM-DD.jsonl</text><text x="410" y="162" font-size="11">append only + overlay.json for instant UI</text>
-<text x="410" y="210" font-weight="600">uploads/photos/</text><text x="410" y="226" font-size="11">waits ≤10 min, then moved off</text>
-<text x="410" y="274" font-weight="600">uploads/memos/</text><text x="410" y="290" font-size="11">waits ≤10 min, then moved off</text>
-<text x="790" y="82" font-weight="600">apply_decisions → content-plan.csv · posts-log.csv</text><text x="790" y="98" font-size="11">the truth; status, reason, URL; git in ~/dev/campaign</text>
-<text x="690" y="146" font-weight="600">cards.py</text><text x="690" y="162" font-size="11">CSV → cards, pipeline, material</text>
-<text x="885" y="146" font-weight="600">photo_index.py</text><text x="885" y="162" font-size="11">Downloads scan, tags, 90-day reuse, pick</text>
-<text x="690" y="210" font-weight="600">transcribe.py</text><text x="690" y="226" font-size="11">whisper.cpp, 1–20 s, local</text>
-<text x="885" y="210" font-weight="600">library/</text><text x="885" y="226" font-size="11">photos · memos · drafts · log</text>
-<text x="790" y="274" font-weight="600">draft.py · redraft.py · inventory.py · llm.py</text><text x="790" y="290" font-size="11">fill every slot 14 days ahead (Opus) · apply notes · tags (Haiku)</text>
-<text x="285" y="348" font-weight="600">LinkedIn</text><text x="285" y="364" font-size="11">today: Copy text + Save image, post or schedule by hand · from 06.11.: API</text>
-<text x="790" y="348" font-weight="600">Signals for the comment queue (slice 2)</text><text x="790" y="364" font-size="11">local browser script on the watch list, once a day, zero tokens</text>
+<text x="105" y="84" font-weight="600">Board: the post</text><text x="105" y="100" font-size="11">Post as is · with changes · Skip</text><text x="105" y="114" font-size="11">Copy text · Save image</text>
+<text x="105" y="156" font-weight="600">Photos: don't use</text><text x="105" y="172" font-size="11">the only photo decision</text>
+<text x="105" y="228" font-weight="600">Record</text><text x="105" y="244" font-size="11">browser microphone → m4a</text>
+<text x="105" y="300" font-weight="600">Add photo</text><text x="105" y="316" font-size="11">camera roll, original stays</text>
+<text x="320" y="84" font-weight="600">cards · pipeline · photos</text><text x="320" y="100" font-size="11">JSON written by the Mac</text><text x="320" y="114" font-size="11">web copies of card images</text>
+<text x="320" y="156" font-weight="600">decisions/*.jsonl</text><text x="320" y="172" font-size="11">every press, append only</text>
+<text x="320" y="228" font-weight="600">uploads/memos · photos</text><text x="320" y="244" font-size="11">≤ 10 min, then moved to the Mac</text>
+<text x="320" y="300" font-weight="600">overlay.json</text><text x="320" y="316" font-size="11">a press shows before the Mac confirms</text>
+<text x="577" y="84" font-weight="600">apply_decisions → content-plan.csv</text><text x="577" y="100" font-size="11">approved / change+note / skipped</text><text x="577" y="114" font-size="11">the truth, git in ~/dev/campaign</text>
+<text x="850" y="84" font-weight="600" fill="#8a4b00">redraft.py · Opus · ~$0.09</text><text x="850" y="100" font-size="11">note + current text → new text</text><text x="850" y="114" font-size="11">version kept, status approved</text>
+<text x="577" y="156" font-weight="600">transcribe.py · whisper.cpp</text><text x="577" y="172" font-size="11">ffmpeg → 16 kHz wav → ggml-small (466 MB)</text><text x="577" y="186" font-size="11">local CPU/GPU, 1–20 s, 0 tokens</text>
+<text x="850" y="156" font-weight="600" fill="#8a4b00">draft.py · Opus · ~$0.15 per post</text><text x="850" y="172" font-size="11">slot + pillar + topic + photo scene</text><text x="850" y="186" font-size="11">+ CV or company context → text</text>
+<text x="577" y="228" font-weight="600">photo_index.py · OpenCV YuNet</text><text x="577" y="244" font-size="11">EXIF, face, square crop, shoots,</text><text x="577" y="258" font-size="11">90-day reuse, pick() · 0 tokens</text>
+<text x="850" y="228" font-weight="600" fill="#8a4b00">tags · Haiku · $0.002 per photo</text><text x="850" y="244" font-size="11">thumbnail → scene, tags, who is in it</text><text x="850" y="258" font-size="11">once per photo</text>
+<text x="577" y="300" font-weight="600">cards.py · rules_check.py</text><text x="577" y="316" font-size="11">CSV → cards, pipeline, material</text><text x="577" y="330" font-size="11">banned patterns gate · 0 tokens</text>
+<text x="850" y="300" font-weight="600" fill="#8a4b00">inventory.py · Opus · $0.34 once</text><text x="850" y="316" font-size="11">CV + context + published → topics</text><text x="850" y="330" font-size="11">re-run only adds</text>
+<text x="715" y="368" font-weight="600">library/ on the Mac</text><text x="715" y="384" font-size="11">photos · memos · drafts (texts, versions, graphics) · published · inventory.csv · log/llm-calls.csv</text>
+<text x="215" y="422" font-weight="600">LinkedIn</text><text x="215" y="438" font-size="11">today: Copy text + Save image, you post or schedule · from 06.11.: API</text>
+<text x="715" y="422" font-weight="600">not built: comment queue (slice 2)</text><text x="715" y="438" font-size="11">watch list read by a local browser script, 0 tokens · drafts Sonnet ~$0.03 each</text>
 </g>
 <g stroke="#0f3a50" stroke-width="1.5" fill="none" marker-end="url(#a)">
-<path d="M270 87 L222 87"/><path d="M220 151 L268 151"/><path d="M220 215 L268 215"/><path d="M220 279 L268 279"/>
-<path d="M552 151 L598 151"/><path d="M552 215 L598 215"/><path d="M552 279 L598 279"/><path d="M598 87 L552 87"/>
+<path d="M190 100 L228 156"/><path d="M190 164 L228 164"/><path d="M190 236 L228 236"/><path d="M190 308 L228 244"/><path d="M228 84 L192 84"/>
+<path d="M410 164 L448 92"/><path d="M410 228 L448 164"/><path d="M410 244 L448 236"/><path d="M448 300 L412 100"/>
+<path d="M705 92 L718 92"/><path d="M705 164 L718 164"/><path d="M705 236 L718 236"/>
 </g>
-<g fill="#0f3a50" font-size="10" text-anchor="middle"><text x="575" y="80">push</text><text x="575" y="144">pull</text><text x="575" y="208">pull</text><text x="575" y="272">pull</text><text x="245" y="80">GET</text><text x="245" y="144">POST</text><text x="245" y="208">POST</text><text x="245" y="272">POST</text></g>
+<g fill="#5a6b7a" font-size="10" text-anchor="middle"><text x="208" y="78">push</text><text x="208" y="126">press</text><text x="436" y="214">push</text></g>
 </svg>
 </div>
 
-## 2. Where things live
+**Voice memo, step by step:** Record in the browser (MediaRecorder, m4a) → `api.php` stores it under `uploads/memos/` → the next run moves it to the Mac (`library/memos/`) → `ffmpeg` converts to 16 kHz mono wav → `whisper-cli` (whisper.cpp, model ggml-small, 466 MB on disk, runs on the Mac's CPU/GPU) writes the transcript → `library/memos/<ts>.txt` + `index.csv`. No model tokens anywhere in that path; your 4-second test took 1.4 s. Tokens are spent only afterwards, when `draft.py` turns a memo of 15+ words into the next personal post (one Opus call). Memos under 15 words are marked short and ignored.
+
+## 2. Hosting and storage
+
+All nine domains (alpitype.de, alpitype.com, alpitype.ai, alpi-m.de, aux-valley.*, ki-*.de) sit on **one** Hostinger account and one disk; dropping alpitype.com saves the domain fee, not hosting. The board was therefore moved on 19.10. to **alpitype.de/board/<token>/** (beside WordPress; real directories bypass its rewrite, PHP and the CDN pass it as dynamic). alpitype.com now redirects every path to alpitype.de, so the old bookmark lands on the new board.
+
+| | Today | Growth | Rule |
+|---|---|---|---|
+| Whole account | 1.7 GB (alpitype.de WordPress 687 MB, alpi-m 358 MB, aux-valley.com 303 MB, ki-aktiv 289 MB) | — | plan limit 100 GB (Premium) / 200 GB (Business); check in hPanel once |
+| Board | 7 MB | ≈ 10 MB per month if nothing is deleted (one card = web copy 0.3 MB + final 0.3–1.9 MB; a thumbnail 30 KB) | card images are deleted 7 days after the slot; thumbnails only for photos still in the pool; `board_sync push` mirrors with delete; a warning in the log above 200 MB |
+| Mac `library/` | 1.1 GB (whisper model 466 MB, pool 43 photos) | ≈ 50 MB per month (photos + memos) | nothing to delete; media never in git |
+
+## 3. Where things live
 
 | What | Lives on | Copy on the server | In git |
 |---|---|---|---|
@@ -56,7 +79,7 @@ footer: AlpiType · Intern · Architecture · 19.10.2026
 | Every press on the board | `decisions/*.jsonl` on the server, folded into `library/log/*.csv` | stays (small, append only) | log CSVs yes |
 | Secrets | board token `config.local.token`; Graph creds in alpi_marketer; LinkedIn token later | none | never |
 
-## 3. How your feedback is applied
+## 4. How your feedback is applied
 
 1. A press writes one JSON line on the server and an overlay entry, so the page shows the new state at once.
 2. Within 10 minutes the Mac pulls the line and writes it into `content-plan.csv` (status approved / change / skipped / posted, the reason or note in front of the row's notes) and into `posts-log.csv` (posted date, URL). `applied.json` tells the server which overlay entries are now folded in.
@@ -65,11 +88,11 @@ footer: AlpiType · Intern · Architecture · 19.10.2026
 5. `cards.py` rebuilds the cards from the CSV, so the board and the CSV never disagree for more than one cycle.
 6. "Don't use these" on a shoot goes into `photos/index.csv` (status hold); the shoot disappears from the available list at once and is never picked.
 
-## 3a. How a slot gets its post
+## 4a. How a slot gets its post
 
 `draft.py` runs in every sync. For each weekday slot in the next 14 days without a post (max 3 personal + 1 company per week, posts you scheduled yourself count): pillar = the one least used in the surrounding 14 days that still has material (a fresh voice memo comes first) → topic = strongest unused row of `library/inventory.csv` → photo = `photo_index.pick()` (never used before re-used, taken within 24 months before older, newest first, solo photos first, never the shoot of the post before or after, 90 days until a used photo is free again) or, for company posts, a 1200×1200 graphic from `pipeline/templates/company-card.html` rendered by headless Chrome → one text from Opus with the CV (personal) or the company context (company) as the only facts and three recent posts as voice → `rules_check.py` (banned patterns, question at the end, length) → `library/drafts/` + a content-plan row with status draft. 19.10.: 5 drafts in about 9 minutes.
 
-## 4. Tokens: measured today, and the decision
+## 5. Tokens: measured today, and the decision
 
 `claude -p` works from a script on your subscription for all three models. Measured 19.10., one comment draft (a realistic 180-word prompt), Mac, no session open:
 

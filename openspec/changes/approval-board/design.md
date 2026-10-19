@@ -8,7 +8,8 @@ The board must work from the phone and from the Mac without a Claude session. Th
 **Non-Goals:** user accounts, multi-user, editing post text on the phone beyond a note, analytics on the board.
 
 ## Decisions
-- Hosting: PHP page + JSON API on alpitype.com under a secret path (`board/<token>/`), shared hosting, no accounts; the Mac syncs with rsync every 10 minutes (`pipeline/run.sh`, launchd).
+- Hosting: PHP page + JSON API on **alpitype.de** under a secret path (`board/<token>/`), beside the WordPress site (a real directory bypasses its rewrite; Hostinger CDN treats PHP as dynamic, images carry `?v=mtime`), one shared-hosting plan for all domains; alpitype.com redirects to it. The Mac syncs with rsync every 10 minutes (`pipeline/run.sh`, launchd).
+- Storage rule: the server holds only the current cards' images and the pool thumbnails; card images are pruned 7 days after the slot and the push mirrors with delete; a log warning above 200 MB. Expected growth without the rule ≈ 10 MB/month, plan limit 100–200 GB.
 - State model: decisions appended as JSONL per day on the server, pulled to `board/data/decisions/`, folded into `content-plan.csv` by `apply_decisions.py`; the CSV is the truth, the board shows an overlay until the Mac confirms (`applied.json`).
 - Card = post preview (author line, text, image), three actions. A note is an instruction, not a conversation: `redraft.py` applies it and approves. No option A/B, no crop, no photo choice on the card.
 - Record: browser MediaRecorder → `uploads/memos/` → moved to the Mac → whisper.cpp → `library/memos/<ts>.txt` → next personal draft.
