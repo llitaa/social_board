@@ -59,9 +59,9 @@ The Post screen SHALL show every open card as the post will appear on LinkedIn: 
 - **WHEN** a note, an edit or a skip reason states a preference that holds for future posts ("immer", "nie", "generell", a tone or word to avoid)
 - **THEN** one line is added to the preference list (`library/style-rules.txt`) and every later draft and redraft prompt carries it; a one-off fix ("ohne die Zahl im ersten Satz") adds nothing; the system line shows the count; a line deleted from the file is forgotten
 
-#### Scenario: Approved card at slot time, before API publishing exists
-- **WHEN** the slot arrives and the linkedin-publishing capability is not live yet
-- **THEN** the card shows "approved · post it yourself now · Copy text" with Copy text and Save image; Anton posts in LinkedIn and presses Mark posted (URL optional)
+#### Scenario: Approved card due on a channel without API
+- **WHEN** the slot arrives (or Post now was pressed) and that channel is not connected to the API
+- **THEN** the card counts and sorts as a decision at the top of the Post screen: "waits for you: post it by hand", numbered sequence Copy text, Download image, post in LinkedIn, Mark posted (URL optional), plus Back to decide; the header shows "n to post by hand" and the system line names the post
 
 #### Scenario: Post scheduled in LinkedIn by Anton
 - **WHEN** a row has status scheduled and its time has passed

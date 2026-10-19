@@ -76,6 +76,14 @@ For a personal post the system SHALL rank eligible photos: never-used before re-
 - **WHEN** Anton writes "anderes Foto" on the card
 - **THEN** the next-ranked eligible photo replaces it and the text is adjusted to the new picture if it referred to the old one
 
+#### Scenario: Next photo from the pool
+- **WHEN** Anton presses "Next photo from the pool" on a personal card
+- **THEN** within about 20 seconds the next-ranked eligible photo (never one the card had before) replaces the picture; the text does not change; no model call
+
+#### Scenario: Upload another image for one post
+- **WHEN** Anton uploads an image on a card (personal or company)
+- **THEN** it replaces the picture within about 20 seconds: square crop for a personal post, as is for a company card; the image enters the index as used by that post and is never offered to another post; it does not join the free pool
+
 ### Requirement: Photos screen
 The Photos screen SHALL show Add photo, one summary line (available, used with next free date, held back) and the available shoots as thumbnails with their scene line; used and held shoots sit behind one toggle. Per available shoot there is one control, "don't use these" (status hold); uploads not yet fetched can be deleted. No picking, no Friday, no crop.
 

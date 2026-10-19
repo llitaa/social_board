@@ -42,6 +42,14 @@ def main():
     if len(slots) < 4: issues.append({"what": "slot filling", "since": today.isoformat(), "times": 1, "log": f"only {len(slots)} posts planned in the next 14 days", "fix": "check library/log/draft.out, inventory.csv (unused topics) and the photo pool"})
     stuck = [r for r in plan if r["status"] == "change" and "[redraft failed" in r.get("notes", "")]
     for r in stuck: issues.append({"what": "notes → redraft", "since": today.isoformat(), "times": 1, "log": r["notes"][:160], "fix": "decide the card again or rephrase the note"})
+    li = linkedin()
+    for r in plan:
+        if r["status"] != "approved" or not r["channel"].startswith("linkedin"): continue
+        due = (r.get("planned") or "9999")[:16].replace("T", " ") <= datetime.now().strftime("%Y-%m-%d %H:%M")
+        auto = li["connected"] and (r["channel"] == "linkedin" or li["org"])
+        if due and not auto:
+            cid = "-".join(os.path.basename(r.get("caption_ref", "")).split("-")[0:3])
+            issues.append({"what": "one post waits for you", "since": r.get("planned", ""), "times": 1, "log": f"{cid} is approved and due, but the {'company page' if r['channel'] == 'linkedin-company' else 'profile'} is not connected to the API", "fix": "on the board: Copy text, Download image, post it in LinkedIn, Mark posted"})
     for r in plan:
         if r["status"] == "approved" and r.get("notes", "").startswith("[publish failed"): issues.append({"what": "LinkedIn publishing", "since": today.isoformat(), "times": 1, "log": r["notes"][:160], "fix": "post it yourself (Copy text) or run: python3 pipeline/publish.py; token: pipeline/linkedin_auth.py"})
     inv, _ = read_csv(os.path.join(LIB, "inventory.csv")); unused = sum(1 for r in inv if r["status"] == "unused" and r["pillar"] != "company")
@@ -51,7 +59,6 @@ def main():
         for r in read_csv(calls)[0]:
             if r["ts"][:7] == today.isoformat()[:7]: cost += float(r["cost_usd"] or 0); failed += r["ok"] == "no"
     if failed: issues.append({"what": "model calls", "since": today.isoformat(), "times": failed, "log": f"{failed} failed claude -p calls this month", "fix": "run `claude -p 'ok'` by hand; check the subscription limit"})
-    li = linkedin()
     if li["connected"] and li["days_left"] < 7: issues.append({"what": "LinkedIn token", "since": today.isoformat(), "times": 1, "log": f"expires in {li['days_left']} days", "fix": "run: python3 pipeline/linkedin_auth.py"})
     rules = [l for l in open(os.path.join(LIB, "style-rules.txt"), encoding="utf-8") if l.strip() and not l.startswith("#")] if os.path.isfile(os.path.join(LIB, "style-rules.txt")) else []
     jdump(os.path.join(BOARD_LOCAL, "health.json"), {"ts": datetime.now().isoformat(timespec="seconds"), "issues": issues, "ok": ok, "month_cost_usd": round(cost, 2), "slots_planned": len(slots), "topics_unused": unused,

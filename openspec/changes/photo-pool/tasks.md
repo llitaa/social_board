@@ -13,7 +13,7 @@
 
 ## 3. Board controls
 - [x] 3.1 Photos screen: summary line, available shoots with scene, "don't use these", used/held behind a toggle (19.10.)
-- [x] 3.2 Post card: no photo controls; "anderes Foto" as a note swaps the photo in `redraft.py` (19.10.)
+- [x] 3.2 Post card: "anderes Foto" as a note swaps the photo in `redraft.py`; "Next photo from the pool" and "Upload another image" per card in `photo_index.card_images()` (19.10., exercised through the server API)
 - [x] 3.3 Neighbour-shoot rule in `draft.py` (shoots of the post before and after the slot, ±3 days)
 
 ## 4. Verify

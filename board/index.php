@@ -144,10 +144,12 @@ async function load(){const st=await (await fetch(api+'?a=state&_='+Date.now()))
 function showTab(n){tab=n;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===n));['post','comments','photos'].forEach(t=>$('#'+t).hidden=t!==tab);history.replaceState(null,'','#'+n)}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
 if(['post','comments','photos'].includes(location.hash.slice(1))) showTab(location.hash.slice(1));
-const needs=c=>c.status==='draft'||(c.status==='change'&&c.failed);
+const byHand=c=>c.status==='approved'&&new Date(c.slot)<new Date(S.now)&&!isAuto(c);   // approved, due, channel not connected: Anton posts it himself
+const needs=c=>c.status==='draft'||(c.status==='change'&&c.failed)||byHand(c);
 function render(){
   const open=S.cards.filter(needs).length, qOpen=S.queue.cards.filter(c=>!c.state).length;
-  $('#sub').textContent=`${open} to decide · ${qOpen} comment${qOpen===1?'':'s'} · until ${S.queue.expiry}`;
+  const hand=S.cards.filter(byHand).length;
+  $('#sub').textContent=`${open-hand} to decide${hand?` · ${hand} to post by hand`:''} · ${qOpen} comment${qOpen===1?'':'s'} · until ${S.queue.expiry}`;
   $('#clock').textContent=new Date(S.now).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
   $('#side').innerHTML=renderPipeline(); renderPost(); renderComments(); renderPhotos();
 }
@@ -158,7 +160,7 @@ function statusPill(c){
   const auto=isAuto(c);
   if(c.status==='change') return c.failed?`<span class="pill warn">update failed · decide again</span>`:`<span class="pill warn">being updated · about a minute</span>`;
   if(c.status==='scheduled') return `<span class="pill li">scheduled by you in the LinkedIn app · ${fmtSlot(c.slot)}</span>`;
-  if(c.status==='approved') return past?(auto?`<span class="pill ok">posting now …</span>`:`<span class="pill warn">post it yourself now · Copy text · Download image</span>`):auto?`<span class="pill ok">scheduled · posts itself ${fmtSlot(c.slot)}</span>`:`<span class="pill ok">scheduled ${fmtSlot(c.slot)}</span> <span class="pill warn">${c.channel==='company'?'company page not connected: you post it then':'LinkedIn not connected: you post it then'}</span>`;
+  if(c.status==='approved') return past?(auto?`<span class="pill ok">posting now …</span>`:`<span class="pill todo">waits for you: post it by hand</span> <span class="pill warn">${c.channel==='company'?'company page':'profile'} not connected to the API</span>`):auto?`<span class="pill ok">scheduled · posts itself ${fmtSlot(c.slot)}</span>`:`<span class="pill ok">scheduled ${fmtSlot(c.slot)}</span> <span class="pill warn">${c.channel==='company'?'company page not connected: you post it then':'LinkedIn not connected: you post it then'}</span>`;
   if(c.status==='draft') return (c.updated?`<span class="pill ok">updated per your note</span> `:'')+(c.image_pending?`<span class="pill warn">image being changed · about 20 s</span> `:'')+`<span class="pill todo">to decide</span>`;
   return `<span class="pill">${esc(STATUS[c.status]||c.status)}</span>`;
 }
@@ -199,7 +201,7 @@ function systemHtml(){
   else if(seen>45) issues.unshift({what:'Mac',log:`last run ${seen} min ago, presses wait on the server`,fix:'wake the Mac; if awake: launchctl kickstart gui/501/com.alpitype.board-sync, then library/log/board-sync.err'});
   const li=H.linkedin||{};
   if(!issues.length) return `<div class="sys ok">system ok · last run ${seen} min ago · ${H.slots_planned||0} posts planned · ${H.topics_unused||0} topics left · ${H.rules_learned||0} preferences learned · $${H.month_cost_usd||0} this month · LinkedIn ${li.connected?'connected until '+fmtD(li.expires)+(li.org?' incl. company page':' (personal only)'):'not connected: approved posts you copy and post yourself'}</div>`;
-  return issues.map(i=>`<div class="sys"><b>${esc(i.what)} needs a fix${i.times>1?' · '+i.times+' times':''}</b>${esc(i.log||'')}<code>${esc(i.fix||'')}</code></div>`).join('');
+  return issues.map(i=>`<div class="sys"><b>${esc(i.what)}${i.what.startsWith('one post')?'':' needs a fix'}${i.times>1?' · '+i.times+' times':''}</b>${esc(i.log||'')}<code>${esc(i.fix||'')}</code></div>`).join('');
 }
 function renderPost(){
   const el=$('#post'); let h=systemHtml();
@@ -218,8 +220,14 @@ function renderPost(){
       ${c.note?`<div class="note ${c.failed?'fail':''}">${c.failed?'could not apply: ':(c.updated?'applied: ':'your note: ')}${esc(c.note)}</div>`:''}
       <div style="padding:8px 14px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">${statusPill(c)}${c.versions?`<span class="pill">v${c.versions+1}</span>`:''}${(c.status==='approved'&&!isAuto(c))?`<button class="sm s" onclick="copyText('${c.id}')">Copy text</button>${c.image?`<a class="sm s" href="${esc(c.image.final||c.image.url)}" download="${esc(c.id)}.jpg">Download image</a>`:''}`:''}${act?'':`<button class="sm s" onclick="expanded['${c.id}']=false;renderPost()">Hide</button>`}</div></div>
       <div class="act">
-        ${act?`<button class="b p" style="width:100%" onclick="decide('${c.id}','post')">Post now</button>
-        <div class="q" style="margin:4px 0 0;font-size:13px">${isAuto(c)?'goes out within about 20 seconds':'LinkedIn not connected for this channel: it becomes "post it yourself now" with Copy text and Download image'}</div>
+        ${byHand(c)?`<div class="q" style="margin:0 0 8px">1. Copy text · 2. Download image · 3. post both in LinkedIn as ${c.channel==='company'?'AlpiType':'yourself'} · 4. Mark posted</div>
+        <button class="b" style="width:100%" onclick="copyText('${c.id}')">Copy text</button>
+        ${c.image?`<a class="b" style="display:block;margin-top:8px" href="${esc(c.image.final||c.image.url)}" download="${esc(c.id)}.jpg">Download image</a>`:''}
+        <input type="url" id="u-${c.id}" placeholder="LinkedIn post URL (optional)" style="margin-top:12px"><button class="b p" style="width:100%;margin-top:6px" onclick="markPosted('${c.id}')">Mark posted</button>
+        <div class="row"><button class="b s" onclick="decide('${c.id}','unschedule')">Back to decide</button></div>
+        <div class="q" style="margin:8px 0 0;font-size:13px">${c.channel==='company'?'the company page posts itself once LinkedIn grants the Community Management API (docs/linkedin-setup.md, step 6)':'reconnect LinkedIn: pipeline/linkedin_auth.py'}</div>`
+        :act?`<button class="b p" style="width:100%" onclick="decide('${c.id}','post')">${isAuto(c)?'Post now':'Post now · by hand'}</button>
+        <div class="q" style="margin:4px 0 0;font-size:13px">${isAuto(c)?'goes out within about 20 seconds':(c.channel==='company'?'company page':'profile')+' is not connected to the API: the card comes to the top with Copy text, Download image and Mark posted'}</div>
         <input type="datetime-local" id="w-${c.id}" value="${esc(c.slot.slice(0,16))}" style="margin-top:12px">
         <button class="b" style="width:100%;margin-top:6px" onclick="decide('${c.id}','schedule')">Schedule</button>
         <div class="q" style="margin:4px 0 0;font-size:13px">${isAuto(c)?'posts itself at that time; Unschedule until then':'kept until that time, then you post it'}</div>
@@ -229,8 +237,7 @@ function renderPost(){
         <div class="row"><button class="b s" onclick="skipPost('${c.id}')">Drop</button></div>
         <div class="q" style="margin:4px 0 0;font-size:13px">removes this post for good; the slot gets a new draft</div>
         <div class="reasons" id="r-${c.id}"><button class="sm s" onclick="decide('${c.id}','skip','not the topic')">not the topic</button><button class="sm s" onclick="decide('${c.id}','skip','not the form')">not the form</button><button class="sm s" onclick="decide('${c.id}','skip','')">no reason</button></div>`
-        :c.status==='approved'?(past&&!isAuto(c)?`<input type="url" id="u-${c.id}" placeholder="LinkedIn post URL (optional)"><div class="row"><button class="b p" onclick="markPosted('${c.id}')">Mark posted</button></div><div class="row"><button class="b s" onclick="decide('${c.id}','unschedule')">Back to decide</button></div>`
-          :`${past?'':`<button class="b p" style="width:100%" onclick="decide('${c.id}','post')">Post now</button>`}<div class="row"><button class="b" onclick="decide('${c.id}','unschedule')">Unschedule</button></div><div class="q" style="margin:4px 0 0;font-size:13px">back to decide; nothing is posted</div>`)
+        :c.status==='approved'?`${past?'':`<button class="b p" style="width:100%" onclick="decide('${c.id}','post')">${isAuto(c)?'Post now':'Post now · by hand'}</button>`}<div class="row"><button class="b" onclick="decide('${c.id}','unschedule')">Unschedule</button></div><div class="q" style="margin:4px 0 0;font-size:13px">back to decide; nothing is posted</div>`
         :c.status==='scheduled'?`<div class="row"><button class="b" onclick="decide('${c.id}','unschedule')">Unschedule</button></div><div class="q" style="margin:4px 0 0;font-size:13px">you scheduled this one in the LinkedIn app; the board cannot reach it. Cancel it there first, then press Unschedule here and it comes back to decide</div>`
         :c.status==='change'?`<div class="q">being rewritten with your note; it comes back here to decide</div>`
         :`<div class="q">${esc(STATUS[c.status]||c.status)}</div>`}
