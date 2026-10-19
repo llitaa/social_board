@@ -13,8 +13,8 @@ Everything is local and free except the four orange boxes. Grey = your devices a
 <defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0f3a50"/></marker></defs>
 <g stroke="#d6e2ea" fill="#f8fafb"><rect x="10" y="10" width="190" height="450" rx="8"/><rect x="220" y="10" width="200" height="450" rx="8"/></g>
 <rect x="440" y="10" width="550" height="450" rx="8" stroke="#d6e2ea" fill="#f2f9fb"/>
-<g fill="#0f3a50" font-weight="700" font-size="13"><text x="20" y="30">YOU · phone or Mac browser</text><text x="230" y="30">SERVER · alpitype.de/board/…</text><text x="450" y="30">MAC · pipeline/run.sh, launchd every 10 min</text></g>
-<g fill="#5a6b7a" font-size="11"><text x="20" y="46">nothing installed</text><text x="230" y="46">PHP, rsync target, 7 MB</text><text x="450" y="46">python, whisper.cpp, OpenCV, Chrome · `claude -p` for the orange boxes</text></g>
+<g fill="#0f3a50" font-weight="700" font-size="13"><text x="20" y="30">YOU · phone or Mac browser</text><text x="230" y="30">SERVER · alpitype.de/board/…</text><text x="450" y="30">WORKER (today: the Mac) · pipeline/run.sh every 10 min</text></g>
+<g fill="#5a6b7a" font-size="11"><text x="20" y="46">nothing installed</text><text x="230" y="46">PHP, rsync target, 7 MB</text><text x="450" y="46">any always-on machine: python, ffmpeg+whisper.cpp, OpenCV, Chrome, claude CLI · see docs/worker.md</text></g>
 <g stroke="#0f3a50" stroke-width="1.5" fill="#fff">
 <rect x="20" y="62" width="170" height="60" rx="6"/><rect x="20" y="134" width="170" height="60" rx="6"/><rect x="20" y="206" width="170" height="60" rx="6"/><rect x="20" y="278" width="170" height="60" rx="6"/>
 <rect x="230" y="62" width="180" height="60" rx="6"/><rect x="230" y="134" width="180" height="60" rx="6"/><rect x="230" y="206" width="180" height="60" rx="6"/><rect x="230" y="278" width="180" height="60" rx="6"/>
@@ -56,6 +56,20 @@ Everything is local and free except the four orange boxes. Grey = your devices a
 </div>
 
 **Voice memo, step by step:** Record in the browser (MediaRecorder, m4a) → `api.php` stores it under `uploads/memos/` → the next run moves it to the Mac (`library/memos/`) → `ffmpeg` converts to 16 kHz mono wav → `whisper-cli` (whisper.cpp, model ggml-small, 466 MB on disk, runs on the Mac's CPU/GPU) writes the transcript → `library/memos/<ts>.txt` + `index.csv`. No model tokens anywhere in that path; your 4-second test took 1.4 s. Tokens are spent only afterwards, when `draft.py` turns a memo of 15+ words into the next personal post (one Opus call). Memos under 15 words are marked short and ignored.
+
+## 1a. Where compute runs, and why
+
+| Component | Needs | Runs today | Could run on |
+|---|---|---|---|
+| Board page + API | PHP, a few MB | Hostinger shared hosting (alpitype.de) | stays; it is only a mailbox |
+| Memo transcription | ffmpeg, whisper.cpp, 466 MB model, ≈ 1 GB RAM, CPU seconds (1.4 s for your 4 s memo on the M-series; a shared-hosting CPU would need a minute and may be killed; the plan allows no binaries and no long-running processes) | the Mac, 0 tokens | any PC or a VPS (≈ 5 € / month) |
+| Photo pool (EXIF, YuNet face crop, shoots, pick) | OpenCV, pillow-heif | the Mac, 0 tokens | any PC |
+| Drafts, redrafts, inventory, tags | `claude -p` on the subscription (or API key) | the Mac | any machine logged in to the subscription; a server is simpler with the API key |
+| Company graphics | headless Chrome | the Mac | any PC with Chromium |
+| Cards, pipeline, health, sync | python, rsync, ssh key | the Mac, every 10 min | any PC |
+| LinkedIn publishing (when the app exists) | python, token file | the Mac at slot time | same worker |
+
+The Mac is one role, "the worker", not an architecture decision: everything in `pipeline/` is plain python and shell, the state is files, and the server never calls the worker. Moving the role to your other PC is a checklist (`docs/worker.md`): clone the two repos, install the table above, copy `library/` and the two `config.local.*` files and the ssh key, add a cron line, stop the Mac job. Two workers must never run at once. The AWS machine would add uptime the board does not need; presses wait on the server until the worker's next run, so a PC that sleeps at night is enough.
 
 ## 2. Hosting and storage
 

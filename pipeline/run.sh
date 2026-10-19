@@ -2,11 +2,11 @@
 # The sync chain, every 10 minutes from launchd. One run at a time (lock dir).
 # Every step is logged to library/log/steps.jsonl (step, start, seconds, rc, last stderr line);
 # health.py turns that into board/data/health.json, and the board shows a red line when something is wrong.
-cd /Users/anton/dev/linkedin-system || exit 1
+cd "$(dirname "$0")/.." || exit 1
 LOCK=library/log/.run.lock; STEPS=library/log/steps.jsonl
 if ! mkdir "$LOCK" 2>/dev/null; then echo "$(date +%H:%M) another run is active"; exit 0; fi
 trap 'rmdir "$LOCK"' EXIT
-P=/opt/anaconda3/bin/python3
+P=${PYTHON:-$( [ -x /opt/anaconda3/bin/python3 ] && echo /opt/anaconda3/bin/python3 || command -v python3 )}   # the worker: any machine with the requirements in docs/worker.md
 echo "=== $(date '+%Y-%m-%d %H:%M')"
 step() {  # step <name> <command...>
   local name=$1; shift; local t0=$(date +%s); local err=$(mktemp)

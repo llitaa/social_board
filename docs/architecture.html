@@ -44,8 +44,8 @@ strong { color:#0f3a50; }
 <defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0f3a50"/></marker></defs>
 <g stroke="#d6e2ea" fill="#f8fafb"><rect x="10" y="10" width="190" height="450" rx="8"/><rect x="220" y="10" width="200" height="450" rx="8"/></g>
 <rect x="440" y="10" width="550" height="450" rx="8" stroke="#d6e2ea" fill="#f2f9fb"/>
-<g fill="#0f3a50" font-weight="700" font-size="13"><text x="20" y="30">YOU · phone or Mac browser</text><text x="230" y="30">SERVER · alpitype.de/board/…</text><text x="450" y="30">MAC · pipeline/run.sh, launchd every 10 min</text></g>
-<g fill="#5a6b7a" font-size="11"><text x="20" y="46">nothing installed</text><text x="230" y="46">PHP, rsync target, 7 MB</text><text x="450" y="46">python, whisper.cpp, OpenCV, Chrome · `claude -p` for the orange boxes</text></g>
+<g fill="#0f3a50" font-weight="700" font-size="13"><text x="20" y="30">YOU · phone or Mac browser</text><text x="230" y="30">SERVER · alpitype.de/board/…</text><text x="450" y="30">WORKER (today: the Mac) · pipeline/run.sh every 10 min</text></g>
+<g fill="#5a6b7a" font-size="11"><text x="20" y="46">nothing installed</text><text x="230" y="46">PHP, rsync target, 7 MB</text><text x="450" y="46">any always-on machine: python, ffmpeg+whisper.cpp, OpenCV, Chrome, claude CLI · see docs/worker.md</text></g>
 <g stroke="#0f3a50" stroke-width="1.5" fill="#fff">
 <rect x="20" y="62" width="170" height="60" rx="6"/><rect x="20" y="134" width="170" height="60" rx="6"/><rect x="20" y="206" width="170" height="60" rx="6"/><rect x="20" y="278" width="170" height="60" rx="6"/>
 <rect x="230" y="62" width="180" height="60" rx="6"/><rect x="230" y="134" width="180" height="60" rx="6"/><rect x="230" y="206" width="180" height="60" rx="6"/><rect x="230" y="278" width="180" height="60" rx="6"/>
@@ -87,6 +87,62 @@ strong { color:#0f3a50; }
 </div>
 
 <p><strong>Voice memo, step by step:</strong> Record in the browser (MediaRecorder, m4a) → <code>api.php</code> stores it under <code>uploads/memos/</code> → the next run moves it to the Mac (<code>library/memos/</code>) → <code>ffmpeg</code> converts to 16 kHz mono wav → <code>whisper-cli</code> (whisper.cpp, model ggml-small, 466 MB on disk, runs on the Mac's CPU/GPU) writes the transcript → <code>library/memos/&lt;ts&gt;.txt</code> + <code>index.csv</code>. No model tokens anywhere in that path; your 4-second test took 1.4 s. Tokens are spent only afterwards, when <code>draft.py</code> turns a memo of 15+ words into the next personal post (one Opus call). Memos under 15 words are marked short and ignored.</p>
+<h2>1a. Where compute runs, and why</h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Needs</th>
+<th>Runs today</th>
+<th>Could run on</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Board page + API</td>
+<td>PHP, a few MB</td>
+<td>Hostinger shared hosting (alpitype.de)</td>
+<td>stays; it is only a mailbox</td>
+</tr>
+<tr>
+<td>Memo transcription</td>
+<td>ffmpeg, whisper.cpp, 466 MB model, ≈ 1 GB RAM, CPU seconds (1.4 s for your 4 s memo on the M-series; a shared-hosting CPU would need a minute and may be killed; the plan allows no binaries and no long-running processes)</td>
+<td>the Mac, 0 tokens</td>
+<td>any PC or a VPS (≈ 5 € / month)</td>
+</tr>
+<tr>
+<td>Photo pool (EXIF, YuNet face crop, shoots, pick)</td>
+<td>OpenCV, pillow-heif</td>
+<td>the Mac, 0 tokens</td>
+<td>any PC</td>
+</tr>
+<tr>
+<td>Drafts, redrafts, inventory, tags</td>
+<td><code>claude -p</code> on the subscription (or API key)</td>
+<td>the Mac</td>
+<td>any machine logged in to the subscription; a server is simpler with the API key</td>
+</tr>
+<tr>
+<td>Company graphics</td>
+<td>headless Chrome</td>
+<td>the Mac</td>
+<td>any PC with Chromium</td>
+</tr>
+<tr>
+<td>Cards, pipeline, health, sync</td>
+<td>python, rsync, ssh key</td>
+<td>the Mac, every 10 min</td>
+<td>any PC</td>
+</tr>
+<tr>
+<td>LinkedIn publishing (when the app exists)</td>
+<td>python, token file</td>
+<td>the Mac at slot time</td>
+<td>same worker</td>
+</tr>
+</tbody>
+</table>
+<p>The Mac is one role, "the worker", not an architecture decision: everything in <code>pipeline/</code> is plain python and shell, the state is files, and the server never calls the worker. Moving the role to your other PC is a checklist (<code>docs/worker.md</code>): clone the two repos, install the table above, copy <code>library/</code> and the two <code>config.local.*</code> files and the ssh key, add a cron line, stop the Mac job. Two workers must never run at once. The AWS machine would add uptime the board does not need; presses wait on the server until the worker's next run, so a PC that sleeps at night is enough.</p>
 <h2>2. Hosting and storage</h2>
 <p>All nine domains (alpitype.de, alpitype.com, alpitype.ai, alpi-m.de, aux-valley.<em>, ki-</em>.de) sit on <strong>one</strong> Hostinger account and one disk; dropping alpitype.com saves the domain fee, not hosting. The board was therefore moved on 19.10. to <strong>alpitype.de/board/<token>/</strong> (beside WordPress; real directories bypass its rewrite, PHP and the CDN pass it as dynamic). alpitype.com now redirects every path to alpitype.de, so the old bookmark lands on the new board.</p>
 <table>
