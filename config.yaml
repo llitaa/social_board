@@ -15,12 +15,14 @@ photo_reuse_days: 90      # a used photo is eligible again after this many days
 photo_fresh_months: 24    # older photos are picked only when nothing newer is eligible
 llm:
   backend: claude-p       # claude-p = `claude -p` on the subscription; api = Anthropic API (ANTHROPIC_API_KEY)
+  claude: ''              # path of the claude CLI when it is not on the worker's PATH (launchd/cron); empty = search the usual places
   models:
     draft: claude-opus-5-5
     redraft: claude-opus-5-5
     inventory: claude-opus-5-5
     tags: claude-haiku-5-5
     comment: claude-sonnet-5-5
+    learn: claude-sonnet-5-5    # one call per note/edit/skip reason -> library/style-rules.txt
 slots:                    # weekday -> channel and time; the pipeline keeps every slot in the next 14 days filled
   personal: {days: [Mon, Wed, Fri], time: "07:30", lang: de}
   company:  {days: [Thu], time: "09:00", lang: en}

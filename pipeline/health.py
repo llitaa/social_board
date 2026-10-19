@@ -7,8 +7,19 @@ from datetime import datetime, date, timedelta
 from common import CFG, LIB, BOARD_LOCAL, read_csv, jdump, log
 
 STEPS = os.path.join(LIB, "log", "steps.jsonl")
-NAMES = {"pull": "server sync (pull)", "apply": "decisions → CSV", "transcribe": "memo transcription", "photos": "photo pool",
+NAMES = {"pull": "server sync (pull)", "apply": "decisions → CSV", "learn": "notes → preferences", "transcribe": "memo transcription", "photos": "photo pool",
          "redraft": "notes → redraft", "draft": "slot filling", "cards": "cards + pipeline", "push": "server sync (push)"}
+LI = os.path.join(os.path.dirname(LIB), "config.local.linkedin.json")
+
+def linkedin():
+    """What the board says next to an approved card: posts itself, or 'you post it' until the app exists."""
+    c = {}
+    if os.path.isfile(LI):
+        try: c = json.load(open(LI))
+        except json.JSONDecodeError: c = {}
+    exp = c.get("expires", "")
+    ok = bool(c.get("access_token")) and exp > datetime.now().isoformat()
+    return {"connected": ok, "org": bool(c.get("org_urn")), "expires": exp[:10], "days_left": (date.fromisoformat(exp[:10]) - date.today()).days if ok else 0}
 
 def last_runs(n=3):
     rows = [json.loads(l) for l in open(STEPS, encoding="utf-8")] if os.path.isfile(STEPS) else []
@@ -38,7 +49,11 @@ def main():
         for r in read_csv(calls)[0]:
             if r["ts"][:7] == today.isoformat()[:7]: cost += float(r["cost_usd"] or 0); failed += r["ok"] == "no"
     if failed: issues.append({"what": "model calls", "since": today.isoformat(), "times": failed, "log": f"{failed} failed claude -p calls this month", "fix": "run `claude -p 'ok'` by hand; check the subscription limit"})
-    jdump(os.path.join(BOARD_LOCAL, "health.json"), {"ts": datetime.now().isoformat(timespec="seconds"), "issues": issues, "ok": ok, "month_cost_usd": round(cost, 2), "slots_planned": len(slots), "topics_unused": unused})
+    li = linkedin()
+    if li["connected"] and li["days_left"] < 7: issues.append({"what": "LinkedIn token", "since": today.isoformat(), "times": 1, "log": f"expires in {li['days_left']} days", "fix": "run: python3 pipeline/linkedin_auth.py"})
+    rules = [l for l in open(os.path.join(LIB, "style-rules.txt"), encoding="utf-8") if l.strip() and not l.startswith("#")] if os.path.isfile(os.path.join(LIB, "style-rules.txt")) else []
+    jdump(os.path.join(BOARD_LOCAL, "health.json"), {"ts": datetime.now().isoformat(timespec="seconds"), "issues": issues, "ok": ok, "month_cost_usd": round(cost, 2), "slots_planned": len(slots), "topics_unused": unused,
+          "linkedin": li, "rules_learned": len(rules)})
     log(f"health: {len(issues)} issue(s)" + (": " + "; ".join(i["what"] for i in issues) if issues else ""))
 
 if __name__ == "__main__": main()

@@ -56,14 +56,25 @@ Before a card reaches the board it SHALL pass: facts only from CV v2 and the com
 - **THEN** the draft is rejected and redrafted; the card is not created until it passes
 
 ### Requirement: Redraft on note
-When a card carries a note (Post with these changes), the next run SHALL rewrite the text honouring the note and nothing else, keep the old text as a version, swap the photo when the note asks for it, pass the rules gate and set the card to approved. No second decision is asked.
+When a card carries a note (Update the post), the worker SHALL rewrite the text within about a minute honouring the note, Anton's learned preferences and nothing else, keep the old text as a version, swap the photo when the note asks for it, pass the rules gate and hand the card back to decide. Anton reads, edits in place if needed, presses Post.
 
 #### Scenario: Note at 07:10
 - **WHEN** Anton writes "kürzer, ohne den Harvard-Vergleich" at 07:10
-- **THEN** by 07:20 the card shows the shorter text, "updated per your note", status approved, and `<id>.v1.txt` holds the old text
+- **THEN** by 07:12 the card shows the shorter text with "updated per your note · read · edit · Post", and `<id>.v1.txt` holds the old text
+
+### Requirement: Preferences learned from notes
+Every note, every text Anton edited on a card and every skip reason SHALL be read once by a small model that states a standing preference in one line or nothing (default nothing: a fix to one post is not a rule). The lines live in `library/style-rules.txt` and SHALL be part of every draft and redraft prompt; Anton can delete lines.
+
+#### Scenario: General note
+- **WHEN** Anton writes "nie mit einer Zahl anfangen"
+- **THEN** one line is added and the next drafts do not open with a number
+
+#### Scenario: One-off note
+- **WHEN** Anton writes "ohne den Harvard-Vergleich"
+- **THEN** nothing is added
 
 ### Requirement: Which model does what
-Model calls go through one function (`llm(step, prompt)`), the backend is config (`claude -p` on the subscription by default, API key as a switch), the model per step is config: draft and redraft Opus, inventory Opus, photo tags Haiku, comment drafts Sonnet. Every call is logged with tokens and cost to `library/log/llm-calls.csv`.
+Model calls go through one function (`llm(step, prompt)`), the backend is config (`claude -p` on the subscription by default, API key as a switch), the model per step is config: draft and redraft Opus, inventory Opus, photo tags Haiku, comment drafts and learning Sonnet. The claude binary is found on PATH or at the usual install places (a service has a short PATH), or set in config. Every call is logged with tokens and cost to `library/log/llm-calls.csv`.
 
 #### Scenario: Monthly cost
 - **WHEN** Anton asks what the system cost

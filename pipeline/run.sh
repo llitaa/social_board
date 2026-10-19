@@ -1,5 +1,7 @@
 #!/bin/zsh
-# The sync chain, every 10 minutes from launchd. One run at a time (lock dir).
+# The sync chain. watch.py starts it: `run.sh fast` as soon as a press reaches the server (pull, decisions,
+# learn, redraft, cards, push: a note is applied within about a minute), `run.sh full` every 10 minutes
+# (plus memos, photos, slot filling). One run at a time (lock dir); `run.sh` by hand = full.
 # Every step is logged to library/log/steps.jsonl (step, start, seconds, rc, last stderr line);
 # health.py turns that into board/data/health.json, and the board shows a red line when something is wrong.
 cd "$(dirname "$0")/.." || exit 1
@@ -15,12 +17,16 @@ step() {  # step <name> <command...>
   printf '{"step":"%s","ts":"%s","seconds":%d,"rc":%d,"last":"%s"}\n' "$name" "$(date '+%Y-%m-%dT%H:%M:%S')" $(( $(date +%s) - t0 )) $rc "$last" >> "$STEPS"
   return $rc
 }
+MODE=${1:-full}
 step pull        $P pipeline/board_sync.py pull || { $P pipeline/health.py; exit 1; }
 step apply       $P pipeline/apply_decisions.py
+step learn       $P pipeline/learn.py
+if [ "$MODE" = full ]; then
 step transcribe  $P pipeline/transcribe.py
 step photos      $P pipeline/photo_index.py
+fi
 step redraft     $P pipeline/redraft.py
-step draft       $P pipeline/draft.py
+[ "$MODE" = full ] && step draft $P pipeline/draft.py
 step cards       $P pipeline/cards.py
 step health      $P pipeline/health.py
 step push        $P pipeline/board_sync.py push

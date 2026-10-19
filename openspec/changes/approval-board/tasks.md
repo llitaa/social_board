@@ -9,7 +9,11 @@
 - [x] 2.1 Render a card from `content-plan.csv` rows (text from `library/drafts/` or `library/published/`, image from the row's asset)
 - [x] 2.2 Buttons Post as is / Post with these changes / Skip write decisions; card shows resulting status (19.10.: card = post preview, no picture choice, no options)
 - [x] 2.4 Copy text / Save image on every card; "post it yourself" state at slot time
-- [x] 2.3 Note loop: `redraft.py` applies the note at the next run, keeps versions, approves (19.10.)
+- [x] 2.3 Note loop: `redraft.py` applies the note, keeps versions, hands the card back to decide; `watch.py` triggers the fast chain within 15 s of a press; page polls every 5 s while updating (19.10., measured 60–70 s)
+- [x] 2.6 Editable text on the card, Post sends the edit; `apply_decisions.py` writes it with a version (19.10., tested through the server API)
+- [x] 2.7 `learn.py`: notes, edits, skip reasons → `library/style-rules.txt` → draft and redraft prompts (19.10.)
+- [x] 2.8 Scheduled rows past their time become posted (19.10.)
+- [x] 2.9 Compact rows: explicit grid columns (19.10.: tools were auto-placed into the date column)
 - [x] 2.5 Pipeline list: next 14 days without empty slots, published with numbers, material counts (19.10.)
 
 ## 3. Record

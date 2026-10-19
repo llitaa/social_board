@@ -27,6 +27,13 @@ AlpiType builds automation as code inside the client's own environment (Microsof
 Always end with a question, then exactly 3 hashtags including #7030. Allowed CTA at most once: the book as free PDF alpitype.de/buch-en, or "30 minutes with an engineer".
 Forbidden: addressing an audience ("for everyone who"), naming clients, invented numbers, claims not in the company context."""}
 
+def style_rules():
+    """Anton's standing preferences, learned from his notes, edits and skip reasons on the board (learn.py)."""
+    f = os.path.join(LIB, "style-rules.txt")
+    rules = [l.strip() for l in open(f, encoding="utf-8")] if os.path.isfile(f) else []
+    rules = [l for l in rules if l and not l.startswith("#")]
+    return ("\nAnton's standing preferences from his notes on earlier posts (apply them):\n" + "\n".join("- " + l.split("\t")[-1] for l in rules[-40:]) + "\n") if rules else ""
+
 def planned(channel, slot_day, days=28):
     """Hooks of posts posted or planned within +/- days of the slot: the draft must not reuse their facts or angle."""
     plan, _ = read_csv(CFG["content_plan"]); out = []
@@ -136,7 +143,7 @@ def draft_one(dt, channel, plan, idx, memo=None):
     img = f"\nPhoto that will be posted with the text: {photo['scene'] or photo['note'] or 'Anton, ' + photo['tags']}\n" if photo else \
           "\nThe post gets a 1200x1200 graphic: give eyebrow (2-3 words), title (max 8 words, may contain one \\n), 3-4 numbered lines (max 9 words each) and a 1-3 word footer.\n"
     prompt = f"""{STYLE[channel]}
-
+{style_rules()}
 Slot: {dt.strftime('%A %d.%m.%Y %H:%M')}
 {material}
 {img}

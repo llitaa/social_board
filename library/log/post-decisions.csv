@@ -1,2 +1,5 @@
 ts,card_id,decision,option,note,reason,url
 2026-10-18T12:39:36+02:00,test-card,post,A,,,
+2026-10-19T14:48:57+02:00,li-post-99,change,,"kürzer, maximal 700 Zeichen, und ohne die Zahl 30 Prozent im ersten Satz",,,
+2026-10-19T14:50:41+02:00,li-post-99,change,,"kürzer, maximal 700 Zeichen, und ohne die Zahl 30 Prozent im ersten Satz",,,
+2026-10-19T14:52:49+02:00,li-post-99,post,,,,,yes

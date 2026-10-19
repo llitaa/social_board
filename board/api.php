@@ -71,6 +71,11 @@ $body = [];
 if (($_SERVER['CONTENT_TYPE'] ?? '') === 'application/json') { $body = json_decode((string)file_get_contents('php://input'), true) ?? []; $a = $body['a'] ?? $a; }
 
 switch ($a) {
+  case 'ping': // cheap change stamp: the worker polls this every few seconds and runs the chain when it moves
+    $st = 0;
+    foreach (array_merge(glob("$D/decisions/*.jsonl"), glob("$D/uploads/photos/*"), glob("$D/uploads/memos/*")) as $f) $st = max($st, filemtime($f) * 1000 + (filesize($f) % 1000));
+    out(['stamp' => $st, 'now' => date('c')]);
+
   case 'state':
     $cards = overlay_cards(jread("$D/cards.json", []));
     $photos = overlay_photos(jread("$D/photos.json", ['shoots' => []]));
@@ -87,9 +92,9 @@ switch ($a) {
     $id = (string)($body['card_id'] ?? ''); $dec = (string)($body['decision'] ?? '');
     if ($id === '' || !in_array($dec, ['post','change','skip','posted'], true)) out(['error' => 'bad request']);
     $patch = ['status' => ['post'=>'approved','change'=>'change','skip'=>'skipped','posted'=>'posted'][$dec], 'decided' => date('c')];
-    foreach (['option','image_id','note','reason','url'] as $k) if (isset($body[$k]) && $body[$k] !== '') $patch[$k] = $body[$k];
-    set_overlay('cards', $id, $patch);
-    decide(['type'=>'post','card_id'=>$id,'decision'=>$dec] + array_intersect_key($patch, array_flip(['option','image_id','note','reason','url'])));
+    foreach (['option','image_id','note','reason','url','text'] as $k) if (isset($body[$k]) && $body[$k] !== '') $patch[$k] = $body[$k];
+    set_overlay('cards', $id, $patch);   // text: the post as Anton edited it on the card; shown at once, written to the draft by the worker
+    decide(['type'=>'post','card_id'=>$id,'decision'=>$dec] + array_intersect_key($patch, array_flip(['option','image_id','note','reason','url','text'])));
     out(['ok' => true, 'status' => $patch['status']]);
 
   case 'queue': // comment card: used | skip | keep | clear

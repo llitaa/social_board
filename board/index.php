@@ -54,12 +54,17 @@ button.sm.s,a.sm.s{color:var(--m);border-color:var(--b)}
 .reasons.on{display:flex}
 .empty{color:var(--m);text-align:center;padding:30px 10px}
 h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--m);margin:18px 0 8px;font-weight:600}
-.compact{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:4px 12px;padding:10px 14px;align-items:center}
+.compact{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:4px 12px;padding:10px 14px;align-items:center}
 .compact>div{min-width:0}
-.compact .d{font-size:12px;color:var(--m);line-height:1.25}
-.compact .h{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.compact .pills{grid-column:2;display:flex;gap:4px;flex-wrap:wrap}
-.compact .tools{display:flex;gap:6px;grid-row:1/3}
+.compact .d{grid-column:1;grid-row:1;font-size:12px;color:var(--m);line-height:1.25}
+.compact .h{grid-column:2;grid-row:1;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.compact .pills{grid-column:2;grid-row:2;display:flex;gap:4px;flex-wrap:wrap}
+.compact .tools{grid-column:3;grid-row:1/3;display:flex;gap:6px}
+.txt[contenteditable]{outline:none;border-radius:6px;margin:0 8px;padding:10px 6px 4px}
+.txt[contenteditable]:focus{background:var(--bg);box-shadow:0 0 0 2px var(--c)}
+.hint{font-size:12px;color:var(--m);padding:0 14px 6px}
+.hist{font-size:13px;color:var(--m);padding:0 14px 8px;cursor:pointer;text-decoration:underline}
+.old{white-space:pre-wrap;font-size:13px;color:var(--m);padding:6px 14px 10px;border-top:1px dashed var(--b)}
 .pipe{border:1px solid var(--b);border-radius:12px;overflow:hidden;margin:0 0 12px;background:#fff}
 .pipe .r{display:grid;grid-template-columns:62px minmax(0,1fr);gap:2px 10px;padding:8px 12px;border-top:1px solid var(--b);font-size:13px;align-items:start}
 .pipe .r>div{min-width:0}
@@ -132,7 +137,7 @@ const fmtTime=s=>new Date(s).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'
 const fmtD=s=>s?new Date(s).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}):'';
 const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const STATUS={draft:'to decide',approved:'approved',change:'being updated',skipped:'skipped',posted:'posted',scheduled:'scheduled in LinkedIn'};
-async function load(){S=await (await fetch(api+'?a=state&_='+Date.now())).json();render()}
+async function load(){const st=await (await fetch(api+'?a=state&_='+Date.now())).json(); if(document.activeElement&&document.activeElement.isContentEditable){S=st;return} S=st;render()}
 function showTab(n){tab=n;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===n));['post','comments','photos'].forEach(t=>$('#'+t).hidden=t!==tab);history.replaceState(null,'','#'+n)}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
 if(['post','comments','photos'].includes(location.hash.slice(1))) showTab(location.hash.slice(1));
@@ -146,9 +151,10 @@ function render(){
 function statusPill(c){
   const past=new Date(c.slot)<new Date(S.now);
   if(c.status==='scheduled') return `<span class="pill li">scheduled in LinkedIn · ${fmtTime(c.slot)}</span>`;
-  if(c.status==='change') return c.failed?`<span class="pill warn">update failed · decide again</span>`:`<span class="pill warn">being updated · ready within 10 min</span>`;
-  if(c.status==='approved') return (c.updated?`<span class="pill ok">updated per your note</span> `:'')+`<span class="pill ok">${past?'post it yourself · Copy text':'posts '+fmtSlot(c.slot)}</span>`;
-  if(c.status==='draft') return `<span class="pill todo">to decide</span>`;
+  const li=(S.health||{}).linkedin||{}, auto=li.connected&&(c.channel==='personal'||li.org);
+  if(c.status==='change') return c.failed?`<span class="pill warn">update failed · decide again</span>`:`<span class="pill warn">being updated · about a minute</span>`;
+  if(c.status==='approved') return past?`<span class="pill ok">approved · post it yourself now · Copy text</span>`:auto?`<span class="pill ok">posts itself ${fmtSlot(c.slot)}</span>`:`<span class="pill ok">approved · you post it ${fmtSlot(c.slot)}</span> <span class="pill">LinkedIn not connected</span>`;
+  if(c.status==='draft') return c.updated?`<span class="pill ok">updated per your note</span> <span class="pill todo">read · edit · Post</span>`:`<span class="pill todo">to decide</span>`;
   return `<span class="pill">${esc(STATUS[c.status]||c.status)}</span>`;
 }
 function renderPipeline(){
@@ -178,13 +184,15 @@ function goCard(id){const el=document.getElementById('c-'+id);if(!el)return;expa
 function postHtml(c){
   const who=c.channel==='company'?`<div class="ava co">A</div><div><div class="n">AlpiType</div><div class="s">company page · ${esc(c.lang)} · ${fmtSlot(c.slot)}${c.pillar?' · '+esc(c.pillar):''}</div></div>`
                                  :`<div class="ava">AL</div><div><div class="n">Anton Lytvynenko</div><div class="s">personal · ${esc(c.lang)} · ${fmtSlot(c.slot)}${c.pillar?' · '+esc(c.pillar):''}</div></div>`;
-  return `<div class="who">${who}</div><div class="txt" id="t-${c.id}">${esc(c.text)}</div>${c.image?`<div class="img"><img src="${esc(c.image.url)}" alt=""></div>`:'<div class="q" style="padding:0 14px 10px">no image</div>'}`;
+  const ed=needs(c);
+  return `<div class="who">${who}</div><div class="txt" id="t-${c.id}" ${ed?'contenteditable="plaintext-only" spellcheck="false"':''}>${esc(c.text)}</div>${ed?'<div class="hint">tap the text to change a word; Post takes what you see</div>':''}${c.image?`<div class="img"><img src="${esc(c.image.url)}" alt=""></div>`:'<div class="q" style="padding:0 14px 10px">no image</div>'}`;
 }
 function systemHtml(){
   const H=S.health||{}; const seen=H.ts?Math.round((new Date(S.now)-new Date(H.ts))/60000):null; const issues=[...(H.issues||[])];
   if(seen===null) issues.unshift({what:'Mac',log:'no health report yet',fix:'check launchctl list | grep board-sync on the Mac'});
   else if(seen>45) issues.unshift({what:'Mac',log:`last run ${seen} min ago, presses wait on the server`,fix:'wake the Mac; if awake: launchctl kickstart gui/501/com.alpitype.board-sync, then library/log/board-sync.err'});
-  if(!issues.length) return `<div class="sys ok">system ok · last run ${seen} min ago · ${H.slots_planned||0} posts planned · ${H.topics_unused||0} topics left · $${H.month_cost_usd||0} this month</div>`;
+  const li=H.linkedin||{};
+  if(!issues.length) return `<div class="sys ok">system ok · last run ${seen} min ago · ${H.slots_planned||0} posts planned · ${H.topics_unused||0} topics left · ${H.rules_learned||0} preferences learned · $${H.month_cost_usd||0} this month · LinkedIn ${li.connected?'connected until '+fmtD(li.expires)+(li.org?' incl. company page':' (personal only)'):'not connected: approved posts you copy and post yourself'}</div>`;
   return issues.map(i=>`<div class="sys"><b>${esc(i.what)} needs a fix${i.times>1?' · '+i.times+' times':''}</b>${esc(i.log||'')}<code>${esc(i.fix||'')}</code></div>`).join('');
 }
 function renderPost(){
@@ -200,13 +208,13 @@ function renderPost(){
       continue;
     }
     h+=`<div class="card full ${done?'done':''}" id="c-${c.id}"><div class="post">${postHtml(c)}
-      ${c.note?`<div class="note ${c.failed?'fail':''}">${c.failed?'could not apply: ':'your note: '}${esc(c.note)}</div>`:''}
+      ${c.note?`<div class="note ${c.failed?'fail':''}">${c.failed?'could not apply: ':(c.updated?'applied: ':'your note: ')}${esc(c.note)}</div>`:''}
       <div style="padding:8px 14px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">${statusPill(c)}${c.versions?`<span class="pill">v${c.versions+1}</span>`:''}<button class="sm s" onclick="copyText('${c.id}')">Copy text</button>${c.image?`<a class="sm s" href="${esc(c.image.final||c.image.url)}" download="${esc(c.id)}.jpg">Save image</a>`:''}${act?'':`<button class="sm s" onclick="expanded['${c.id}']=false;renderPost()">Hide</button>`}</div></div>
       <div class="act">
-        ${act?`<button class="b p" style="width:100%" onclick="decide('${c.id}','post')">Post as is</button>
-        <textarea id="n-${c.id}" rows="3" placeholder="what to change (e.g. kürzer, anderes Foto, ohne den Harvard-Vergleich)" style="margin-top:12px"></textarea>
-        <button class="b" style="width:100%;margin-top:8px" onclick="decide('${c.id}','change')">Post with these changes</button>
-        <div class="q" style="margin:6px 0 0;font-size:13px">the note is applied within 10 minutes; the updated post is then approved, nothing to come back for</div>
+        ${act?`<button class="b p" style="width:100%" onclick="decide('${c.id}','post')">Post</button>
+        <textarea id="n-${c.id}" rows="3" placeholder="or tell it what to change (kürzer, anderes Foto, ohne den Harvard-Vergleich …)" style="margin-top:12px"></textarea>
+        <button class="b" style="width:100%;margin-top:8px" onclick="decide('${c.id}','change')">Update the post</button>
+        <div class="q" style="margin:6px 0 0;font-size:13px">the post is rewritten in about a minute and comes back here; your notes also shape future drafts</div>
         <div class="row"><button class="b s" onclick="skipPost('${c.id}')">Skip</button></div>
         <div class="reasons" id="r-${c.id}"><button class="sm s" onclick="decide('${c.id}','skip','not the topic')">not the topic</button><button class="sm s" onclick="decide('${c.id}','skip','not the form')">not the form</button><button class="sm s" onclick="decide('${c.id}','skip','')">no reason</button></div>`
         :c.status==='approved'?`<input type="url" id="u-${c.id}" placeholder="LinkedIn post URL (optional)"><div class="row"><button class="b" onclick="markPosted('${c.id}')">Mark posted</button><button class="b s" onclick="skipPost('${c.id}')">Skip</button></div><div class="reasons" id="r-${c.id}"><button class="sm s" onclick="decide('${c.id}','skip','not the topic')">not the topic</button><button class="sm s" onclick="decide('${c.id}','skip','not the form')">not the form</button><button class="sm s" onclick="decide('${c.id}','skip','')">no reason</button></div>`
@@ -218,11 +226,17 @@ function renderPost(){
   h+=`<div class="set">Settings · comments expire at <input type="text" id="s-exp" value="${esc(S.settings.expiry)}"> <button class="sm s" onclick="saveSettings()">save</button></div>`;
   el.innerHTML=h;
 }
+let watchUntil=0;
 async function decide(id,dec,reason){
   const note=($('#n-'+id)||{}).value||'';
   if(dec==='change'&&!note.trim()){toast('write what to change first');return}
-  const r=await post({a:'decide',card_id:id,decision:dec,note:note,reason:reason||''});
-  toast(r.ok?({post:'approved',change:'noted · being updated',skip:'skipped'}[dec]):'error'); load();
+  const o={a:'decide',card_id:id,decision:dec,note:note,reason:reason||''};
+  const el=$('#t-'+id), c=S.cards.find(x=>x.id===id);
+  if(dec==='post'&&el&&c&&el.innerText.trim()!==c.text.trim()) o.text=el.innerText.trim();
+  const r=await post(o);
+  toast(r.ok?({post:o.text?'posted as edited':'approved',change:'noted · updating …',skip:'skipped'}[dec]):'error');
+  if(dec==='change') watchUntil=Date.now()+240000;
+  load();
 }
 function skipPost(id){$('#r-'+id).classList.toggle('on')}
 async function markPosted(id){const url=($('#u-'+id)||{}).value||'';const r=await post({a:'decide',card_id:id,decision:'posted',url});toast(r.ok?'logged as posted':'error');load()}
@@ -281,6 +295,7 @@ $('#rec').onclick=async()=>{
     mr.start();$('#rec').classList.add('on');toast('recording … press again to stop')}catch(e){toast('microphone not available: '+(e.name||e))}
 };
 load(); setInterval(load,60000);
+setInterval(()=>{if(document.activeElement&&document.activeElement.isContentEditable)return; if(S&&(Date.now()<watchUntil||S.cards.some(c=>c.status==='change'&&!c.failed)))load()},5000);
 </script>
 </body>
 </html>

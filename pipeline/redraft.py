@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Apply Anton's note to a card (spec approval-board: Post with note). A card with status change and a board note
-gets a new text from the redraft model that honours the note; the old text is kept as a version; if the note asks for
-another photo, the next eligible pool photo is taken. The result is approved: nothing to come back for."""
+"""Apply Anton's note to a card (spec approval-board: note loop). A card with status change and a board note
+gets a new text from the redraft model that honours the note and his standing preferences (library/style-rules.txt);
+the old text is kept as a version; if the note asks for another photo, the next eligible pool photo is taken.
+The card then comes back to decide ("updated per your note"): Anton reads it, edits small things on the card, presses Post.
+watch.py runs this within about a minute of the note, so he is usually still looking at the card."""
 import json, os, re, shutil
 from datetime import datetime
 from common import CFG, LIB, read_csv, write_csv, resolve, log
 from llm import llm_json
 import photo_index as ph, rules_check
-from draft import STYLE, render_graphic
+from draft import STYLE, render_graphic, style_rules
 
 PHOTO_WORDS = re.compile(r"foto|photo|bild|picture|image|anderes bild|other pic", re.I)
 GRAPHIC_WORDS = re.compile(r"grafik|graphic|karte|card|visual", re.I)
@@ -20,6 +22,7 @@ def main():
     plan, fields = read_csv(CFG["content_plan"]); n = 0
     for r in plan:
         if r["status"] != "change" or not r["channel"].startswith("linkedin"): continue
+        if r.get("notes", "").startswith("[redraft failed") and r["notes"].count("[redraft failed") >= 2: continue   # failed twice: waits for a new decision (board says so)
         note = latest_note(r.get("notes", "")); tp = resolve(r.get("caption_ref", ""))
         if not note or not os.path.isfile(tp): continue
         channel = "company" if r["channel"] == "linkedin-company" else "personal"
@@ -38,7 +41,7 @@ def main():
             else: note_for_text = note
             # 2. text
             prompt = f"""{STYLE[channel]}
-
+{style_rules()}
 Here is the current post and Anton's note on it. Apply the note exactly; change nothing he did not ask for.
 Note: {note_for_text}
 
@@ -54,8 +57,8 @@ Answer with one JSON object only: {{"text": "the full post incl. hashtags, newli
             if channel == "company" and d.get("graphic") and GRAPHIC_WORDS.search(note):
                 meta["graphic"] = d["graphic"]; render_graphic(d["graphic"], os.path.basename(base))
             json.dump(meta, open(meta_p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-            r["status"] = "approved"; r["notes"] = f"[redraft {datetime.now():%Y-%m-%d %H:%M} applied: {note}] " + r.get("notes", ""); n += 1
-            log("redrafted", r.get("caption_ref"), "->", "approved")
+            r["status"] = "draft"; r["notes"] = f"[redraft {datetime.now():%Y-%m-%d %H:%M} applied: {note}] " + r.get("notes", ""); n += 1
+            log("redrafted", r.get("caption_ref"), "-> back on the board to decide")
         except Exception as e:
             r["notes"] = f"[redraft failed {datetime.now():%Y-%m-%d %H:%M}: {str(e)[:120]}] " + r.get("notes", ""); log("redraft failed", r.get("caption_ref"), e)
     if n or True: write_csv(CFG["content_plan"], plan, fields)

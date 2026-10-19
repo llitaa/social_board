@@ -7,8 +7,18 @@ from common import CFG, LIB, log
 
 L = CFG.get("llm", {})
 MODELS = {"draft": "claude-opus-5-5", "redraft": "claude-opus-5-5", "inventory": "claude-opus-5-5",
-          "tags": "claude-haiku-5-5", "comment": "claude-sonnet-5-5"} | L.get("models", {})
+          "tags": "claude-haiku-5-5", "comment": "claude-sonnet-5-5", "learn": "claude-sonnet-5-5"} | L.get("models", {})
 CALLS = os.path.join(LIB, "log", "llm-calls.csv")
+
+def claude_bin():
+    """The claude CLI: config llm.claude, else PATH, else the usual install places (launchd/cron have a short PATH)."""
+    import glob, shutil
+    c = os.path.expanduser(L.get("claude", "")) or shutil.which("claude")
+    if c and os.path.isfile(c): return c
+    for pat in ("~/.claude/local/claude", "~/.local/bin/claude", "/opt/homebrew/bin/claude", "/usr/local/bin/claude", "~/.nvm/versions/node/*/bin/claude"):
+        for f in sorted(glob.glob(os.path.expanduser(pat)), reverse=True):
+            if os.path.isfile(f): return f
+    raise RuntimeError("claude CLI not found: set llm.claude in config.yaml (docs/worker.md)")
 
 def _log(step, model, ms, u, cost, ok):
     os.makedirs(os.path.dirname(CALLS), exist_ok=True); new = not os.path.isfile(CALLS)
@@ -22,7 +32,7 @@ def llm(step, prompt, system=None, files=False, model=None, timeout=300):
     """Returns the model's text. files=True lets the model Read files named in the prompt (images, documents)."""
     model = model or MODELS.get(step, MODELS["draft"])
     if L.get("backend", "claude-p") == "api": return _api(step, prompt, system, model)
-    cmd = ["claude", "-p", "--model", model, "--output-format", "json", "--no-session-persistence", "--disable-slash-commands"]
+    cmd = [claude_bin(), "-p", "--model", model, "--output-format", "json", "--no-session-persistence", "--disable-slash-commands"]
     cmd += ["--allowedTools", "Read", "--max-turns", "6"] if files else ["--tools", "", "--max-turns", "1"]
     if system: cmd += ["--system-prompt", system]
     t = time.time()
