@@ -52,8 +52,10 @@ def main():
         slot = r.get("planned", "")
         try: when = datetime.strptime(slot[:16], "%Y-%m-%d %H:%M")
         except ValueError: continue
-        if when > now: continue
         cid = "-".join(os.path.basename(r["caption_ref"]).split("-")[0:3])
+        if when > now:
+            if dry: log(f"approved, waits for its slot: {cid} @ {slot}")
+            continue
         try:
             urn, url = publish(c, r, dry)
             if urn == "dry": log(f"would publish {cid} @ {slot}: {url}"); continue

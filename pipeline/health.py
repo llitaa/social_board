@@ -8,7 +8,7 @@ from common import CFG, LIB, BOARD_LOCAL, read_csv, jdump, log
 
 STEPS = os.path.join(LIB, "log", "steps.jsonl")
 NAMES = {"pull": "server sync (pull)", "apply": "decisions → CSV", "learn": "notes → preferences", "transcribe": "memo transcription", "photos": "photo pool",
-         "redraft": "notes → redraft", "draft": "slot filling", "cards": "cards + pipeline", "push": "server sync (push)"}
+         "redraft": "notes → redraft", "publish": "LinkedIn publishing", "draft": "slot filling", "cards": "cards + pipeline", "push": "server sync (push)"}
 LI = os.path.join(os.path.dirname(LIB), "config.local.linkedin.json")
 
 def linkedin():
@@ -42,6 +42,8 @@ def main():
     if len(slots) < 4: issues.append({"what": "slot filling", "since": today.isoformat(), "times": 1, "log": f"only {len(slots)} posts planned in the next 14 days", "fix": "check library/log/draft.out, inventory.csv (unused topics) and the photo pool"})
     stuck = [r for r in plan if r["status"] == "change" and "[redraft failed" in r.get("notes", "")]
     for r in stuck: issues.append({"what": "notes → redraft", "since": today.isoformat(), "times": 1, "log": r["notes"][:160], "fix": "decide the card again or rephrase the note"})
+    for r in plan:
+        if r["status"] == "approved" and r.get("notes", "").startswith("[publish failed"): issues.append({"what": "LinkedIn publishing", "since": today.isoformat(), "times": 1, "log": r["notes"][:160], "fix": "post it yourself (Copy text) or run: python3 pipeline/publish.py; token: pipeline/linkedin_auth.py"})
     inv, _ = read_csv(os.path.join(LIB, "inventory.csv")); unused = sum(1 for r in inv if r["status"] == "unused" and r["pillar"] != "company")
     if unused < 4: issues.append({"what": "material", "since": today.isoformat(), "times": 1, "log": f"{unused} unused personal topics left", "fix": "record memos or run inventory.py"})
     calls = os.path.join(LIB, "log", "llm-calls.csv"); failed = 0; cost = 0.0

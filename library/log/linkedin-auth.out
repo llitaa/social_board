@@ -1,0 +1,3 @@
+Opening the browser; log in and allow. Waiting on http://localhost:8765/callback
+authorised as Anton Lytvynenko, token valid until 2026-12-18, scopes: openid,profile,w_member_social; saved to /Users/anton/dev/linkedin-system/config.local.linkedin.json
+exit 0

@@ -1,11 +1,11 @@
 # Tasks
 
 ## 1. Authorisation
-- [ ] 1.1 Create the LinkedIn developer app, enable Share on LinkedIn, Anton authorises once
+- [x] 1.1 Existing app "AlpiType Analytics" reused, Share on LinkedIn + OpenID Connect, Anton authorised 19.10. (token until 18.12.)
 - [ ] 1.2 Store token by path; redaction rule in logs
 
 ## 2. Publishing
-- [ ] 2.1 `publish.py`: read approved cards at slot, upload image, create post, write URL to posts-log.csv
+- [x] 2.1 `publish.py` in the chain (fast + full), `watch.py` triggers it when an approved slot arrives; untested against the live API until the first approved card (19.10.)
 - [ ] 2.2 launchd schedule for the four slots; dry-run flag
 - [ ] 2.3 Daily health check, token expiry warning 7 days ahead, failure reason on the card
 

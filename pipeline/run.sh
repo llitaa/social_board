@@ -26,6 +26,7 @@ step transcribe  $P pipeline/transcribe.py
 step photos      $P pipeline/photo_index.py
 fi
 step redraft     $P pipeline/redraft.py
+step publish     $P pipeline/publish.py
 [ "$MODE" = full ] && step draft $P pipeline/draft.py
 step cards       $P pipeline/cards.py
 step health      $P pipeline/health.py
