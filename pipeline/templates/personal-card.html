@@ -32,6 +32,15 @@ h1{font-family:"Montserrat",sans-serif;font-weight:700;letter-spacing:-.4px;line
 .overlay h1{font-size:{{HS}}px;color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.25)}
 .overlay .who{margin-top:34px;color:rgba(255,255,255,.75)}
 .overlay .who b{color:#fff}
+/* bottom: full photo, the headline alone at the foot, a soft dark fade only where the text is; no kicker, no name */
+.bottom .photo{height:100%}
+.bottom .shade{position:absolute;left:0;right:0;bottom:0;height:46%;background:linear-gradient(180deg,rgba(15,58,80,0) 0%,rgba(15,58,80,.18) 30%,rgba(15,58,80,.62) 62%,rgba(15,58,80,.82) 100%)}
+.bottom .block{position:absolute;left:64px;right:64px;bottom:56px;color:#fff}
+.bottom .kicker{display:none}
+.bottom .rule{width:96px;height:6px;background:linear-gradient(90deg,#42F45D,#00BEE6,#08E3FB);border-radius:3px;margin:0 0 22px}
+.bottom.norule .rule{display:none}
+.bottom h1{font-size:{{HS}}px;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.35);line-height:1.18}
+.bottom .who{display:none}
 /* bottom line variants: name = name + role, role = role only, none = nothing */
 .who.role b{display:none}.who.role .sep{display:none}
 .who.none{display:none}

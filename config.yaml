@@ -29,8 +29,9 @@ slots:                    # weekday -> channel and time; the pipeline keeps ever
 horizon_days: 14
 orthography: ch           # personal posts: Swiss standard German, ss instead of ß (target market since 20.10.2026; de = keep ß)
 personal_card:
-  style: off              # off = plain pool photo; band | light | overlay = photo + headline block rendered by personal_card.py (styles in pipeline/templates/personal-card.html)
-  who: name               # bottom line of the card: name = "Anton Lytvynenko · Software Architect & Technical Lead", role = role only, none = no line
+  style: bottom           # off = plain pool photo; bottom = full photo, headline alone at the foot (Anton 20.10.); band | light | overlay = older variants (pipeline/templates/personal-card.html)
+  who: none               # bottom line (band/light/overlay only): name | role | none
+  rule: true              # short cyan accent line above the headline (bottom/overlay)
 cv_pdf: ~/dev/career/cv/Anton_Lytvynenko_CV_EN.pdf
 company_context: ~/.claude/alpitype/company-context.md
 logo: ~/.claude/templates/alpitype-logo-color-transparent.png
