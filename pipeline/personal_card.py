@@ -16,7 +16,7 @@ SIZES = {"band": (1200, 1200, 760), "light": (1080, 1350, 1000), "overlay": (120
 
 def headline_size(h, style):
     n = len(h); base = {"band": 60, "light": 54, "overlay": 64, "bottom": 58}[style]
-    return base if n <= 45 else base - 8 if n <= 60 else base - 14
+    return base if n <= 45 else base - 8 if n <= 60 else base - 14 if n <= 78 else base - 20
 
 def render(photo_png, card, out_base, style=None, out_dir=DRAFTS, who=None, rule=None):
     """card = {"kicker": ..., "headline": ...}; returns the PNG path or None."""

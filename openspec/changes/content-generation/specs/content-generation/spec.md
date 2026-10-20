@@ -34,6 +34,17 @@ Over any two weeks the personal slots SHALL contain at least one case from pract
 - **WHEN** fewer than 3 unused case topics remain in the inventory
 - **THEN** the weekly run says so on the board and the mix shifts to decision helpers and memos until Anton adds material
 
+### Requirement: Anton's phrases, once a week
+A phrase Anton records (memo under 60 words) or writes in chat SHALL become an inventory topic of pillar thought, verbatim. The post is built around that sentence: it is the first line and the card headline, word for word; the rest comes from his facts. Every ISO week in the horizon SHALL carry at least one thought or memo post when an unused thought exists: the slot picker takes the thought first, and a week that already has drafts but no thought gives its last personal draft (status draft only, never a decided card) back to the inventory so the thought takes that slot. Memos of 60 words or more stay posts in his own words (pillar memo).
+
+#### Scenario: Phrase recorded on Tuesday
+- **WHEN** Anton records "Der Mensch reagiert, die KI ist präzise" at 20:00
+- **THEN** the next full run files it as a thought topic, frees a slot in the first week without a thought post, and the draft with that sentence as hook and headline is on the board
+
+#### Scenario: Week already has a thought post
+- **WHEN** a week has a thought post and two other drafts
+- **THEN** nothing is replaced; the next thought waits for the following week
+
 ### Requirement: Material inventory
 The system SHALL keep an inventory of candidate topics per pillar with source, status (unused, drafted, published, recycled) and a one-line angle, visible on the board, so Anton can see how much material exists.
 

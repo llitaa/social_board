@@ -9,7 +9,8 @@ from llm import llm_json
 
 INV = os.path.join(LIB, "inventory.csv")
 FIELDS = ["id", "pillar", "channel", "topic", "angle", "source", "tags", "status", "used_in", "added"]
-PILLARS = {"case": "a case from Anton's own practice (CV): situation, what he did, what it cost or saved, one lesson",
+PILLARS = {"thought": "a phrase Anton recorded or wrote himself (memo or chat): the post is built around that sentence, it is the hook and the card headline, verbatim",
+           "case": "a case from Anton's own practice (CV): situation, what he did, what it cost or saved, one lesson",
            "decision": "a decision helper for a CIO / Entwicklungsleiter: a choice they face this year, the two or three options, what tips it",
            "model-test": "a model or tool test from Anton's daily work with coding agents on legacy C++: setup, result, verdict",
            "trend": "a trend in AI-in-engineering / software products with Anton's own position, no news summary",

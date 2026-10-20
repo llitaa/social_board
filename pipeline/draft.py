@@ -100,10 +100,56 @@ def pillar_counts(plan, around, days=14):
         m = re.search(r"pillar=([\w-]+)", r.get("notes", "")); c[m.group(1) if m else "unknown"] = c.get(m.group(1) if m else "unknown", 0) + 1
     return c
 
+PHRASE_WORDS = 60   # a memo shorter than this is a phrase for a post (pillar thought), a longer one is a post in his own words (pillar memo)
+
+def file_phrases():
+    """Short memos become inventory topics of pillar thought (status unused); the memo row says phrase + topic id."""
+    f = os.path.join(LIB, "memos", "index.csv"); rows, fields = read_csv(f); n = 0
+    if not rows: return 0
+    inv_rows, inv_f = read_csv(os.path.join(LIB, "inventory.csv")); nid = max([int(r["id"][1:]) for r in inv_rows] + [0])
+    for r in rows:
+        w = int(r.get("words") or 0)
+        if r["status"] not in ("new", "short") or w < 3 or w >= PHRASE_WORDS: continue
+        t = os.path.join(LIB, os.path.splitext(r["file"])[0] + ".txt")
+        if not os.path.isfile(t): continue
+        phrase = re.sub(r"\s+", " ", open(t, encoding="utf-8").read()).strip(); nid += 1
+        inv_rows.append({"id": f"t{nid:03d}", "pillar": "thought", "channel": "personal", "topic": phrase[:90], "angle": phrase, "source": f"Anton, Sprachmemo {r['id']}",
+                         "tags": "", "status": "unused", "used_in": "", "added": datetime.now().isoformat(timespec="seconds")})
+        r["status"], r["used_in"] = "phrase", f"t{nid:03d}"; n += 1
+    if n: write_csv(os.path.join(LIB, "inventory.csv"), inv_rows, inv_f); write_csv(f, rows, fields); log(f"{n} memo phrase(s) filed as thought topics")
+    return n
+
+def week_thoughts(plan, slot_day):
+    """Personal posts of pillar thought or memo in the ISO week of slot_day (not dropped/skipped)."""
+    out = []
+    for r in plan:
+        d = (r.get("planned") or "")[:10]
+        if r["channel"] != "linkedin" or len(d) != 10 or r["status"] in ("dropped", "skipped", "idea") or week(date.fromisoformat(d)) != week(slot_day): continue
+        m = re.search(r"pillar=([\w-]+)", r.get("notes", ""))
+        if m and m.group(1) in ("thought", "memo"): out.append(r)
+    return out
+
+def make_room_for_thoughts(plan, today):
+    """Anton's rule (20.10.): a post from one of his own phrases at least once a week. A week in the horizon without one
+    gives its last personal draft (status draft only, never a decided card) back to the inventory; the slot is then open."""
+    freed = 0
+    for wk_start in [today + timedelta(days=i) for i in range(0, HORIZON + 1)]:
+        if wk_start.weekday() != 0 and wk_start != today: continue
+        if week_thoughts(plan, wk_start) or not inv.take("thought"): continue
+        drafts = [r for r in plan if r["channel"] == "linkedin" and r["status"] == "draft" and len((r.get("planned") or "")[:10]) == 10
+                  and week(date.fromisoformat(r["planned"][:10])) == week(wk_start) and datetime.strptime(r["planned"][:16], "%Y-%m-%d %H:%M") > datetime.now() + timedelta(hours=2)
+                  and date.fromisoformat(r["planned"][:10]) <= today + timedelta(days=HORIZON)]   # only a slot the next run can refill
+        if not drafts: continue
+        r = max(drafts, key=lambda r: r["planned"]); m = re.search(r"topic=(t\d+)", r.get("notes", ""))
+        if m: inv.set_status(m.group(1), "unused")
+        r["status"] = "dropped"; r["notes"] = f"[replaced {datetime.now():%Y-%m-%d %H:%M}: slot given to one of Anton's phrases; topic back in the inventory] " + r.get("notes", ""); freed += 1
+        log("slot freed for a thought:", r["planned"], r.get("caption_ref", ""))
+    return freed
+
 def fresh_memo():
     rows, _ = read_csv(os.path.join(LIB, "memos", "index.csv"))
     for r in rows:
-        if r["status"] == "new" and int(r.get("words") or 0) >= 15:
+        if r["status"] == "new" and int(r.get("words") or 0) >= PHRASE_WORDS:
             t = os.path.join(LIB, os.path.splitext(r["file"])[0] + ".txt")
             if os.path.isfile(t): return r, open(t, encoding="utf-8").read().strip()
     return None, ""
@@ -137,9 +183,11 @@ def draft_one(dt, channel, plan, idx, memo=None):
     if memo: pillar, topic = "memo", None
     else:
         cnt = pillar_counts(plan, slot_day); order = ["case", "decision", "trend", "model-test"] if channel == "personal" else ["company"]
-        cands = [(cnt.get(p, 0), i, p) for i, p in enumerate(order) if inv.take(p)]
-        if not cands: log("no unused topic for", channel); return None
-        pillar = min(cands)[2]; topic = inv.take(pillar)
+        if channel == "personal" and not week_thoughts(plan, slot_day) and inv.take("thought"): pillar, topic = "thought", inv.take("thought")
+        else:
+            cands = [(cnt.get(p, 0), i, p) for i, p in enumerate(order) if inv.take(p)]
+            if not cands: log("no unused topic for", channel); return None
+            pillar = min(cands)[2]; topic = inv.take(pillar)
     photo = None; nb = []
     if channel == "personal":
         nb = neighbour_shoots(plan, slot_day, idx)
@@ -148,7 +196,8 @@ def draft_one(dt, channel, plan, idx, memo=None):
         photo = cands[0]
     ex = examples(channel)
     material = f"Voice memo (Anton's own words, keep his thought, clean spelling and structure only, add nothing he did not say):\n{memo[1]}" if memo else \
-               f"Topic: {topic['topic']}\nAngle: {topic['angle']}\nSource: {topic['source']}\nPillar: {pillar} = {inv.PILLARS[pillar]}"
+               (f"Antons eigener Satz, wörtlich (er ist der erste Satz des Posts und die Karten-Headline; baue den Post darum, mit einem konkreten Beispiel aus seinen Fakten):\n{topic['angle']}\nQuelle: {topic['source']}\nPillar: thought" if pillar == "thought" else
+                f"Topic: {topic['topic']}\nAngle: {topic['angle']}\nSource: {topic['source']}\nPillar: {pillar} = {inv.PILLARS[pillar]}")
     facts = inv.cv_text() if channel == "personal" else open(os.path.expanduser(CFG["company_context"]), encoding="utf-8").read()
     img = f"\nPhoto that will be posted with the text: {photo['scene'] or photo['note'] or 'Anton, ' + photo['tags']}\n" if photo else \
           "\nThe post gets a 1200x1200 graphic: give eyebrow (2-3 words), title (max 8 words, may contain one \\n), 3-4 numbered lines (max 9 words each) and a 1-3 word footer.\n"
@@ -174,6 +223,7 @@ Answer with one JSON object only: {{"text": "the full post incl. hashtags, newli
         d = llm_json("draft", prompt + f"\n\nYour previous answer broke these rules: {v}. Fix them and answer again with the JSON object only.\nPrevious text:\n{text}")
         text = rules_check.fix_orthography(d.get("text", "").strip(), channel); v = rules_check.check(text, channel, d.get("signals"))
         if v: log("rules fail", dt, channel, v); return None
+    if pillar == "thought" and topic and len(topic["angle"]) <= 95: d["card"] = {"kicker": "", "headline": rules_check.fix_orthography(topic["angle"], "personal").rstrip(".")}
     ids = next_ids(plan); kind = "post" if channel == "personal" else "comp"; num = ids[kind] + 1
     slug = re.sub(r"[^a-z0-9]+", "-", (topic["topic"] if topic else "memo").lower()).strip("-")[:28]
     cid = f"li-{kind}-{num:02d}"; base = f"{cid}-{slug}"
@@ -208,6 +258,8 @@ Answer with one JSON object only: {{"text": "the full post incl. hashtags, newli
 def main(limit=8):
     plan, fields = read_csv(CFG["content_plan"]); today = date.today()
     idx = {r["id"]: r for r in ph.read_index()}
+    file_phrases()
+    if make_room_for_thoughts(plan, today): write_csv(CFG["content_plan"], plan, fields)
     slots = open_slots(plan, today)
     if not slots: log("all slots filled"); return
     memo = fresh_memo(); n = 0
