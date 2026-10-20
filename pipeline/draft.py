@@ -100,7 +100,7 @@ def pillar_counts(plan, around, days=14):
         m = re.search(r"pillar=([\w-]+)", r.get("notes", "")); c[m.group(1) if m else "unknown"] = c.get(m.group(1) if m else "unknown", 0) + 1
     return c
 
-PHRASE_WORDS = 60   # a memo shorter than this is a phrase for a post (pillar thought), a longer one is a post in his own words (pillar memo)
+PHRASE_WORDS = 150  # a memo under this is an idea for a post (pillar thought: the model distils his sentence and builds the post around it); longer = a post in his own words (pillar memo)
 
 def file_phrases():
     """Short memos become inventory topics of pillar thought (status unused); the memo row says phrase + topic id."""
@@ -199,7 +199,9 @@ def draft_one(dt, channel, plan, idx, memo=None):
         photo = cands[0]
     ex = examples(channel)
     material = f"Voice memo (Anton's own words, keep his thought, clean spelling and structure only, add nothing he did not say):\n{memo[1]}" if memo else \
-               (f"Antons eigener Satz, wörtlich (er ist der erste Satz des Posts und die Karten-Headline; baue den Post darum, mit einem konkreten Beispiel aus seinen Fakten; ist der Satz auf Englisch, übersetze ihn sinntreu ins Deutsche und nimm die Übersetzung als Hook und als card.headline):\n{topic['angle']}\nQuelle: {topic['source']}\nPillar: thought" if pillar == "thought" else
+               ((f"Antons eigener Satz, wörtlich (er ist der erste Satz des Posts und die Karten-Headline; baue den Post darum, mit einem konkreten Beispiel aus seinen Fakten; ist der Satz auf Englisch, übersetze ihn sinntreu ins Deutsche und nimm die Übersetzung als Hook und als card.headline):\n{topic['angle']}" if len(topic['angle']) <= 95 else
+                 f"Antons Gedanke, als Sprachmemo wörtlich transkribiert (Füllwörter und Hörfehler möglich). Er will daraus EINEN Satz: destilliere seinen Gedanken in einen Satz in seinen Worten (max. 80 Zeichen, keine Floskel), der ist der erste Satz des Posts und card.headline; baue den Post darum, mit einem konkreten Beispiel aus seinen Fakten:\n{topic['angle']}")
+                + f"\nQuelle: {topic['source']}\nPillar: thought" if pillar == "thought" else
                 f"Topic: {topic['topic']}\nAngle: {topic['angle']}\nSource: {topic['source']}\nPillar: {pillar} = {inv.PILLARS[pillar]}")
     facts = inv.cv_text() if channel == "personal" else open(os.path.expanduser(CFG["company_context"]), encoding="utf-8").read()
     img = f"\nPhoto that will be posted with the text: {photo['scene'] or photo['note'] or 'Anton, ' + photo['tags']}\n" if photo else \
