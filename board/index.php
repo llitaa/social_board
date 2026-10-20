@@ -148,7 +148,8 @@ const fmtTime=s=>new Date(s).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'
 const fmtD=s=>s?new Date(s).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}):'';
 const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const STATUS={draft:'to decide',approved:'approved',change:'being updated',skipped:'skipped',posted:'posted',scheduled:'scheduled in LinkedIn'};
-async function load(){const st=await (await fetch(api+'?a=state&_='+Date.now())).json(); if(document.activeElement&&document.activeElement.isContentEditable){S=st;return} S=st;render()}
+let BUILD=null;
+async function load(){const st=await (await fetch(api+'?a=state&_='+Date.now())).json(); if(BUILD===null)BUILD=st.build; const busy=(document.activeElement&&(document.activeElement.isContentEditable||/^(TEXTAREA|INPUT)$/.test(document.activeElement.tagName)))||(mr&&mr.state==='recording'); if(st.build&&st.build!==BUILD&&!busy){location.reload();return} if(document.activeElement&&document.activeElement.isContentEditable){S=st;return} S=st;render()}
 function showTab(n){tab=n;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===n));['post','comments','photos'].forEach(t=>$('#'+t).hidden=t!==tab);history.replaceState(null,'','#'+n)}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
 if(['post','comments','photos'].includes(location.hash.slice(1))) showTab(location.hash.slice(1));

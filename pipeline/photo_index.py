@@ -257,6 +257,11 @@ def set_card_image(r, photo, why):
     personal = r["channel"] == "linkedin"
     r["asset"] = f"{os.path.basename(photo['file'])} (square: library/photos/square/{photo['id']}_sq.png, {why})" if personal else f"library/photos/{photo['file']} ({why})"
     tp = resolve(r.get("caption_ref", "")); mp = os.path.splitext(tp)[0] + ".json" if tp else ""
+    if personal and tp and CFG.get("personal_card", {}).get("style", "off") != "off":
+        meta0 = jload(mp, {}); card = meta0.get("card") or {"kicker": "", "headline": open(tp, encoding="utf-8").readline().strip()[:95]}
+        import personal_card
+        base = os.path.basename(os.path.splitext(tp)[0]); png = personal_card.render(square_of(photo), card, base)
+        if png: r["asset"] = f"library/drafts/{base}.png (card: photo {photo['id']} + headline, style {CFG['personal_card']['style']}; {why})"
     if mp and os.path.isfile(mp):
         meta = jload(mp, {}); hist = set(meta.get("photo_history", [])) | ({meta["photo"]} if meta.get("photo") else set())
         meta["photo_history"] = sorted(hist); meta["photo"] = photo["id"]; jdump(mp, meta)

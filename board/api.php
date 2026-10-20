@@ -86,7 +86,7 @@ switch ($a) {
     foreach (glob("$D/uploads/memos/*") as $f) { $memos[] = ['id' => basename($f), 'ts' => date('c', filemtime($f)), 'bytes' => filesize($f)]; }
     $msg = jread("$D/messages.json", []);
     $health = jread("$D/health.json", ['ts' => '', 'issues' => []]);
-    out(['health' => $health, 'cards' => $cards, 'pipeline' => $pipe, 'queue' => today_queue(), 'photos' => $photos, 'pending' => $pending, 'memos' => $memos, 'settings' => settings(), 'messages' => $msg, 'now' => date('c')]);
+    out(['health' => $health, 'cards' => $cards, 'pipeline' => $pipe, 'queue' => today_queue(), 'photos' => $photos, 'pending' => $pending, 'memos' => $memos, 'settings' => settings(), 'messages' => $msg, 'now' => date('c'), 'build' => (int)filemtime(__DIR__ . '/index.php')]);   // build: the page reloads itself after a deploy
 
   case 'decide': // post card: post (now) | schedule (when) | change (note) | skip | posted | unschedule | photo_next
     $id = (string)($body['card_id'] ?? ''); $dec = (string)($body['decision'] ?? '');
