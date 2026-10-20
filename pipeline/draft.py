@@ -223,7 +223,10 @@ def draft_one(dt, channel, plan, idx, memo=None, topic=None):
     photo = None; nb = []
     if channel == "personal":
         nb = neighbour_shoots(plan, slot_day, idx)
-        cands = ph.pick(slot_day, nb, topic_tags=(topic["tags"].split() if topic else ()), friday=slot_day.weekday() == 4)
+        taken = set(re.findall(r"photo=(\w+)", " ".join(r.get("notes", "") for r in plan if r["status"] not in ("dropped", "skipped")))) | \
+                set(re.findall(r"square/(\w+)_sq\.png|photo (\w+) \+", " ".join(r.get("asset", "") for r in plan if r["status"] not in ("dropped", "skipped"))) and
+                     {x for t in re.findall(r"square/(\w+)_sq\.png|photo (\w+) \+", " ".join(r.get("asset", "") for r in plan if r["status"] not in ("dropped", "skipped"))) for x in t if x})
+        cands = ph.pick(slot_day, nb, topic_tags=(topic["tags"].split() if topic else ()), friday=slot_day.weekday() == 4, exclude_ids=taken)   # one photo, one post (also within one run)
         if not cands: log("no eligible photo for", slot_day); return None
         photo = cands[0]
     ex = examples(channel)
