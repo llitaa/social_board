@@ -86,6 +86,10 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--m);m
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .grid .ph{position:relative;aspect-ratio:1;background:var(--bg);border-radius:6px;overflow:hidden}
 .grid .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.grid .ph.sel{outline:3px solid var(--c);outline-offset:-3px}
+.pact{position:sticky;bottom:0;z-index:3;background:#fff;margin:8px -4px 14px;padding:10px 12px;border:1px solid #d6e2ea;border-radius:10px;box-shadow:0 -2px 10px rgba(0,0,0,.06);font-size:13px;color:var(--d)}
+.pact .row{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+html,body{overflow-x:hidden}.q{min-width:0;overflow-wrap:anywhere}
 .grid .ph .st{position:absolute;left:4px;bottom:4px;font-size:10px;background:rgba(255,255,255,.88);padding:1px 5px;border-radius:4px;color:var(--d);max-width:calc(100% - 8px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rec{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;background:var(--d);color:#fff;font-size:22px;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:6;cursor:pointer}
 .rec.on{background:#d33;animation:p 1s infinite}
@@ -290,20 +294,23 @@ function renderComments(){
 async function qdec(id,dec,reason,silent){await post({a:'queue',card_id:id,decision:dec,reason:reason||''});if(!silent){toast(dec);load()}else setTimeout(load,1500)}
 async function copyDraft(id){const t=$('#d-'+id).textContent;try{await navigator.clipboard.writeText(t)}catch(e){}toast('comment copied')}
 async function clearAll(){await post({a:'queue',decision:'clear'});toast('cleared');load()}
-function shootHtml(s){
-  const ps=(s.photos||[]).filter(p=>showUsed||p.eligible||p.status==='new');
-  return `<div class="shoot" id="s-${s.id}"><h3><span class="t">${fmtD(s.date)} · ${esc(s.label||'')}${s.status==='used'?' · <span class="pill">used'+(s.photos[0].free_from?' · free from '+fmtD(s.photos[0].free_from):'')+'</span>':''}</span>${s.status==='used'||s.status==='hold'?'':`<button class="sm s" onclick="pdec('${s.id}','hold')">don't use</button>`}</h3><div class="grid">${ps.map(p=>`<div class="ph" title="${esc(p.scene)}"><img src="${esc(p.thumb)}" loading="lazy"><span class="st">${p.status==='used'?(p.used_in||'used')+(p.free_from?' · free '+fmtD(p.free_from):''):esc(p.scene||p.status)}</span></div>`).join('')}</div></div>`;
-}
+let selPhoto=null;
+function photoCell(p,s){const lab=p.status==='used'?(p.used_in||'used')+(p.free_from?' · free '+fmtD(p.free_from):''):p.status==='new'?'new':fmtD(s.date);
+  return `<div class="ph ${selPhoto===p.id?'sel':''}" onclick="selPhoto=selPhoto==='${p.id}'?null:'${p.id}';renderPhotos()"><img src="${esc(p.thumb||p.url)}" loading="lazy"><span class="st">${esc(lab)}</span></div>`}
+function actionBar(cells){const c=cells.find(x=>x.p.id===selPhoto);if(!c)return '';const {p,s}=c;
+  return `<div class="pact"><div>${fmtD(s.date)} · ${esc(p.scene||s.label||'')}${p.status==='used'?' · used in '+esc(p.used_in||'')+(p.free_from?', free from '+fmtD(p.free_from):''):''}</div><div class="row">${p.status==='new'?'':`<button class="sm s" onclick="pdec('${s.id}','hold')">don't use this shoot</button><button class="sm s" onclick="pdec('${p.id}','use_friday')">Friday post</button>`}<button class="sm s" onclick="pdec('${p.id}','delete')">delete</button><button class="sm" onclick="selPhoto=null;renderPhotos()">close</button></div></div>`}
 function renderPhotos(){
   const el=$('#photos'); const sm=S.photos.summary||{};
-  let h=`<form id="up" style="margin-bottom:12px"><label class="b p" style="display:block;text-align:center;border-radius:8px;padding:12px;background:var(--c);color:#fff;font-weight:600;cursor:pointer">+ Add photo<input type="file" name="photos[]" accept="image/*" multiple style="display:none" onchange="startUpload(this)"></label><input type="text" name="note" placeholder="one line only if the picture needs it (optional)" style="margin-top:8px"></form>`;
-  h+=`<div class="q" style="margin:0 0 6px">The system picks the photo for each post: newest first, never the shoot of the neighbouring posts, a used photo is free again after ${sm.reuse_days||90} days. Nothing to pick here; delete what should never appear.</div>`;
-  h+=`<div class="q" style="margin:0 0 10px"><b>${sm.eligible||0}</b> photos available · ${sm.used||0} used${sm.next_free?' (next free '+fmtD(sm.next_free)+')':''} · ${sm.hold||0} held back</div>`;
-  if(S.pending.length){h+=`<div class="shoot"><h3>uploaded · ${S.pending.length} · the Mac fetches them within 10 minutes</h3><div class="grid">${S.pending.map(p=>`<div class="ph"><img src="${esc(p.url)}" loading="lazy"><span class="st">new</span></div>`).join('')}</div><div class="row">${S.pending.map(p=>`<button class="sm s" onclick="pdec('${p.id}','delete')">delete ${esc(p.id.slice(11,15))}</button>`).join('')}</div></div>`}
-  const shoots=S.photos.shoots||[], ready=shoots.filter(s=>s.eligible), rest=shoots.filter(s=>!s.eligible);
-  for(const s of ready) h+=shootHtml(s);
-  if(!ready.length) h+='<div class="empty">No photo available right now. Add photos from the camera roll; originals stay on the phone.</div>';
-  if(rest.length){h+=`<div class="row"><button class="sm s" onclick="showUsed=!showUsed;renderPhotos()">${showUsed?'hide used and held':'show used and held · '+rest.length+' shoot'+(rest.length===1?'':'s')}</button></div>`; if(showUsed) for(const s of rest) h+=shootHtml(s);}
+  let h=`<form id="up" style="margin-bottom:10px"><label class="b p" style="display:block;text-align:center;border-radius:8px;padding:12px;background:var(--c);color:#fff;font-weight:600;cursor:pointer">+ Add photos<input type="file" name="photos[]" accept="image/*" multiple style="display:none" onchange="startUpload(this)"></label><input type="text" name="note" placeholder="note for these photos (optional)" style="margin-top:8px"></form>`;
+  h+=`<div class="q" style="margin:0 0 10px"><b>${sm.eligible||0}</b> available · ${sm.used||0} used${sm.next_free?' (next free '+fmtD(sm.next_free)+')':''} · ${sm.hold||0} held back · the system picks; tap a photo for options</div>`;
+  const shoots=S.photos.shoots||[]; const cells=[];
+  for(const p of S.pending) cells.push({p:{id:p.id,url:p.url,status:'new',scene:''},s:{id:'',date:p.ts.slice(0,10),label:'uploaded, waiting for the Mac'}});
+  for(const s of shoots) for(const p of (s.photos||[])) if(p.eligible) cells.push({p,s});
+  h+=`<div class="grid">${cells.map(c=>photoCell(c.p,c.s)).join('')}</div>`;
+  if(!cells.length) h+='<div class="empty">No photo available right now. Add photos from the camera roll; originals stay on the phone.</div>';
+  const rest=[];for(const s of shoots) for(const p of (s.photos||[])) if(!p.eligible) rest.push({p,s});
+  if(rest.length){h+=`<div class="row" style="margin-top:12px"><button class="sm s" onclick="showUsed=!showUsed;renderPhotos()">${showUsed?'hide used and held':'used and held · '+rest.length}</button></div>`; if(showUsed) h+=`<div class="grid" style="margin-top:8px">${rest.map(c=>photoCell(c.p,c.s)).join('')}</div>`}
+  h+=actionBar(cells.concat(showUsed?rest:[]));
   if(S.memos.length) h+=`<div class="set">memos waiting for the Mac: ${S.memos.length}</div>`;
   el.innerHTML=h;
 }
