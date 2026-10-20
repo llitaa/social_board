@@ -33,8 +33,8 @@ def positioning():
     return ("\nPositionierung (gilt für jeden persönlichen Post):\n" + open(f, encoding="utf-8").read().strip() + "\n") if os.path.isfile(f) else ""
 
 def book_phrases():
-    """One sentence per chapter of Anton's book (library/sources/book-phrases.md): his own wording for hooks and card headlines."""
-    f = os.path.join(LIB, "sources", "book-phrases.md")
+    """One sentence per chapter of Anton's book (library/book-phrases.md): his own wording for hooks and card headlines."""
+    f = os.path.join(LIB, "book-phrases.md")
     return ("\nSätze aus Antons Buch \"Das KI-System 70/30\", ein Satz pro Kapitel. Das ist seine Sprache: nimm einen davon als Hook oder Karten-Headline, wenn er zum Thema passt (wörtlich), sonst schreibe in diesem Ton:\n" + open(f, encoding="utf-8").read().strip() + "\n") if os.path.isfile(f) else ""
 
 def style_rules():
