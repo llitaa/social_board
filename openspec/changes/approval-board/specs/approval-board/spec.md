@@ -121,3 +121,13 @@ Every card to decide SHALL have "Record a note" next to "Update the post". The r
 
 ### Requirement: No redundant explanations
 Action buttons carry no explanation line when the label says it all (Schedule has none; "Post now" keeps its one line because by-hand posting differs).
+
+### Requirement: Overview tiles and order
+The Post tab SHALL open with a tile per upcoming post (square thumbnail, day, status dot: orange decide, green scheduled, blue scheduled in LinkedIn, company marked "A"); a tap opens the card. "Reorder" turns the tiles into an edit mode with ◀ ▶ per tile; Done sends the new sequence per channel, and the posts take the channel's existing slots in that sequence, at once on the board (overlay) and in the plan on the next run. Rows Anton scheduled in the LinkedIn app are shown locked and never moved. A new thought can thus be moved to the front instead of waiting at the end.
+
+#### Scenario: Thought to the front
+- **WHEN** Anton moves the newest thought tile to the first position and presses Done
+- **THEN** that post carries the earliest personal slot, the others shift back one slot each, and the plan shows "[board … reordered to …]" on every moved row
+
+### Requirement: Notes for the builder
+A memo that addresses the board or the system (e.g. "generic note", "feedback", "zum Board") SHALL go to `library/feedback.md` and is shown on the board as "n spoken notes for the builder"; it never becomes a post idea.

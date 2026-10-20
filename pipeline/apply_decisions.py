@@ -66,6 +66,14 @@ def main():
             t = d.get("type"); last_ts = max(last_ts, d.get("ts", ""))
             if t == "post":
                 cid = d["card_id"]; card = cards.get(cid, {})
+                if d["decision"] == "order":   # the listed cards take their existing slots in the new sequence (rows Anton scheduled in LinkedIn are never moved)
+                    ids = [x for x in d.get("order", []) if x in cards and cards[x].get("status") != "scheduled"]
+                    byrow = {x: next((r for r in plan if r["id"] == cards[x].get("plan_row")), None) for x in ids}
+                    ids = [x for x in ids if byrow[x] and byrow[x].get("planned")]
+                    free = sorted(byrow[x]["planned"] for x in ids)
+                    for i, x in enumerate(ids):
+                        if byrow[x]["planned"] != free[i]: byrow[x]["planned"] = free[i]; byrow[x]["notes"] = f"[board {d['ts'][:16]} reordered to {free[i]}] " + byrow[x].get("notes", ""); changed_plan = True
+                    append(os.path.join(LOGDIR, "post-decisions.csv"), ["ts", "card_id", "decision", "option", "note", "reason", "url", "edited", "when"], {**d, "note": " ".join(ids)}); continue
                 status = {"post": "approved", "schedule": "approved", "change": "change", "skip": "skipped", "posted": "posted", "unschedule": "draft", "photo_next": None}.get(d["decision"], "")
                 if status == "": continue
                 for r in plan:

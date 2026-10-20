@@ -71,10 +71,12 @@ def main():
             issues.append({"what": "LinkedIn mail", "since": m["ts"][:10], "times": 1, "log": f"{m['ts'][:10]} {m['subject']} — {m['preview'][:140]}", "fix": "read it in anton@alpitype.com; if the Community Management API is granted: python3 pipeline/linkedin_auth.py --org"})
     pipe = jload(os.path.join(BOARD_LOCAL, "pipeline.json"), {})
     if pipe.get("metrics_missing", 0) >= 3: ok.append(f"numbers missing for {pipe['metrics_missing']} published posts: export from LinkedIn (post > View analytics > Export, page: Analytics > Content > Export) into library/metrics/inbox; the API fills them itself once the Community Management API is granted")
+    memos, _ = read_csv(os.path.join(LIB, "memos", "index.csv")); fb = sum(1 for m in memos if m.get("status") == "feedback")
+    if fb: ok.append(f"{fb} note{'s' if fb > 1 else ''} for the builder in library/feedback.md")
     if li["connected"] and li["days_left"] < 7: issues.append({"what": "LinkedIn token", "since": today.isoformat(), "times": 1, "log": f"expires in {li['days_left']} days", "fix": "run: python3 pipeline/linkedin_auth.py"})
     rules = [l for l in open(os.path.join(LIB, "style-rules.txt"), encoding="utf-8") if l.strip() and not l.startswith("#")] if os.path.isfile(os.path.join(LIB, "style-rules.txt")) else []
     jdump(os.path.join(BOARD_LOCAL, "health.json"), {"ts": datetime.now().isoformat(timespec="seconds"), "issues": issues, "ok": ok, "month_cost_usd": round(cost, 2), "slots_planned": len(slots), "topics_unused": unused,
-          "linkedin": li, "rules_learned": len(rules)})
+          "linkedin": li, "rules_learned": len(rules), "builder_notes": fb})
     log(f"health: {len(issues)} issue(s)" + (": " + "; ".join(i["what"] for i in issues) if issues else ""))
 
 if __name__ == "__main__": main()

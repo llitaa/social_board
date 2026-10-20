@@ -100,6 +100,7 @@ def pillar_counts(plan, around, days=14):
         m = re.search(r"pillar=([\w-]+)", r.get("notes", "")); c[m.group(1) if m else "unknown"] = c.get(m.group(1) if m else "unknown", 0) + 1
     return c
 
+FEEDBACK = re.compile(r"generic note|note (to|for) (the )?(system|board|you)|feedback|notiz (an|für) (dich|das system|das board)|anmerkung zum board|zum board|the user interface|die oberfläche|das ui\b", re.I)
 PHRASE_WORDS = 150  # a memo under this is an idea for a post (pillar thought: the model distils his sentence and builds the post around it); longer = a post in his own words (pillar memo)
 
 def file_phrases():
@@ -109,10 +110,15 @@ def file_phrases():
     inv_rows, inv_f = read_csv(os.path.join(LIB, "inventory.csv")); nid = max([int(r["id"][1:]) for r in inv_rows] + [0])
     for r in rows:
         w = int(r.get("words") or 0)
-        if r["status"] not in ("new", "short") or w < 3 or w >= PHRASE_WORDS: continue
+        if r["status"] not in ("new", "short") or w < 3: continue
         t = os.path.join(LIB, os.path.splitext(r["file"])[0] + ".txt")
         if not os.path.isfile(t): continue
-        phrase = re.sub(r"\s+", " ", open(t, encoding="utf-8").read()).strip(); nid += 1
+        phrase = re.sub(r"\s+", " ", open(t, encoding="utf-8").read()).strip()
+        if FEEDBACK.search(phrase[:120]):   # a note to the builder about the board, not a post idea: library/feedback.md, shown on the board as waiting
+            open(os.path.join(LIB, "feedback.md"), "a", encoding="utf-8").write(f"\n## {r['recorded'][:16].replace('T', ' ')} (memo {r['id']})\n{phrase}\n")
+            r["status"], r["note"] = "feedback", "note to the builder"; n += 1; log("feedback memo", r["id"]); continue
+        if w >= PHRASE_WORDS: continue
+        nid += 1
         phrase = re.sub(r"^\s*((next|new|nächster|neuer)\s+)?(post|beitrag)\s*(idea|idee|phrase|id)?\s*[:,.-]\s*", "", phrase, flags=re.I)                 # "next post:" at the start
         phrase = re.sub(r"[\s,.-]*\b(as|als)\s+(a\s+|ein\s+|eine\s+)?(next\s+|nächste[rn]?\s+)?(post|beitrag)[\s-]*(idea|idee|phrase|id|ideen?)?\s*[.?!]*\s*$", "", phrase, flags=re.I)   # "... as a post idea" at the end
         phrase = phrase.strip() or phrase

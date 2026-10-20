@@ -90,7 +90,17 @@ switch ($a) {
 
   case 'decide': // post card: post (now) | schedule (when) | change (note) | skip | posted | unschedule | photo_next
     $id = (string)($body['card_id'] ?? ''); $dec = (string)($body['decision'] ?? '');
-    if ($id === '' || !in_array($dec, ['post','schedule','change','skip','posted','unschedule','photo_next'], true)) out(['error' => 'bad request']);
+    if ($id === '' || !in_array($dec, ['post','schedule','change','skip','posted','unschedule','photo_next','order'], true)) out(['error' => 'bad request']);
+    if ($dec === 'order') { // order = card ids of one channel in the wanted sequence; they take their existing slots in that sequence
+      $ids = array_values(array_filter(array_map(fn($x) => preg_replace('/[^\w-]/', '', (string)$x), (array)($body['order'] ?? []))));
+      $cards = overlay_cards(jread("$D/cards.json", [])); $slots = [];
+      foreach ($cards as $c) if (in_array($c['id'], $ids, true) && ($c['status'] ?? '') !== 'scheduled') $slots[$c['id']] = $c['slot'];
+      $ids = array_values(array_filter($ids, fn($x) => isset($slots[$x]))); $free = array_values($slots); sort($free);
+      if (count($ids) < 2) out(['error' => 'nothing to reorder']);
+      foreach ($ids as $i => $cid) set_overlay('cards', $cid, ['slot' => $free[$i], 'decided' => date('c')]);
+      decide(['type'=>'post','card_id'=>$ids[0],'decision'=>'order','order'=>$ids]);
+      out(['ok' => true, 'slots' => array_combine($ids, array_slice($free, 0, count($ids)))]);
+    }
     $status = ['post'=>'approved','schedule'=>'approved','change'=>'change','skip'=>'skipped','posted'=>'posted','unschedule'=>'draft'][$dec] ?? null;
     $patch = ['decided' => date('c')]; if ($status) $patch['status'] = $status;
     if ($dec === 'post') $patch['slot'] = date('Y-m-d\TH:i');

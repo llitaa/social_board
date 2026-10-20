@@ -22,6 +22,18 @@ header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:2px solid v
 .tabs button{flex:1;border:0;background:none;padding:8px 0 10px;font-size:14px;color:var(--m);border-bottom:3px solid transparent;cursor:pointer}
 .tabs button.on{color:var(--d);font-weight:600;border-bottom-color:var(--d)}
 main{max-width:1240px;margin:0 auto;padding:12px 14px 90px;overflow-x:hidden}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.tile{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#dfe6ea;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tile img,.tile .noimg{width:100%;height:100%;object-fit:cover;display:block}
+.tile .dy{position:absolute;left:5px;top:5px;font-size:11px;font-weight:700;background:rgba(255,255,255,.92);color:var(--d);border-radius:6px;padding:1px 5px}
+.tile .st{position:absolute;right:6px;top:6px;width:11px;height:11px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.tile span.co{position:absolute;left:5px;bottom:5px;font-size:11px;font-weight:800;background:var(--d);color:#fff;border-radius:6px;padding:1px 6px}
+.tile .lk{position:absolute;right:5px;bottom:5px;font-size:10px;background:#0a66c2;color:#fff;border-radius:6px;padding:1px 5px}
+.tile.locked{opacity:.75}
+.tile .mv{position:absolute;left:0;right:0;bottom:0;display:flex;background:rgba(15,58,80,.85)}
+.tile .mv button{flex:1;border:0;background:none;color:#fff;font-size:16px;padding:6px 0;cursor:pointer}
+.tile .mv button:disabled{opacity:.25}
+@media(min-width:960px){.tiles{grid-template-columns:repeat(8,1fr)}}
 .card{border:1px solid var(--b);border-radius:12px;background:#fff;margin:0 0 14px;overflow:hidden;scroll-margin-top:104px}
 input[type=datetime-local]{width:100%;border:1px solid var(--b);border-radius:8px;padding:9px;font:inherit;font-size:15px;background:#fff}
 .imgtools{display:flex;gap:6px;padding:8px 14px 0;flex-wrap:wrap;align-items:center}
@@ -225,10 +237,30 @@ function systemHtml(){
   else if(seen>45) issues.unshift({what:'Mac',log:`last run ${seen} min ago, presses wait on the server`,fix:'wake the Mac; if awake: launchctl kickstart gui/501/com.alpitype.board-sync, then library/log/board-sync.err'});
   const li=H.linkedin||{};
   if(!issues.length) return `<div class="sys ok">system ok · last run ${seen} min ago · ${H.slots_planned||0} posts planned · ${H.topics_unused||0} topics left · ${H.rules_learned||0} preferences learned · $${H.month_cost_usd||0} this month · LinkedIn ${li.connected?'connected until '+fmtD(li.expires)+(li.org?' incl. company page':' (personal only)'):'not connected: approved posts you copy and post yourself'}</div>`;
-  return issues.map(i=>`<div class="sys"><b>${esc(i.what)}${i.what.startsWith('one post')?'':' needs a fix'}${i.times>1?' · '+i.times+' times':''}</b>${esc(i.log||'')}<code>${esc(i.fix||'')}</code></div>`).join('');
+  const bn=(H.builder_notes||0)?`<div class="q" style="margin:0 0 8px;font-size:12px">${H.builder_notes} spoken note${H.builder_notes>1?"s":""} for the builder, picked up in the next session</div>`:"";
+  return bn+issues.map(i=>`<div class="sys"><b>${esc(i.what)}${i.what.startsWith('one post')?'':' needs a fix'}${i.times>1?' · '+i.times+' times':''}</b>${esc(i.log||'')}<code>${esc(i.fix||'')}</code></div>`).join('');
 }
+let reorder=false, order=null;
+const DOT={draft:'#e8a000',change:'#e8a000',approved:'#1a9c4a',scheduled:'#0a66c2',posted:'#999',skipped:'#999'};
+function overviewHtml(){
+  const cards=[...S.cards].sort((a,b)=>a.slot.localeCompare(b.slot)); if(!cards.length) return '';
+  if(reorder&&!order) order=cards.map(c=>c.id);
+  const list=reorder?order.map(id=>cards.find(c=>c.id===id)).filter(Boolean):cards;
+  const tiles=list.map((c,i)=>{const locked=c.status==='scheduled';const same=list.filter(x=>x.channel===c.channel&&x.status!=='scheduled').map(x=>x.id);const k=same.indexOf(c.id);
+    const arrows=reorder&&!locked?`<div class="mv"><button ${k<=0?'disabled':''} onclick="event.stopPropagation();moveTile('${c.id}',-1)">◀</button><button ${k<0||k>=same.length-1?'disabled':''} onclick="event.stopPropagation();moveTile('${c.id}',1)">▶</button></div>`:'';
+    return `<div class="tile ${c.channel==='company'?'co':''} ${locked?'locked':''}" onclick="${reorder?'':`goCard('${c.id}')`}">${c.image?`<img src="${esc(c.image.url)}" loading="lazy">`:'<div class="noimg"></div>'}<span class="dy">${fmtDay(c.slot)}</span><span class="st" style="background:${DOT[c.status]||'#999'}"></span>${c.channel==='company'?'<span class="co">A</span>':''}${locked?'<span class="lk">LinkedIn</span>':''}${arrows}</div>`}).join('');
+  const bar=reorder?`<div class="row" style="margin:8px 0 14px"><button class="b p" onclick="sendOrder()">Done</button><button class="b" onclick="reorder=false;order=null;renderPost()">Cancel</button><span class="q" style="margin:0">◀ ▶ moves a post earlier or later; posts keep the existing slots of their channel</span></div>`
+                    :`<div class="row" style="margin:8px 0 14px"><button class="sm s" onclick="reorder=true;order=null;renderPost()">Reorder</button><span class="q" style="margin:0;font-size:12px">tap a tile to open it · orange = decide · green = scheduled · blue = in LinkedIn</span></div>`;
+  return `<div class="tiles">${tiles}</div>${bar}`;
+}
+function moveTile(id,dir){const cards=[...S.cards].sort((a,b)=>a.slot.localeCompare(b.slot));const ch=cards.find(c=>c.id===id).channel;
+  const idx=order.filter(x=>{const c=cards.find(y=>y.id===x);return c&&c.channel===ch&&c.status!=='scheduled'});const k=idx.indexOf(id);const j=k+dir;if(j<0||j>=idx.length)return;
+  const a=order.indexOf(idx[k]),b=order.indexOf(idx[j]);[order[a],order[b]]=[order[b],order[a]];renderPost()}
+async function sendOrder(){const cards=[...S.cards];const byCh={};for(const id of order){const c=cards.find(x=>x.id===id);if(!c||c.status==='scheduled')continue;(byCh[c.channel]=byCh[c.channel]||[]).push(id)}
+  let n=0;for(const ch in byCh){if(byCh[ch].length<2)continue;const r=await post({a:'decide',card_id:byCh[ch][0],decision:'order',order:byCh[ch]});if(r.ok)n++}
+  reorder=false;order=null;toast(n?'order saved · slots reassigned':'nothing changed');watchUntil=Date.now()+60000;load()}
 function renderPost(){
-  const el=$('#post'); let h=systemHtml();
+  const el=$('#post'); let h=systemHtml()+overviewHtml();
   for(const m of (S.messages||[])){ if(m.answer) continue; h+=`<div class="msg"><div class="q" style="margin:0 0 6px">${esc(m.kind||'question')}</div><div style="white-space:pre-wrap">${esc(m.text)}</div><div class="row"><button class="b p" onclick="answer('${m.id}','yes')">Yes</button><button class="b" onclick="answer('${m.id}','no')">No</button><button class="b s" onclick="answer('${m.id}','later')">Later</button></div></div>`; }
   const cards=[...S.cards].sort((a,b)=>(needs(a)?0:1)-(needs(b)?0:1)||a.slot.localeCompare(b.slot));
   if(!cards.some(needs)) h+='<div class="empty">Nothing to decide. New drafts appear here as soon as a slot opens.</div>';

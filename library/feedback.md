@@ -1,0 +1,3 @@
+
+## 2026-10-20 20:33 (memo 2026-10-20_203337)
+I want to give generic note what I don't like is the user interface for example what I would have more is like in the Schwartz so a small square rounded rectangle sections like an Instagram or so for each post so that I could have top-level overview and I also want to have the option maybe some kind of edit mode or whatever where I could maybe change the order how those posts could be posted so for example if I have one thought maybe I want to post it immediately or whatever and not to stack it in the very bottom so this kind of flexibility I do not have right now also this featured recommendation okay we will come there later but yeah let's do this at first
