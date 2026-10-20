@@ -16,15 +16,20 @@
    "v": 1,
    "note": "Neue Positionierung seit 20.10. (siehe Positionierung oben): Zielmarkt Schweiz und DACH, Leser soll danach denken: diesen Mann würde ich als Technical Lead einstellen, und er versteht KI in der Praxis. Bring ein Führungs-Signal (eigene Entscheidung, Team, eingeführte Praxis, Anforderungen mit Fachleuten) und ein KI-Signal (eigene Arbeit mit Coding-Agents oder begründete Position) in den Text, nur aus den Fakten unten, als Inhalt, nicht als Behauptung über sich. Schweizer Schreibweise (ss statt ß). Thema, Hook, Länge und Frage am Ende behalten.",
    "ts": "2026-10-20T18:37:15"
+  },
+  {
+   "v": 2,
+   "note": "Also C++ würde ich maximal nur einmal erwähnen und nicht",
+   "ts": "2026-10-20T20:59:32"
   }
  ],
  "graphic": null,
  "card": {
-  "kicker": "Legacy-C++ entscheiden",
-  "headline": "Erst messen und testen, dann optimieren, kapseln oder neu schreiben"
+  "kicker": "Legacy-Entscheidung",
+  "headline": "Optimieren, kapseln oder neu schreiben: erst messen, dann entscheiden."
  },
  "signals": {
   "lead": "Dafür habe ich Interprozess-Tests eingeführt.",
-  "ai": "Auch bei Coding-Agents, die ich täglich in Legacy-C++ einsetze, zeigen erst Messung und Tests, ob ein Vorschlag besser ist oder nur anders."
+  "ai": "Auch bei Coding-Agents, die ich täglich in Legacy-Code einsetze, zeigen erst Messung und Tests, ob ein Vorschlag besser ist oder nur anders."
  }
 }

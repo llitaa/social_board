@@ -67,3 +67,8 @@ ts,step,model,ms,input,cache_read,cache_create,output,cost_usd,ok
 2026-10-20T19:56:37,learn,claude-sonnet-5-5,5439,2,649,4188,10,0.0169,yes
 2026-10-20T20:06:55,learn,claude-sonnet-5-5,2846,2,2255,2693,10,0.0111,yes
 2026-10-20T20:07:09,redraft,claude-opus-5-5,14262,2,2453,10757,1635,0.1193,yes
+2026-10-20T20:31:02,tags,claude-haiku-5-5,4520,4,42337,5862,175,0.0017,yes
+2026-10-20T20:52:44,learn,claude-sonnet-5-5,4300,2,2255,2867,10,0.0118,yes
+2026-10-20T20:52:55,redraft,claude-opus-5-5,10886,2,2453,10972,1208,0.1124,yes
+2026-10-20T20:59:18,learn,claude-sonnet-5-5,6825,2,2255,3004,10,0.0123,yes
+2026-10-20T20:59:32,redraft,claude-opus-5-5,13393,2,2453,11122,1387,0.1172,yes

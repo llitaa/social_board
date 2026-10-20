@@ -15,11 +15,16 @@
    "v": 1,
    "note": "Okay, also hier Korrektur eine Aufgabe in einem Saat zu übergeben oder im Prinzip eine Dokumentation einem neuen Mitarbeitenden zu geben würde nicht reichen.",
    "ts": "2026-10-20T20:07:09"
+  },
+  {
+   "v": 2,
+   "note": "I am demonstrating this system, so just ignore this node.",
+   "ts": "2026-10-20T20:52:55"
   }
  ],
  "graphic": null,
  "card": {
-  "kicker": "Agents führen",
+  "kicker": "Prompt als Gespräch",
   "headline": "Ein Prompt ist nur ein Satz in einem Gespräch."
  },
  "signals": {

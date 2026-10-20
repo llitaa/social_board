@@ -127,6 +127,7 @@ html,body{overflow-x:hidden}.q{min-width:0;overflow-wrap:anywhere}
 .rec{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;background:var(--d);color:#fff;font-size:0;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:6;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .rec::after{content:"";display:block;width:18px;height:18px;margin:0 auto;border-radius:50%;background:#fff}
 .rec.on::after{border-radius:3px}
+.rec.inline{position:static;width:46px;height:46px;flex:0 0 46px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 button,.b,.sm,label.b{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .rec.on{background:#d33;animation:p 1s infinite}
 .recbar{position:fixed;left:14px;right:86px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:6;display:flex;align-items:center;gap:10px;background:#111;color:#fff;border-radius:999px;padding:8px 10px 8px 16px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
@@ -190,13 +191,15 @@ const fmtD=s=>s?new Date(s).toLocaleDateString('de-DE',{day:'2-digit',month:'2-d
 const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const STATUS={draft:'to decide',approved:'approved',change:'being updated',skipped:'skipped',posted:'posted',scheduled:'scheduled in LinkedIn'};
 let BUILD=null;
-async function load(){const st=await (await fetch(api+'?a=state&_='+Date.now())).json(); if(BUILD===null)BUILD=st.build; const busy=(document.activeElement&&(document.activeElement.isContentEditable||/^(TEXTAREA|INPUT)$/.test(document.activeElement.tagName)))||(mr&&mr.state==='recording'); if(st.build&&st.build!==BUILD&&!busy){location.reload();return} if(document.activeElement&&document.activeElement.isContentEditable){S=st;return} S=st;render()}
+async function load(){const st=await (await fetch(api+'?a=state&_='+Date.now())).json(); if(BUILD===null)BUILD=st.build; const busy=(document.activeElement&&(document.activeElement.isContentEditable||/^(TEXTAREA|INPUT)$/.test(document.activeElement.tagName)))||(mr&&mr.state==='recording')||drag.id; if(st.build&&st.build!==BUILD&&!busy){location.reload();return} if(busy){S=st;return} S=st;render()}
+function keepState(fn){const sh=document.querySelector('.sheet');const top=sh?sh.scrollTop:null;const vals={};document.querySelectorAll('textarea[id^="n-"],input[id^="u-"],input[id^="w-"]').forEach(e=>{if(e.value&&e.value!==e.defaultValue)vals[e.id]=e.value});fn();for(const id in vals){const e=document.getElementById(id);if(e)e.value=vals[id]}const sh2=document.querySelector('.sheet');if(sh2&&top!==null)sh2.scrollTop=top}
 function showTab(n){tab=n;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===n));['post','comments','photos'].forEach(t=>$('#'+t).hidden=t!==tab);history.replaceState(null,'','#'+n)}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
 if(['post','comments','photos'].includes(location.hash.slice(1))) showTab(location.hash.slice(1));
 const byHand=c=>c.status==='approved'&&new Date(c.slot)<new Date(S.now)&&!isAuto(c);   // approved, due, channel not connected: Anton posts it himself
 const needs=c=>c.status==='draft'||(c.status==='change'&&c.failed)||byHand(c);
-function render(){
+function render(){keepState(renderAll)}
+function renderAll(){
   const open=S.cards.filter(needs).length, qOpen=S.queue.cards.filter(c=>!c.state).length;
   const hand=S.cards.filter(byHand).length;
   $('#sub').textContent=`${open-hand} to decide${hand?` · ${hand} to post by hand`:''} · ${qOpen} comment${qOpen===1?'':'s'} · until ${S.queue.expiry}`;
@@ -280,7 +283,7 @@ function fullCardHtml(c){
         <input type="datetime-local" id="w-${c.id}" value="${esc(c.slot.slice(0,16))}" style="margin-top:12px">
         <button class="b" style="width:100%;margin-top:6px" onclick="decide('${c.id}','schedule')">Schedule</button>
         <textarea id="n-${c.id}" rows="3" placeholder="Note for this post: what to change, or a rule for all posts (immer …, nie …)" style="margin-top:12px"></textarea>
-        <div class="row" style="margin-top:6px"><button class="b" style="flex:1" onclick="decide('${c.id}','change')">Update the post</button><button class="b s rn" id="rn-${c.id}" onclick="recNote('${c.id}')">● Record a note</button></div>
+        <div class="row" style="margin-top:6px;align-items:center"><button class="b" style="flex:1" onclick="decide('${c.id}','change')">Update the post</button><button class="rec inline" id="rn-${c.id}" onclick="recNote('${c.id}')" title="speak the note"></button></div>
         <div class="q" style="margin:4px 0 0;font-size:13px">typed or spoken: applied in about a minute, the post comes back here to decide; a general remark becomes a rule for all posts</div>
         <div class="row"><button class="b s" onclick="skipPost('${c.id}')">Drop</button></div>
         <div class="q" style="margin:4px 0 0;font-size:13px">removes this post for good; the slot gets a new draft</div>
@@ -400,11 +403,11 @@ async function startRec(cardId){
   if(mr&&mr.state==='recording')return;
   try{const st=await navigator.mediaDevices.getUserMedia({audio:true});const mime=MediaRecorder.isTypeSupported('audio/mp4')?'audio/mp4':(MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'');mr=new MediaRecorder(st,mime?{mimeType:mime}:{});chunks=[];t0=Date.now();recCard=cardId||null;recDiscard=false;
     mr.ondataavailable=e=>chunks.push(e.data);
-    mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());clearInterval(recTimer);$('#recbar').hidden=true;$('#rec').classList.remove('on');const b=recCard&&document.getElementById('rn-'+recCard);if(b){b.textContent='● Record a note';b.classList.remove('on')}
+    mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());clearInterval(recTimer);$('#recbar').hidden=true;$('#rec').classList.remove('on');const b=recCard&&document.getElementById('rn-'+recCard);if(b)b.classList.remove('on');
       const cid=recCard,sec=Math.round((Date.now()-t0)/1000);recCard=null;
       if(recDiscard||sec<1){toast('recording discarded');return}
       sendMemo(new Blob(chunks,{type:mr.mimeType||'audio/mp4'}),mr.mimeType||'audio/mp4',sec,cid)};
-    mr.start();$('#rec').classList.add('on');const b=cardId&&document.getElementById('rn-'+cardId);if(b){b.textContent='■ recording';b.classList.add('on')}
+    mr.start();$('#rec').classList.add('on');const b=cardId&&document.getElementById('rn-'+cardId);if(b)b.classList.add('on');
     $('#recwhat').textContent=cardId?'note for this post':'memo or phrase for a post';$('#rectime').textContent='0:00';$('#recbar').hidden=false;
     recTimer=setInterval(()=>{const s=Math.round((Date.now()-t0)/1000);$('#rectime').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')},500);
   }catch(e){toast('microphone not available: '+(e.name||e))}

@@ -4,7 +4,7 @@
  "pillar": "thought",
  "topic": "t042",
  "memo": "",
- "photo": "img3802",
+ "photo": "1020202136529a",
  "neighbour_shoots": [
   "2026-01-25_shoot",
   "2025-12-09_shoot"
@@ -20,5 +20,9 @@
  "signals": {
   "lead": "Für die Arbeitsteilung habe ich daraus eine Regel gemacht: Präzision an die Maschine, Reaktion beim Menschen.",
   "ai": "Der Agent liest eine Funktion, findet die teure Schleife und schlägt die Änderung vor."
- }
+ },
+ "photo_history": [
+  "1020193652c22e",
+  "img3802"
+ ]
 }

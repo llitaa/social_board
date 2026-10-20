@@ -14,8 +14,8 @@ Können Sie messen, was besser werden soll? Haben Sie Tests, die Ihnen sagen, da
 
 Wer zweimal Nein sagt, entscheidet noch nicht. Er baut zuerst Messung und Tests. Das ist keine Verzögerung, das ist die Entscheidungsgrundlage. Erst dann zeigt sich, ob Optimieren reicht, ob Kapseln trägt oder ob Neuschreiben wirklich billiger ist.
 
-Auch bei Coding-Agents, die ich täglich in Legacy-C++ einsetze, zeigen erst Messung und Tests, ob ein Vorschlag besser ist oder nur anders.
+Auch bei Coding-Agents, die ich täglich in Legacy-Code einsetze, zeigen erst Messung und Tests, ob ein Vorschlag besser ist oder nur anders.
 
 Welche der drei Fragen können Sie für Ihre Codebasis heute mit Ja beantworten?
 
-#LegacyCode #Cpp #SoftwareArchitektur
+#LegacyCode #Softwareentwicklung #SoftwareArchitektur
