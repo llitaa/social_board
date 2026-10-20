@@ -309,8 +309,9 @@ function renderPhotos(){
 }
 async function startUpload(inp){const files=[...inp.files],note=$('#up').note.value,B=3;let ok=0,failed=[];
   for(let i=0;i<files.length;i+=B){const fd=new FormData();fd.append('a','upload');fd.append('note',note);for(const f of files.slice(i,i+B))fd.append('photos[]',f,f.name||'photo.jpg');
-    toast(`uploading ${Math.min(i+B,files.length)} of ${files.length} …`);
-    try{const r=await (await fetch(api,{method:'POST',body:fd})).json();ok+=(r.saved||[]).length;failed.push(...(r.failed||[]))}catch(e){failed.push(`${files.slice(i,i+B).map(f=>f.name).join(', ')}: ${e.message||'network error'}`)}}
+    const mb=(files.slice(i,i+B).reduce((a,f)=>a+f.size,0)/1048576).toFixed(1);toast(`uploading ${Math.min(i+B,files.length)} of ${files.length} (${mb} MB) …`,60000);
+    let r=null;for(let t=0;t<2&&!r;t++){try{const res=await fetch(api,{method:'POST',body:fd});r=await res.json()}catch(e){if(t)failed.push(`${files.slice(i,i+B).map(f=>f.name).join(', ')}: ${e.message||'network error'}`)}}
+    if(r){ok+=(r.saved||[]).length;failed.push(...(r.failed||[]))}}
   inp.value='';toast(failed.length?`${ok} of ${files.length} uploaded · failed: ${failed.slice(0,3).join(' · ')}`:`${ok} uploaded · the Mac fetches them within 10 minutes`,failed.length?12000:4000);load()}
 async function pdec(id,dec){const r=await post({a:'photo',id,decision:dec});toast(r.ok?({mark_used:'marked used',hold:'held back',use_friday:'planned for Friday',delete:'deleted'}[dec]):'error');load()}
 // --- Record
