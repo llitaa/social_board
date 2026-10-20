@@ -256,7 +256,7 @@ function systemHtml(){
   else if(seen>45) issues.unshift({what:'Mac',log:`last run ${seen} min ago, presses wait on the server`,fix:'wake the Mac; if awake: launchctl kickstart gui/501/com.alpitype.board-sync, then library/log/board-sync.err'});
   const li=H.linkedin||{};
   if(!issues.length) return `<div class="sys ok">system ok · last run ${seen} min ago · ${H.slots_planned||0} posts planned · ${H.topics_unused||0} topics left · ${H.rules_learned||0} preferences learned · $${H.month_cost_usd||0} this month · LinkedIn ${li.connected?'connected until '+fmtD(li.expires)+(li.org?' incl. company page':' (personal only)'):'not connected: approved posts you copy and post yourself'}</div>`;
-  const bn=(H.builder_notes||0)?`<div class="q" style="margin:0 0 8px;font-size:12px">${H.builder_notes} spoken note${H.builder_notes>1?"s":""} for the builder, picked up in the next session</div>`:"";
+  const pend=(S.memos||[]).length+S.cards.filter(c=>c.note_pending||(c.status==='change'&&!c.failed)).length;const bn=pend?`<div class="q" style="margin:0 0 8px;font-size:12px">${pend} note${pend>1?"s":""} pending</div>`:"";
   return bn+issues.map(i=>`<div class="sys"><b>${esc(i.what)}${i.what.startsWith('one post')?'':' needs a fix'}${i.times>1?' · '+i.times+' times':''}</b>${esc(i.log||'')}<code>${esc(i.fix||'')}</code></div>`).join('');
 }
 let openCard=null;

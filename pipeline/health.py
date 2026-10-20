@@ -49,13 +49,7 @@ def main():
     stuck = [r for r in plan if r["status"] == "change" and "[redraft failed" in r.get("notes", "")]
     for r in stuck: issues.append({"what": "notes → redraft", "since": today.isoformat(), "times": 1, "log": r["notes"][:160], "fix": "decide the card again or rephrase the note"})
     li = linkedin()
-    for r in plan:
-        if r["status"] != "approved" or not r["channel"].startswith("linkedin"): continue
-        due = (r.get("planned") or "9999")[:16].replace("T", " ") <= datetime.now().strftime("%Y-%m-%d %H:%M")
-        auto = li["connected"] and (r["channel"] == "linkedin" or li["org"])
-        if due and not auto:
-            cid = "-".join(os.path.basename(r.get("caption_ref", "")).split("-")[0:3])
-            issues.append({"what": "one post waits for you", "since": r.get("planned", ""), "times": 1, "log": f"{cid} is approved and due, but the {'company page' if r['channel'] == 'linkedin-company' else 'profile'} is not connected to the API", "fix": "on the board: Copy text, Download image, post it in LinkedIn, Mark posted"})
+    # (20.10.) a by-hand company post is no issue any more: the company page gets its API soon; the card itself still says "post it by hand"
     for r in plan:
         if r["status"] == "approved" and r.get("notes", "").startswith("[publish failed"): issues.append({"what": "LinkedIn publishing", "since": today.isoformat(), "times": 1, "log": r["notes"][:160], "fix": "post it yourself (Copy text) or run: python3 pipeline/publish.py; token: pipeline/linkedin_auth.py"})
     inv, _ = read_csv(os.path.join(LIB, "inventory.csv")); unused = sum(1 for r in inv if r["status"] == "unused" and r["pillar"] != "company")

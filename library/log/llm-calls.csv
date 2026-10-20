@@ -72,3 +72,5 @@ ts,step,model,ms,input,cache_read,cache_create,output,cost_usd,ok
 2026-10-20T20:52:55,redraft,claude-opus-5-5,10886,2,2453,10972,1208,0.1124,yes
 2026-10-20T20:59:18,learn,claude-sonnet-5-5,6825,2,2255,3004,10,0.0123,yes
 2026-10-20T20:59:32,redraft,claude-opus-5-5,13393,2,2453,11122,1387,0.1172,yes
+2026-10-20T21:02:10,tags,claude-haiku-5-5,4375,4,42525,6051,185,0.0017,yes
+2026-10-20T21:02:13,tags,claude-haiku-5-5,3840,4,42539,6064,171,0.0017,yes
