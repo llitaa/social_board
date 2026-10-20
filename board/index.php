@@ -304,8 +304,13 @@ document.addEventListener('pointermove',e=>{if(!drag.id)return;const dx=e.client
   if(!drag.active){if(Math.hypot(dx,dy)>10)endDrag(false);return}
   e.preventDefault();drag.el.style.transform=`translate(${dx}px,${dy}px) scale(1.04)`;
   drag.el.style.visibility='hidden';const under=document.elementFromPoint(e.clientX,e.clientY)?.closest('#items .item');drag.el.style.visibility='';
-  if(under&&under!==drag.el&&under.dataset.ch===drag.ch&&!under.classList.contains('locked')){const items=[...document.querySelectorAll('#items .item')];const a=items.indexOf(drag.el),b=items.indexOf(under);
-    under.parentNode.insertBefore(drag.el,a<b?under.nextSibling:under);drag.x=e.clientX;drag.y=e.clientY;drag.el.style.transform='scale(1.04)'}},{passive:false});
+  if(under&&under!==drag.el&&under.dataset.ch===drag.ch&&!under.classList.contains('locked')&&Date.now()-(drag.last||0)>220){const r=under.getBoundingClientRect();
+    if(Math.abs(e.clientX-(r.left+r.width/2))>r.width*.35||Math.abs(e.clientY-(r.top+r.height/2))>r.height*.35)return;   // swap only near the middle of the other item, not at its edge
+    const items=[...document.querySelectorAll('#items .item')];const a=items.indexOf(drag.el),b=items.indexOf(under);
+    const before=new Map(items.map(it=>[it,it.getBoundingClientRect()]));
+    under.parentNode.insertBefore(drag.el,a<b?under.nextSibling:under);drag.last=Date.now();
+    for(const it of items){if(it===drag.el)continue;const p=before.get(it),q=it.getBoundingClientRect();const ddx=p.left-q.left,ddy=p.top-q.top;if(ddx||ddy){it.style.transition='none';it.style.transform=`translate(${ddx}px,${ddy}px)`;requestAnimationFrame(()=>{it.style.transition='transform .22s ease';it.style.transform='';setTimeout(()=>it.style.transition='',240)})}}
+    const q=drag.el.getBoundingClientRect(),p=before.get(drag.el);drag.x+=q.left-p.left;drag.y+=q.top-p.top;drag.el.style.transform=`translate(${e.clientX-drag.x}px,${e.clientY-drag.y}px) scale(1.04)`}},{passive:false});
 document.addEventListener('pointerup',e=>{if(!drag.id)return;const was=drag.active;endDrag(was);if(!was&&e.target.closest('#items .item')&&!e.target.closest('button,a'))goCard(e.target.closest('.item').dataset.id)});
 document.addEventListener('pointercancel',()=>endDrag(false));
 document.addEventListener('touchmove',e=>{if(drag.id&&(drag.active||Math.hypot(e.touches[0].clientX-drag.x,e.touches[0].clientY-drag.y)<10))e.preventDefault()},{passive:false});

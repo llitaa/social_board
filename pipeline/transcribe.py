@@ -3,7 +3,7 @@
 A memo recorded on a card (<file>.card.txt holds the card id) is a spoken note for that post: its transcript is written as a
 change decision into board/data/decisions-local/ (never into the server mirror), apply_decisions.py applies it in the same run,
 redraft.py rewrites the post, learn.py reads the note like a typed one. Runs in the fast chain, so about a minute after Stop."""
-import csv, json, os, shutil, subprocess, sys
+import csv, json, os, re, shutil, subprocess, sys
 from datetime import datetime
 from common import LIB, BOARD_LOCAL, p, log
 
@@ -23,6 +23,12 @@ def transcribe(src):
     if r.returncode: raise RuntimeError(r.stderr[-400:])
     return " ".join(l.strip() for l in r.stdout.splitlines() if l.strip())
 
+PHANTOMS = re.compile(r"thank you for watching|thanks for watching|subscribe|glad you brought me here|see you (in the )?next|amara\.org|untertitel|MBC|뉴스|字幕", re.I)
+def is_noise(text):
+    """whisper invents sentences on silence or breath: foreign scripts, stock YouTube phrases, or fewer than three words."""
+    t = (text or "").strip()
+    return len(t.split()) < 3 or bool(re.search(r"[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af\u0400-\u04ff]", t)) or bool(PHANTOMS.search(t))
+
 def main():
     os.makedirs(MEM, exist_ok=True); up = os.path.join(BOARD_LOCAL, "uploads", "memos"); done = {r["id"] for r in rows()}; out = rows(); n = 0
     for f in sorted(os.listdir(up)) if os.path.isdir(up) else []:
@@ -34,8 +40,9 @@ def main():
             if os.path.isfile(x): os.remove(x)
         try: text = transcribe(dst)
         except Exception as e: log("transcribe failed", f, e); text = ""
+        if is_noise(text): log("memo is noise (whisper phantom or too short):", f, repr(text[:60])); text = ""
         open(os.path.splitext(dst)[0] + ".txt", "w", encoding="utf-8").write(text)
-        status = ("new" if len(text.split()) >= 15 else "short") if text else "failed"
+        status = ("new" if len(text.split()) >= 15 else "short") if text else "noise"
         if card and text:
             ld = os.path.join(BOARD_LOCAL, "decisions-local"); os.makedirs(ld, exist_ok=True)
             d = {"type": "post", "card_id": card, "decision": "change", "note": text, "via": "voice", "ts": datetime.now().astimezone().isoformat(timespec="seconds")}

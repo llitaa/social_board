@@ -1,0 +1,15 @@
+Ein Prompt ist nur ein Satz in einem Gespräch. Wer ihn wie einen Zauberspruch behandelt, hat das Werkzeug nicht verstanden.
+
+Ich arbeite täglich mit Coding-Agents in einer grossen Legacy-C++-Codebasis. Der erste Satz an den Agent ist selten der entscheidende. Entscheidend ist, was danach kommt: Rückfragen, Korrekturen, der Moment, in dem ich sage, welcher Pfad nicht angefasst wird, und warum.
+
+Das ist dieselbe Arbeit wie mit einem neuen Kollegen im Team. Als technischer Koordinator eines Teams von sechs Entwicklern habe ich gelernt: Eine Aufgabe in einem Satz zu übergeben reicht nicht. Einem neuen Mitarbeitenden einfach die Dokumentation zu geben, reicht auch nicht. Es gab immer ein Gespräch: Kontext, Grenzen, was fertig heisst, wer abnimmt. Genau das braucht ein Agent auch, nur schneller und ohne Höflichkeitspausen.
+
+Deshalb halte ich wenig von Prompt-Sammlungen und viel von Gesprächsführung. Drei Dinge zählen: Kontext, den der Agent sonst nicht hat, etwa welche Abhängigkeit im Betrieb wirklich zählt. Grenzen, bevor er losläuft. Und eine Prüfung, die nicht er selbst schreibt.
+
+Wer so führt, bekommt vom Agent brauchbare Arbeit. Wer nur promptet, bekommt plausiblen Code und darf ihn danach lesen.
+
+Die Lehre für mich: Die Fähigkeit, die hier zählt, ist nicht neu. Sie heisst technische Führung. Sie hat nur ein zweites Publikum bekommen.
+
+Wie übergeben Sie in Ihrem Team eine Aufgabe an einen Agent: in einem Satz oder in einem Gespräch?
+
+#KIEntwicklung #TechnicalLeadership #Cpp

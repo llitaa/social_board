@@ -101,7 +101,7 @@ def pillar_counts(plan, around, days=14):
     return c
 
 FEEDBACK = re.compile(r"generic note|note (to|for) (the )?(system|board|you)|feedback|notiz (an|für) (dich|das system|das board)|anmerkung zum board|zum board|the user interface|die oberfläche|das ui\b|\blayout\b|\bgrid\b|\btrash\b|this (board|page|app)", re.I)
-PHRASE_WORDS = 150  # a memo under this is an idea for a post (pillar thought: the model distils his sentence and builds the post around it); longer = a post in his own words (pillar memo)
+PHRASE_WORDS = 100000  # every memo is an idea for a post (pillar thought: the model distils his sentence and builds the post around it); Anton never dictates finished posts (20.10.)
 
 def file_phrases():
     """Short memos become inventory topics of pillar thought (status unused); the memo row says phrase + topic id."""
