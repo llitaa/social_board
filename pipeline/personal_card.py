@@ -4,7 +4,7 @@ Styles live in templates/personal-card.html: band (square, dark blue block under
 with the cyan bar of the documents), overlay (square, headline on the photo). config.yaml personal_card.style picks one;
 off = plain photo as before. Palette = AlpiType colours only, no logo, no company name (personal posts never name it).
 Rendered with headless Chrome, zero tokens. `python3 personal_card.py <square.png> "<headline>" [kicker] [style] [out_base]`."""
-import base64, html, os, subprocess, sys
+import html, os, subprocess, sys
 from common import CFG, LIB, ROOT, log
 
 TPL = os.path.join(ROOT, "pipeline", "templates", "personal-card.html")
@@ -21,7 +21,7 @@ def render(photo_png, card, out_base, style=None, out_dir=DRAFTS):
     style = style or CFG.get("personal_card", {}).get("style", "band")
     if style not in SIZES or not os.path.isfile(photo_png): return None
     w, h, ph = SIZES[style]; head = (card.get("headline") or "").strip(); kick = (card.get("kicker") or "").strip()
-    photo = "data:image/png;base64," + base64.b64encode(open(photo_png, "rb").read()).decode()
+    photo = "file://" + os.path.abspath(photo_png)      # by path, not embedded: the .html stays small (media never in git)
     extra = {"band": '<div class="seam"></div>', "light": "", "overlay": '<div class="shade"></div>'}[style]
     doc = (open(TPL, encoding="utf-8").read().replace("{{W}}", str(w)).replace("{{H}}", str(h)).replace("{{PH}}", str(ph)).replace("{{HS}}", str(headline_size(head, style)))
            .replace("{{STYLE}}", style).replace("{{PHOTO}}", photo).replace("{{EXTRA}}", extra).replace("{{BAR}}", '<div class="bar"></div>' if style == "light" else "")
