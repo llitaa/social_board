@@ -123,11 +123,13 @@ switch ($a) {
     out(['ok'=>true]);
 
   case 'upload': // multipart photos[]
-    $saved = [];
+    $saved = []; $failed = [];
+    $errs = [1 => 'larger than the server allows', 2 => 'larger than the form allows', 3 => 'only partly uploaded', 4 => 'no file arrived', 6 => 'no temp folder', 7 => 'cannot write to disk', 8 => 'blocked by a PHP extension'];
+    if (empty($_FILES['photos']) && empty($_POST)) $failed[] = 'request too large: PHP dropped the whole upload (' . (int)($_SERVER['CONTENT_LENGTH'] ?? 0) . ' bytes); send fewer photos at once';
     if (!empty($_FILES['photos'])) {
       $n = count($_FILES['photos']['name']);
       for ($i = 0; $i < $n; $i++) {
-        if ($_FILES['photos']['error'][$i] !== UPLOAD_ERR_OK) continue;
+        if ($_FILES['photos']['error'][$i] !== UPLOAD_ERR_OK) { $failed[] = ($_FILES['photos']['name'][$i] ?: '?') . ': ' . ($errs[$_FILES['photos']['error'][$i]] ?? 'error ' . $_FILES['photos']['error'][$i]); continue; }
         $ext = strtolower(pathinfo($_FILES['photos']['name'][$i], PATHINFO_EXTENSION)) ?: 'jpg';
         if (!in_array($ext, ['jpg','jpeg','png','heic','heif','webp'], true)) $ext = 'jpg';
         $name = date('Y-m-d_His') . '_' . substr(bin2hex(random_bytes(3)), 0, 4) . ".$ext";
@@ -137,8 +139,8 @@ switch ($a) {
     $note = trim((string)($_POST['note'] ?? '')); $card = preg_replace('/[^\w-]/', '', (string)($_POST['card_id'] ?? ''));
     if ($card !== '') { $note = "card:$card"; if ($saved) set_overlay('cards', $card, ['image_pending' => true]); }   // image for one post, not for the pool
     if ($note !== '' && $saved) { $notes = jread("$D/uploads/photo-notes.json", []); foreach ($saved as $s) $notes[$s] = $note; jwrite("$D/uploads/photo-notes.json", $notes); }
-    decide(['type'=>'upload','files'=>$saved,'note'=>$note,'card_id'=>$card]);
-    out(['ok'=>true,'saved'=>$saved]);
+    decide(['type'=>'upload','files'=>$saved,'failed'=>$failed,'note'=>$note,'card_id'=>$card]);
+    out(['ok'=>count($saved) > 0,'saved'=>$saved,'failed'=>$failed]);
 
   case 'memo': // multipart audio
     if (empty($_FILES['audio']) || $_FILES['audio']['error'] !== UPLOAD_ERR_OK) out(['error' => 'no audio']);

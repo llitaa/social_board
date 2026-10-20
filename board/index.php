@@ -132,7 +132,7 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--m);m
 <script>
 const $=s=>document.querySelector(s), api='api.php';
 let S=null, tab='post', expanded={}, showUsed=false, showAllUp=false, showAllPub=false;
-const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1800)};
+let toastT=null;const toast=(m,ms=1800)=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),ms)};
 const post=async(o)=>{const r=await fetch(api,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(o)});return r.json()};
 const fmtSlot=s=>{const d=new Date(s);return d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'})+' · '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})};
 const fmtDay=s=>new Date(s).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'});
@@ -263,7 +263,7 @@ async function decide(id,dec,reason){
   load();
 }
 function skipPost(id){$('#r-'+id).classList.toggle('on')}
-async function uploadFor(id,inp){const fd=new FormData();fd.append('a','upload');fd.append('card_id',id);for(const f of inp.files)fd.append('photos[]',f);toast('uploading …');const r=await (await fetch(api,{method:'POST',body:fd})).json();toast(r.ok?'uploaded · the picture changes in about 20 s':'upload failed');watchUntil=Date.now()+240000;load()}
+async function uploadFor(id,inp){const fd=new FormData();fd.append('a','upload');fd.append('card_id',id);for(const f of inp.files)fd.append('photos[]',f,f.name||'photo.jpg');toast('uploading …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={failed:[e.message||'network error']}}toast(r.ok?'uploaded · the picture changes in about 20 s':'upload failed: '+((r.failed||[])[0]||'no file arrived'),r.ok?4000:12000);watchUntil=Date.now()+240000;load()}
 async function markPosted(id){const url=($('#u-'+id)||{}).value||'';const r=await post({a:'decide',card_id:id,decision:'posted',url});toast(r.ok?'logged as posted':'error');load()}
 async function copyText(id){const t=$('#t-'+id).textContent;try{await navigator.clipboard.writeText(t);toast('text copied')}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('text copied')}}
 async function answer(id,a){await post({a:'answer',id,answer:a});toast('noted');load()}
@@ -307,7 +307,11 @@ function renderPhotos(){
   if(S.memos.length) h+=`<div class="set">memos waiting for the Mac: ${S.memos.length}</div>`;
   el.innerHTML=h;
 }
-async function startUpload(inp){const fd=new FormData($('#up'));fd.append('a','upload');toast('uploading '+inp.files.length+' …');const r=await (await fetch(api,{method:'POST',body:fd})).json();toast(r.ok?`${r.saved.length} uploaded`:'upload failed');load()}
+async function startUpload(inp){const files=[...inp.files],note=$('#up').note.value,B=3;let ok=0,failed=[];
+  for(let i=0;i<files.length;i+=B){const fd=new FormData();fd.append('a','upload');fd.append('note',note);for(const f of files.slice(i,i+B))fd.append('photos[]',f,f.name||'photo.jpg');
+    toast(`uploading ${Math.min(i+B,files.length)} of ${files.length} …`);
+    try{const r=await (await fetch(api,{method:'POST',body:fd})).json();ok+=(r.saved||[]).length;failed.push(...(r.failed||[]))}catch(e){failed.push(`${files.slice(i,i+B).map(f=>f.name).join(', ')}: ${e.message||'network error'}`)}}
+  inp.value='';toast(failed.length?`${ok} of ${files.length} uploaded · failed: ${failed.slice(0,3).join(' · ')}`:`${ok} uploaded · the Mac fetches them within 10 minutes`,failed.length?12000:4000);load()}
 async function pdec(id,dec){const r=await post({a:'photo',id,decision:dec});toast(r.ok?({mark_used:'marked used',hold:'held back',use_friday:'planned for Friday',delete:'deleted'}[dec]):'error');load()}
 // --- Record
 let mr=null,chunks=[],t0=0;
