@@ -38,7 +38,12 @@ input[type=datetime-local]{width:100%;border:1px solid var(--b);border-radius:8p
 .pill.warn{background:var(--warn);border-color:#f3d9a4;color:#7a4b00}
 .pill.todo{background:var(--d);color:#fff;border-color:var(--d)}
 .txt{white-space:pre-wrap;font-size:15px;line-height:1.5;padding:10px 14px 4px}
-.img{margin:8px 0 0;background:#000}
+.img{margin:8px 0 0;background:#000;position:relative}
+.img.busy img{opacity:.35;filter:grayscale(.6)}
+.spin{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff;font-size:14px;font-weight:600;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.spin i{width:44px;height:44px;border-radius:50%;border:4px solid rgba(255,255,255,.35);border-top-color:#fff;animation:sp .9s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.txt.busy{opacity:.45}
 .img img{display:block;width:100%;height:auto;max-height:70vh;object-fit:contain}
 .act{padding:12px 14px 14px;border-top:1px solid var(--b);background:#fff}
 textarea,input[type=text],input[type=url]{width:100%;border:1px solid var(--b);border-radius:8px;padding:9px;font:inherit;font-size:15px;background:#fff}
@@ -204,7 +209,7 @@ function postHtml(c){
                                  :`<div class="ava">AL</div><div><div class="n">Anton Lytvynenko</div><div class="s">personal · ${esc(c.lang)} · ${fmtSlot(c.slot)}${c.pillar?' · '+esc(c.pillar):''}</div></div>`;
   const ed=needs(c);
   const imgTools=(ed||c.status==='approved')?`<div class="imgtools">${c.channel==='personal'?`<button class="sm s" onclick="decide('${c.id}','photo_next')">Next photo from the pool</button>`:''}<label class="lbl">Upload another image<input type="file" accept="image/*" style="display:none" onchange="uploadFor('${c.id}',this)"></label><span class="hint" style="padding:0">replaces the picture, text stays</span></div>`:'';
-  return `<div class="who">${who}</div><div class="txt" id="t-${c.id}" ${ed?'contenteditable="plaintext-only" spellcheck="false"':''}>${esc(c.text)}</div>${ed?'<div class="hint">tap the text to change a word; Post takes what you see</div>':''}${c.image?`<div class="img"><img src="${esc(c.image.url)}" alt=""></div>`:'<div class="q" style="padding:0 14px 10px">no image</div>'}${imgTools}`;
+  return `<div class="who">${who}</div><div class="txt ${(c.status==='change'&&!c.failed)||c.note_pending?'busy':''}" id="t-${c.id}" ${ed?'contenteditable="plaintext-only" spellcheck="false"':''}>${esc(c.text)}</div>${ed?'<div class="hint">tap the text to change a word; Post takes what you see</div>':''}${c.image?`<div class="img ${c.image_pending?'busy':''}"><img src="${esc(c.image.url)}" alt="">${c.image_pending?'<div class="spin"><i></i><span>replacing the picture …</span></div>':''}</div>`:'<div class="q" style="padding:0 14px 10px">no image</div>'}${imgTools}`;
 }
 function systemHtml(){
   const H=S.health||{}; const seen=H.ts?Math.round((new Date(S.now)-new Date(H.ts))/60000):null; const issues=[...(H.issues||[])];
