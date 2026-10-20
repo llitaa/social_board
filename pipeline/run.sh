@@ -25,6 +25,8 @@ if [ "$MODE" = full ]; then
 step transcribe  $P pipeline/transcribe.py
 step photos      $P pipeline/photo_index.py
 step mail        $P pipeline/mail_watch.py
+step metrics     $P pipeline/metrics_import.py
+step metrics_api $P pipeline/metrics_fetch.py
 else
 step photos      $P pipeline/photo_index.py fast
 fi

@@ -48,6 +48,28 @@ Each card SHALL carry one text with hashtags, the slot, and an image: a pool pho
 - **WHEN** a personal card is drafted
 - **THEN** its image is a ready pool photo obeying the previous-shoot rule, or a graphic with the reason stated
 
+### Requirement: Positioning in every personal post
+Since 20.10.2026 the personal posts address people who lead or staff software teams in Switzerland (Zurich area) and the rest of DACH: Entwicklungsleiter, CTOs, engineering managers and recruiters in defence, medtech and industry. `library/positioning.md` (Anton edits it) is part of every draft and redraft prompt. Each personal post SHALL carry one leadership signal (a decision he took, a team he coordinated or built, a practice he introduced, requirements he settled with domain experts) and one AI signal (his own work with coding agents or a reasoned position), both as content from the CV facts, never as a claim about himself. The model names the two sentences; the rules gate verifies they are in the text and rejects the draft otherwise. Personal posts use Swiss standard German (ss for ß; `orthography` in config, `de` keeps ß). Job search, salary, recruiters and employers he talks to stay out.
+
+#### Scenario: Case post without a leadership sentence
+- **WHEN** a draft tells a performance case without any sentence where Anton decides, leads or introduces something
+- **THEN** the gate answers "no leadership signal" and the model rewrites once; a second failure leaves the slot open and is logged
+
+#### Scenario: Reader takeaway
+- **WHEN** a hiring manager in Zurich reads any personal post
+- **THEN** nothing in it asks for a job, yet the post shows him leading a team or a decision and judging AI output from daily practice
+
+### Requirement: Personal post card
+A personal post MAY carry a card instead of the plain photo: the pool photo on top and a headline block below in the house palette (dark blue, cyan, the logo gradient as a seam) with kicker, the post's one sentence (≤ 70 characters, named by the model as `card.headline`) and the line "Anton Lytvynenko · Software Architect & Technical Lead". No logo, no company name. Styles live in `pipeline/templates/personal-card.html` (band 1200×1200, light 1080×1350, overlay 1200×1200); `personal_card.style` in config picks one, `off` keeps the plain photo. Rendering is headless Chrome, zero tokens; a redraft or photo change re-renders the card.
+
+#### Scenario: Style approved
+- **WHEN** Anton sets `personal_card.style: band`
+- **THEN** every new personal draft and every redraft carries the band card as its image; the plain square stays in the pool
+
+#### Scenario: Style off
+- **WHEN** the style is `off`
+- **THEN** the card is the pool photo as before
+
 ### Requirement: Rules check
 Before a card reaches the board it SHALL pass: facts only from CV v2 and the company context, no audience address, no freelance CTA, no AlpiType on personal posts, no assistant credited as author, no client that must not be named.
 

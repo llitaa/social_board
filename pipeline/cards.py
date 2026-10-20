@@ -111,13 +111,17 @@ def main():
         published.append({"id": r["post_id"], "date": r["date"], "channel": "company" if "company" in r["channel"] else "personal",
                           "hook": (r.get("hook") or "")[:110], "impressions": r.get("impressions", ""), "reactions": r.get("reactions", ""), "comments": r.get("comments", "")})
     published.sort(key=lambda p: p["date"], reverse=True)
+    # Featured section candidates: the personal posts with the most impressions in the last 90 days (Anton pins them on his profile by hand)
+    recent = [p for p in published if p["channel"] == "personal" and p["date"] >= (today - timedelta(days=90)).isoformat() and str(p["impressions"]).isdigit()]
+    featured = sorted(recent, key=lambda p: int(p["impressions"]), reverse=True)[:3]
+    missing = sum(1 for p in published if p["date"] >= (today - timedelta(days=90)).isoformat() and p["date"] <= (today - timedelta(days=3)).isoformat() and not str(p["impressions"]).isdigit())
     pruned, total = prune_images({c["id"] for c in cards})
     jdump(os.path.join(BOARD_LOCAL, "cards.json"), cards)
     inv, _ = read_csv(os.path.join(LIB, "inventory.csv")); material = {}
     for r in inv:
         if r.get("status") == "unused": material[r["pillar"]] = material.get(r["pillar"], 0) + 1
     memos, _ = read_csv(os.path.join(LIB, "memos", "index.csv"))
-    jdump(os.path.join(BOARD_LOCAL, "pipeline.json"), {"upcoming": upcoming, "published": published[:12], "material": material,
+    jdump(os.path.join(BOARD_LOCAL, "pipeline.json"), {"upcoming": upcoming, "published": published[:12], "featured": featured, "metrics_missing": missing, "material": material,
           "memos": [{"id": m["id"], "recorded": m["recorded"], "words": m["words"], "status": m["status"], "used_in": m["used_in"]} for m in memos[-5:] if m["status"] in ("new", "drafted")],
           "generated": now.isoformat(timespec="seconds")})
     log(f"{len(cards)} cards: " + ", ".join(f"{c['id']}@{c['slot'][:16]}[{c['status']}]" for c in cards) + f"; {len(upcoming)} upcoming, {len(published)} published; images {total // 1024} KB, pruned {pruned}")

@@ -20,7 +20,7 @@ ORG = "--org" in sys.argv
 CFG_FILE = os.path.join(ROOT, "config.local.linkedin-org.json" if ORG else "config.local.linkedin.json")
 REDIRECT = "http://localhost:8765/callback"
 SCOPES_MEMBER = "openid profile w_member_social"
-SCOPES_ORG = "openid profile w_organization_social r_organization_social"
+SCOPES_ORG = "openid profile w_organization_social r_organization_social r_member_postAnalytics"
 
 def load(): return json.load(open(CFG_FILE)) if os.path.isfile(CFG_FILE) else {}
 def save(d): json.dump(d, open(CFG_FILE, "w"), indent=1); os.chmod(CFG_FILE, 0o600)

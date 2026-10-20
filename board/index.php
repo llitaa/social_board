@@ -185,6 +185,8 @@ function renderPipeline(){
   }
   if(!pub.length) h+='<div class="r"><div class="d"></div><div class="h">—</div></div>';
   if(P.published.length>5) h+=`<button class="more" onclick="showAllPub=!showAllPub;render()">${showAllPub?'less':'all '+P.published.length+' posts'}</button>`;
+  if((P.featured||[]).length) h+=`<div class="mat">Featured on your profile should be: ${P.featured.map(f=>esc(f.hook.slice(0,50))+' ('+f.impressions+' imp)').join(' · ')}</div>`;
+  else if(P.metrics_missing) h+=`<div class="mat">no numbers for ${P.metrics_missing} posts yet: export them from LinkedIn into library/metrics/inbox, or wait for the API</div>`;
   return h+'</div>';
 }
 function goCard(id){const el=document.getElementById('c-'+id);if(!el)return;expanded[id]=true;renderPost();showTab('post');document.getElementById('c-'+id).scrollIntoView({behavior:'smooth',block:'start'})}

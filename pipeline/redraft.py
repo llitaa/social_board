@@ -8,8 +8,8 @@ import json, os, re, shutil
 from datetime import datetime
 from common import CFG, LIB, read_csv, write_csv, resolve, log
 from llm import llm_json
-import photo_index as ph, rules_check
-from draft import STYLE, render_graphic, style_rules
+import photo_index as ph, rules_check, inventory as inv
+from draft import STYLE, render_graphic, style_rules, positioning
 
 PHOTO_WORDS = re.compile(r"foto|photo|bild|picture|image|anderes bild|other pic", re.I)
 GRAPHIC_WORDS = re.compile(r"grafik|graphic|karte|card|visual", re.I)
@@ -41,21 +41,29 @@ def main():
             else: note_for_text = note
             # 2. text
             prompt = f"""{STYLE[channel]}
-{style_rules()}
+{positioning() if channel == 'personal' else ''}{style_rules()}
 Here is the current post and Anton's note on it. Apply the note exactly; change nothing he did not ask for.
 Note: {note_for_text}
 
 Current post:
 {text}
+{('Facts you may use for anything new (nothing else):' + chr(10) + inv.cv_text()[:9000]) if channel == 'personal' else ''}
 {'The post also carries a 1200x1200 graphic with eyebrow/title/lines/footer; return a new "graphic" object only if the note concerns the graphic.' if channel == 'company' else ''}
-Answer with one JSON object only: {{"text": "the full post incl. hashtags, newlines as \\n"{', "graphic": {...} (optional)' if channel == 'company' else ''}}}"""
-            d = llm_json("redraft", prompt); new = d.get("text", "").strip(); v = rules_check.check(new, channel)
+Answer with one JSON object only: {{"text": "the full post incl. hashtags, newlines as \\n"{', "graphic": {...} (optional)' if channel == 'company' else ', "card": {"kicker": "2-3 words", "headline": "the one sentence for under the photo, max 70 characters"}, "signals": {"lead": "sentence showing him leading or deciding, verbatim", "ai": "sentence showing his AI practice or position, verbatim"}'}}}"""
+            d = llm_json("redraft", prompt); new = rules_check.fix_orthography(d.get("text", "").strip(), channel); v = rules_check.check(new, channel, d.get("signals"))
             if v: raise RuntimeError(f"rules: {v}")
             ver = len(meta.get("versions", [])) + 1; shutil.copy2(tp, f"{base}.v{ver}.txt")
             meta.setdefault("versions", []).append({"v": ver, "note": note, "ts": datetime.now().isoformat(timespec="seconds")})
             open(tp, "w", encoding="utf-8").write(new + "\n")
             if channel == "company" and d.get("graphic") and GRAPHIC_WORDS.search(note):
                 meta["graphic"] = d["graphic"]; render_graphic(d["graphic"], os.path.basename(base))
+            if channel == "personal":
+                if d.get("card"): meta["card"] = d["card"]
+                if d.get("signals"): meta["signals"] = d["signals"]
+                if CFG.get("personal_card", {}).get("style", "off") != "off" and meta.get("card") and meta.get("photo"):
+                    import personal_card
+                    png = personal_card.render(os.path.join(LIB, "photos", "square", meta["photo"] + "_sq.png"), meta["card"], os.path.basename(base))
+                    if png: r["asset"] = f"library/drafts/{os.path.basename(base)}.png (card: photo {meta['photo']} + headline, style {CFG['personal_card']['style']}; source library/drafts/{os.path.basename(base)}.html)"
             json.dump(meta, open(meta_p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
             r["status"] = "draft"; r["notes"] = f"[redraft {datetime.now():%Y-%m-%d %H:%M} applied: {note}] " + r.get("notes", ""); n += 1
             log("redrafted", r.get("caption_ref"), "-> back on the board to decide")

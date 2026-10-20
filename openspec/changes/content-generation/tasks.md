@@ -13,8 +13,16 @@
 
 ## 3. Metrics loop
 - [ ] 3.1 Monday brief routine (cloud) → `local/reports/brief/`
-- [ ] 3.2 Analytics XLSX import → posts-log.csv
-- [ ] 3.3 Monthly ranking report + proposed decision
+- [x] 3.2 Analytics XLSX import → posts-log.csv (`metrics_import.py`, in the full chain since 20.10.)
+- [x] 3.3 API numbers: `metrics_fetch.py` (member post analytics + page share statistics), dormant until the Community Management API is granted (20.10.)
+- [x] 3.4 Featured candidates + "numbers missing" line on the board (20.10.)
+- [ ] 3.5 Monthly ranking report + proposed decision
+
+## 5. Positioning and card (20.10.)
+- [x] 5.1 `library/positioning.md` in draft + redraft prompts; `signals` check in `rules_check.py`; Swiss orthography switch
+- [x] 5.2 `personal_card.py` + template with styles band / light / overlay; `personal_card.style` in config (off until Anton approves a style)
+- [x] 5.3 li-post-13..17 redrafted with the positioning note (versions kept); li-post-18 from Anton's thought "a prompt is a sentence in a conversation" with the band card
+- [ ] 5.4 Anton picks a style → config → next drafts carry the card; check the first post's numbers against the plain-photo posts after 2 weeks
 
 ## 4. Verify
 - [ ] 4.1 Tue 20.10.: every slot until 02.11. shows a draft on the board without a prompt; Anton's first note comes back approved

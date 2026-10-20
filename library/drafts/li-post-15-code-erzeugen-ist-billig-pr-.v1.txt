@@ -1,0 +1,15 @@
+Einen Patch schreibt mein Coding-Agent schneller, als ich ihn lesen kann. Genau da liegt das Problem.
+
+Ich arbeite täglich mit Agents in einer großen Legacy-C++-Codebasis. Das Schreiben ist nicht mehr der Engpass. Der Engpass ist die Frage danach: Stimmt das? Hält es unter Last? Bricht es einen Pfad, den kein Test abdeckt?
+
+Viele Teams investieren gerade in mehr Generierung. Mehr Lizenzen, mehr Agents, mehr parallele Branches. Das erhöht den Durchsatz an Code. Den Durchsatz an geprüftem Code erhöht es nicht. Die Differenz landet im Review oder in Produktion.
+
+Meine Position: Das Budget gehört in die Prüfung. Tests, die das Verhalten festhalten, bevor jemand den Code anfasst, auch zwischen Prozessen, nicht nur pro Funktion. Reviewer, die ihre Zeit für die kritischen Stellen bekommen, statt jeder generierten Zeile denselben Blick zu schenken. Und eine klare Antwort darauf, wer abnimmt und wer haftet.
+
+Bei Laufzeitoptimierung in Legacy-Code ist der Vorschlag selten das Wertvolle. Wertvoll ist, belegen zu können, dass das Ergebnis vorher und nachher dasselbe ist. Ohne diesen Beleg ist ein schneller Patch nur eine schnelle Vermutung.
+
+Generieren ist billig geworden. Vertrauen nicht.
+
+Wofür gibt Ihr Team die Zeit aus, die es beim Schreiben spart?
+
+#KIEntwicklung #CodeReview #Softwaretests

@@ -150,3 +150,8 @@ Text-only steps run with the tool list switched off, so the context is the job i
 **Decision for you, with my recommendation:** stay with `claude -p` on the subscription; it is what runs now. The API key becomes the backend only if the quota collides with your own sessions or the volume grows tenfold. That is a config line, not a second path in the code.
 
 **Dropped:** the LinkedIn notification-mail idea. You do not need to care about it. The queue's signal source will be a local browser script reading the watch list in your own logged-in Chrome profile, once a day, zero tokens; the model only drafts. You log in to LinkedIn in that Chrome profile once.
+
+## Positioning, card and numbers (20.10.2026)
+- `library/positioning.md` is in every personal draft/redraft prompt: readers are people who lead or staff software teams in Switzerland and DACH; each post carries a leadership signal and an AI signal from the CV facts, Swiss orthography (ss for ß, `orthography` in config). The model names the two sentences, `rules_check.check(text, channel, signals)` verifies them.
+- `personal_card.py` renders the pool photo plus a headline block (styles band / light / overlay in `pipeline/templates/personal-card.html`, palette only, no logo); `personal_card.style` in config, `off` = plain photo.
+- Numbers: `metrics_import.py` (LinkedIn exports in `library/metrics/inbox/`) and `metrics_fetch.py` (API, needs the Community Management API scopes on the second app) run in the full chain; the board lists the top three personal posts of 90 days as Featured candidates and says when numbers are missing.

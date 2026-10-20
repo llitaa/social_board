@@ -19,6 +19,20 @@ When Anton drops the LinkedIn analytics export into `local/resources/analytics/`
 - **WHEN** a new XLSX appears in the folder
 - **THEN** posts-log.csv is updated within the next run and unmatched rows are listed in the run log
 
+### Requirement: Numbers from the API
+Once the Community Management API is granted to the app "AlpiType Board" (scopes `r_member_postAnalytics` for Anton's posts, `r_organization_social` for the page), the full chain SHALL fetch impressions, reactions and comments for every post of the last 90 days that has a LinkedIn URN in posts-log.csv (`metrics_fetch.py`, at most every 6 hours per post, zero tokens). Posts published by hand get their URN when Anton pastes the post URL on the board (Mark posted). Until the scope exists the script states so once per run and the export path stays: files in `library/metrics/inbox/` are imported by `metrics_import.py` in the same chain.
+
+#### Scenario: Scope granted
+- **WHEN** `linkedin_auth.py --org` has stored a token with `r_member_postAnalytics`
+- **THEN** the next full run fills the numbers of every post with a URN and the board shows them under Published
+
+### Requirement: Featured candidates
+The board SHALL show, under Published, the three personal posts of the last 90 days with the most impressions as the posts that belong in the profile's Featured section; Anton pins them by hand. When three or more published posts older than 3 days have no numbers, the board says so and names the export path.
+
+#### Scenario: Numbers present
+- **WHEN** impressions exist for last month's posts
+- **THEN** the line "Featured on your profile should be: …" lists the top three with their impressions
+
 ### Requirement: Monthly ranking
 On the first working day of the month the system SHALL rank last month's posts by pillar, hook form and slot, apply the ranking to the next weekly runs by itself, and put at most one Yes / No / Later card on the board when a change needs Anton's say.
 

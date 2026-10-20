@@ -1,0 +1,23 @@
+{
+ "id": "li-post-18",
+ "channel": "personal",
+ "pillar": "trend",
+ "topic": "t040",
+ "memo": "",
+ "photo": "img3776",
+ "neighbour_shoots": [
+  "2025-11-27_shoot"
+ ],
+ "model": "written in session 20.10. from Anton's thought",
+ "created": "2026-10-20T18:34:37",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "KI im Team",
+  "headline": "Ein Prompt ist nur ein Satz in einem Gespräch."
+ },
+ "signals": {
+  "lead": "Als technischer Koordinator eines Teams von sechs Entwicklern habe ich niemandem eine Aufgabe in einem Satz übergeben",
+  "ai": "Ich arbeite täglich mit Coding-Agents in einer grossen Legacy-C++-Codebasis."
+ }
+}

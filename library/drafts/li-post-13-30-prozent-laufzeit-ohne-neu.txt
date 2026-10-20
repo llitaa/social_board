@@ -1,4 +1,4 @@
-Bis zu 30 Prozent weniger Laufzeit in einer großen C/C++-Codebasis. Ohne Neuschreiben.
+Bis zu 30 Prozent weniger Laufzeit in einer grossen C/C++-Codebasis. Ohne Neuschreiben.
 
 Die Ausgangslage bei einem internationalen Anbieter wissenschaftlicher Informationen: viel gewachsener Legacy-Code, Performance als Priorität des Top-Managements. In so einer Lage liegt der Satz nahe: Wir bauen das neu.
 
@@ -6,9 +6,11 @@ Ich halte das selten für die richtige Antwort. Ein Rewrite schiebt den Nutzen u
 
 Ein wichtiger Hebel war hier die Kommunikation mit der Datenbank. Oracle heute, PostgreSQL als Nachfolger in Arbeit. Dort haben wir gezielt angesetzt, statt den Rest anzufassen.
 
-Dazu kamen Tests über Prozessgrenzen hinweg. Wer in Legacy-Code optimiert, ohne das Zusammenspiel der Prozesse prüfen zu können, tauscht Laufzeit gegen Fehler.
+Dazu habe ich Tests über Prozessgrenzen hinweg eingeführt. Wer in Legacy-Code optimiert, ohne das Zusammenspiel der Prozesse prüfen zu können, tauscht Laufzeit gegen Fehler.
 
-Geliefert wurde in Zwei-Wochen-Iterationen, eng abgestimmt mit den Fachexperten und dem Entwicklungsteam. Jede Iteration ein Schritt, den man messen kann. Keine große Wette am Ende.
+Coding-Agents nutze ich in diesem Legacy-C++ täglich. Ihre Analysen sind ein guter Startpunkt, aber kein Befund: Ich prüfe jede gegen Messung und Tests.
+
+Geliefert wurde in Zwei-Wochen-Iterationen, eng abgestimmt mit den Fachexperten und dem Entwicklungsteam. Jede Iteration ein Schritt, den man messen kann. Keine grosse Wette am Ende.
 
 Die Lehre für mich: Das Management will keinen neuen Code. Es will ein schnelleres System. Das ist ein anderer Auftrag, und meistens ein kleinerer.
 

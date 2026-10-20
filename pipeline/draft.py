@@ -27,6 +27,11 @@ AlpiType builds automation as code inside the client's own environment (Microsof
 Always end with a question, then exactly 3 hashtags including #7030. Allowed CTA at most once: the book as free PDF alpitype.de/buch-en, or "30 minutes with an engineer".
 Forbidden: addressing an audience ("for everyone who"), naming clients, invented numbers, claims not in the company context."""}
 
+def positioning():
+    """Who the personal posts are for and what must stick with the reader (library/positioning.md, Anton edits it)."""
+    f = os.path.join(LIB, "positioning.md")
+    return ("\nPositionierung (gilt für jeden persönlichen Post):\n" + open(f, encoding="utf-8").read().strip() + "\n") if os.path.isfile(f) else ""
+
 def style_rules():
     """Anton's standing preferences, learned from his notes, edits and skip reasons on the board (learn.py)."""
     f = os.path.join(LIB, "style-rules.txt")
@@ -143,7 +148,7 @@ def draft_one(dt, channel, plan, idx, memo=None):
     img = f"\nPhoto that will be posted with the text: {photo['scene'] or photo['note'] or 'Anton, ' + photo['tags']}\n" if photo else \
           "\nThe post gets a 1200x1200 graphic: give eyebrow (2-3 words), title (max 8 words, may contain one \\n), 3-4 numbered lines (max 9 words each) and a 1-3 word footer.\n"
     prompt = f"""{STYLE[channel]}
-{style_rules()}
+{positioning() if channel == 'personal' else ''}{style_rules()}
 Slot: {dt.strftime('%A %d.%m.%Y %H:%M')}
 {material}
 {img}
@@ -157,24 +162,29 @@ Three of Anton's recent posts on this channel, for voice and length only (do not
 Facts you may use (nothing else):
 {facts[:9000]}
 
-Answer with one JSON object only: {{"text": "the full post incl. hashtags, newlines as \\n"{', "graphic": {"eyebrow": "", "title": "", "lines": [""], "footer": ""}' if channel == 'company' else ''}}}"""
-    d = llm_json("draft", prompt); text = d.get("text", "").strip()
-    v = rules_check.check(text, channel)
+Answer with one JSON object only: {{"text": "the full post incl. hashtags, newlines as \\n"{', "graphic": {"eyebrow": "", "title": "", "lines": [""], "footer": ""}' if channel == 'company' else ', "card": {"kicker": "2-3 words, the field (e.g. Legacy C++)", "headline": "the one sentence of the post that should stand under the photo, max 70 characters"}, "signals": {"lead": "the sentence of the post that shows him leading or deciding, copied verbatim", "ai": "the sentence that shows his own AI practice or position, copied verbatim"}'}}}"""
+    d = llm_json("draft", prompt); text = rules_check.fix_orthography(d.get("text", "").strip(), channel)
+    v = rules_check.check(text, channel, d.get("signals"))
     if v:
         d = llm_json("draft", prompt + f"\n\nYour previous answer broke these rules: {v}. Fix them and answer again with the JSON object only.\nPrevious text:\n{text}")
-        text = d.get("text", "").strip(); v = rules_check.check(text, channel)
+        text = rules_check.fix_orthography(d.get("text", "").strip(), channel); v = rules_check.check(text, channel, d.get("signals"))
         if v: log("rules fail", dt, channel, v); return None
     ids = next_ids(plan); kind = "post" if channel == "personal" else "comp"; num = ids[kind] + 1
     slug = re.sub(r"[^a-z0-9]+", "-", (topic["topic"] if topic else "memo").lower()).strip("-")[:28]
     cid = f"li-{kind}-{num:02d}"; base = f"{cid}-{slug}"
     open(os.path.join(DRAFTS, base + ".txt"), "w", encoding="utf-8").write(text + "\n")
     asset = ""
-    if photo: asset = f"{os.path.basename(photo['file'])} (square: library/photos/square/{photo['id']}_sq.png, {photo['scene'][:60]})"
+    if photo:
+        asset = f"{os.path.basename(photo['file'])} (square: library/photos/square/{photo['id']}_sq.png, {photo['scene'][:60]})"
+        if CFG.get("personal_card", {}).get("style", "off") != "off" and d.get("card"):
+            import personal_card
+            png = personal_card.render(ph.square_of(photo), d["card"], base)
+            if png: asset = f"library/drafts/{base}.png (card: photo {photo['id']} + headline, style {CFG['personal_card']['style']}; source library/drafts/{base}.html)"
     else:
         png = render_graphic(d.get("graphic", {}), base)
         asset = f"library/drafts/{base}.png (1200x1200 graphic; source library/drafts/{base}.html)" if png else ""
     meta = {"id": cid, "channel": channel, "pillar": pillar, "topic": topic["id"] if topic else "", "memo": memo[0]["id"] if memo else "", "photo": photo["id"] if photo else "",
-            "neighbour_shoots": nb, "model": MODELS["draft"], "created": datetime.now().isoformat(timespec="seconds"), "versions": [], "graphic": d.get("graphic")}
+            "neighbour_shoots": nb, "model": MODELS["draft"], "created": datetime.now().isoformat(timespec="seconds"), "versions": [], "graphic": d.get("graphic"), "card": d.get("card"), "signals": d.get("signals")}
     json.dump(meta, open(os.path.join(DRAFTS, base + ".json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     row = {"id": str(max(int(r["id"]) for r in plan if r["id"].isdigit()) + 1), "campaign": "linkedin-anton" if channel == "personal" else "linkedin-alpitype",
            "channel": CHAN[channel], "slot": slug, "asset": asset, "format": "foto-post" if photo else "grafik-post", "language": SLOTS[channel]["lang"],

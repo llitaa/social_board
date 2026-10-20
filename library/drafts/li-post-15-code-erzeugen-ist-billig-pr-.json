@@ -10,9 +10,23 @@
  ],
  "model": "claude-opus-5-5",
  "created": "2026-10-19T11:42:29",
- "versions": [],
+ "versions": [
+  {
+   "v": 1,
+   "note": "Neue Positionierung seit 20.10. (siehe Positionierung oben): Zielmarkt Schweiz und DACH, Leser soll danach denken: diesen Mann würde ich als Technical Lead einstellen, und er versteht KI in der Praxis. Bring ein Führungs-Signal (eigene Entscheidung, Team, eingeführte Praxis, Anforderungen mit Fachleuten) und ein KI-Signal (eigene Arbeit mit Coding-Agents oder begründete Position) in den Text, nur aus den Fakten unten, als Inhalt, nicht als Behauptung über sich. Schweizer Schreibweise (ss statt ß). Thema, Hook, Länge und Frage am Ende behalten.",
+   "ts": "2026-10-20T18:37:38"
+  }
+ ],
  "graphic": null,
  "photo_history": [
   "img3863"
- ]
+ ],
+ "card": {
+  "kicker": "Geprüfter Code",
+  "headline": "Generieren ist billig geworden. Vertrauen nicht."
+ },
+ "signals": {
+  "lead": "In meinem aktuellen Projekt habe ich deshalb Tests zwischen Prozessen eingeführt, und was als dasselbe Ergebnis gilt, kläre ich mit den Fachleuten, nicht mit dem Agent.",
+  "ai": "Ich arbeite täglich mit Agents in einer grossen Legacy-C++-Codebasis."
+ }
 }

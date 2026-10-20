@@ -1,12 +1,14 @@
 Bevor ich Legacy-Code schneller mache, will ich wissen, was er heute tut. Nicht laut Dokumentation, sondern laut Ausgabe.
 
-Gerade arbeite ich an einer großen C/C++-Codebasis eines internationalen Anbieters wissenschaftlicher Informationen. Die Laufzeit hat dort Priorität bis in die Geschäftsführung. Entsprechend groß ist der Druck, sofort zu optimieren.
+Gerade arbeite ich an einer grossen C/C++-Codebasis eines internationalen Anbieters wissenschaftlicher Informationen. Die Laufzeit hat dort Priorität bis in die Geschäftsführung. Entsprechend gross ist der Druck, sofort zu optimieren.
 
 In gewachsenen Systemen steckt das Verhalten selten in einer einzelnen Funktion. Es entsteht zwischen Prozessen: wer wann was schreibt, in welcher Reihenfolge, über welche Datenbank. Ein Unit-Test sieht davon nichts. Eine schnellere Version kann jeden Unit-Test bestehen und trotzdem ein anderes Ergebnis liefern.
 
 Deshalb habe ich dort zuerst Interprozess-Tests eingeführt. Sie prüfen das System über Prozessgrenzen hinweg, so wie es im Betrieb läuft, und machen sichtbar, ob sich das Ergebnis nach einer Änderung verschiebt.
 
-Das kostet Zeit, bevor die erste Optimierung sichtbar wird. Und es braucht die Fachexperten, denn nur sie wissen, welches Ergebnis richtig ist und welche Abweichung harmlos. Danach wird jede Iteration ruhiger: Eine Änderung ist entweder gleichwertig, oder sie fällt auf.
+Das kostet Zeit, bevor die erste Optimierung sichtbar wird. Und es braucht die Fachexperten, denn nur sie wissen, welches Ergebnis richtig ist und welche Abweichung harmlos. Die Kriterien dafür lege ich mit ihnen und dem Team fest. Danach wird jede Iteration ruhiger: Eine Änderung ist entweder gleichwertig, oder sie fällt auf.
+
+Auch Vorschläge von Coding-Agents, mit denen ich täglich arbeite, müssen durch diese Tests. Plausibel reicht nicht.
 
 Die Lehre für mich: Performance-Arbeit ohne diese Tests ist Hoffnung. Mit ihnen ist sie eine Messung.
 

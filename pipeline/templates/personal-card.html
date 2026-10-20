@@ -1,0 +1,38 @@
+<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>card</title>
+<style>
+*{box-sizing:border-box;margin:0}html,body{background:#fff}
+body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;color:#0f3a50}
+.canvas{position:relative;overflow:hidden;width:{{W}}px;height:{{H}}px;background:#fff}
+.photo{position:absolute;left:0;top:0;width:100%;object-fit:cover;object-position:50% 30%}
+.kicker{font-size:28px;letter-spacing:.24em;text-transform:uppercase;font-weight:800;color:#20B8D0}
+h1{font-weight:800;letter-spacing:-1.6px;line-height:1.1}
+.who{font-size:28px;font-weight:600;letter-spacing:.01em}
+.who b{font-weight:800}
+/* band: photo on top, dark blue block with the headline below, gradient seam between them */
+.band .photo{height:{{PH}}px}
+.band .seam{position:absolute;left:0;top:{{PH}}px;width:100%;height:10px;background:linear-gradient(90deg,#42F45D 0%,#01BC56 30%,#00BEE6 65%,#08E3FB 100%)}
+.band .block{position:absolute;left:0;right:0;top:{{PH}}px;bottom:0;background:#0f3a50;color:#fff;padding:54px 72px 48px}
+.band h1{font-size:{{HS}}px;color:#fff;margin-top:18px}
+.band .who{position:absolute;left:72px;bottom:44px;color:rgba(255,255,255,.72)}
+.band .who b{color:#fff}
+/* light: photo on top, white block with a cyan left bar (house style of the documents) */
+.light .photo{height:{{PH}}px}
+.light .block{position:absolute;left:0;right:0;top:{{PH}}px;bottom:0;background:#fff;padding:48px 72px 44px 96px}
+.light .bar{position:absolute;left:0;top:0;bottom:0;width:22px;background:linear-gradient(180deg,#42F45D 0%,#01BC56 30%,#00BEE6 65%,#08E3FB 100%)}
+.light h1{font-size:{{HS}}px;color:#0f3a50;margin-top:16px}
+.light .who{position:absolute;left:96px;bottom:40px;color:#5a6e7c}
+.light .who b{color:#0f3a50}
+/* overlay: full photo, dark gradient from below, headline on the photo */
+.overlay .photo{height:100%}
+.overlay .shade{position:absolute;left:0;right:0;bottom:0;height:62%;background:linear-gradient(180deg,rgba(15,58,80,0) 0%,rgba(15,58,80,.55) 35%,rgba(15,58,80,.96) 100%)}
+.overlay .block{position:absolute;left:72px;right:72px;bottom:52px;color:#fff}
+.overlay .rule{width:120px;height:10px;background:linear-gradient(90deg,#42F45D,#00BEE6,#08E3FB);border-radius:5px;margin:22px 0 26px}
+.overlay h1{font-size:{{HS}}px;color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.25)}
+.overlay .who{margin-top:34px;color:rgba(255,255,255,.78)}
+.overlay .who b{color:#fff}
+</style></head><body>
+<div class="canvas {{STYLE}}">
+<img class="photo" src="{{PHOTO}}">
+{{EXTRA}}
+<div class="block">{{BAR}}<div class="kicker">{{KICKER}}</div><h1>{{HEADLINE}}</h1><div class="who"><b>{{NAME}}</b> · {{ROLE}}</div></div>
+</div></body></html>
