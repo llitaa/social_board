@@ -139,6 +139,7 @@ switch ($a) {
     $note = trim((string)($_POST['note'] ?? '')); $card = preg_replace('/[^\w-]/', '', (string)($_POST['card_id'] ?? ''));
     if ($card !== '') { $note = "card:$card"; if ($saved) set_overlay('cards', $card, ['image_pending' => true]); }   // image for one post, not for the pool
     if ($note !== '' && $saved) { $notes = jread("$D/uploads/photo-notes.json", []); foreach ($saved as $s) $notes[$s] = $note; jwrite("$D/uploads/photo-notes.json", $notes); }
+    if (!$saved && !$failed) $failed[] = 'no file arrived in the request (the browser sent none: pick the photos again, fewer at once)';
     decide(['type'=>'upload','files'=>$saved,'failed'=>$failed,'note'=>$note,'card_id'=>$card]);
     out(['ok'=>count($saved) > 0,'saved'=>$saved,'failed'=>$failed]);
 
