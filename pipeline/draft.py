@@ -113,6 +113,9 @@ def file_phrases():
         t = os.path.join(LIB, os.path.splitext(r["file"])[0] + ".txt")
         if not os.path.isfile(t): continue
         phrase = re.sub(r"\s+", " ", open(t, encoding="utf-8").read()).strip(); nid += 1
+        phrase = re.sub(r"^\s*((next|new|nächster|neuer)\s+)?(post|beitrag)\s*(idea|idee|phrase|id)?\s*[:,.-]\s*", "", phrase, flags=re.I)                 # "next post:" at the start
+        phrase = re.sub(r"[\s,.-]*\b(as|als)\s+(a\s+|ein\s+|eine\s+)?(next\s+|nächste[rn]?\s+)?(post|beitrag)[\s-]*(idea|idee|phrase|id|ideen?)?\s*[.?!]*\s*$", "", phrase, flags=re.I)   # "... as a post idea" at the end
+        phrase = phrase.strip() or phrase
         inv_rows.append({"id": f"t{nid:03d}", "pillar": "thought", "channel": "personal", "topic": phrase[:90], "angle": phrase, "source": f"Anton, Sprachmemo {r['id']}",
                          "tags": "", "status": "unused", "used_in": "", "added": datetime.now().isoformat(timespec="seconds")})
         r["status"], r["used_in"] = "phrase", f"t{nid:03d}"; n += 1
@@ -196,7 +199,7 @@ def draft_one(dt, channel, plan, idx, memo=None):
         photo = cands[0]
     ex = examples(channel)
     material = f"Voice memo (Anton's own words, keep his thought, clean spelling and structure only, add nothing he did not say):\n{memo[1]}" if memo else \
-               (f"Antons eigener Satz, wörtlich (er ist der erste Satz des Posts und die Karten-Headline; baue den Post darum, mit einem konkreten Beispiel aus seinen Fakten):\n{topic['angle']}\nQuelle: {topic['source']}\nPillar: thought" if pillar == "thought" else
+               (f"Antons eigener Satz, wörtlich (er ist der erste Satz des Posts und die Karten-Headline; baue den Post darum, mit einem konkreten Beispiel aus seinen Fakten; ist der Satz auf Englisch, übersetze ihn sinntreu ins Deutsche und nimm die Übersetzung als Hook und als card.headline):\n{topic['angle']}\nQuelle: {topic['source']}\nPillar: thought" if pillar == "thought" else
                 f"Topic: {topic['topic']}\nAngle: {topic['angle']}\nSource: {topic['source']}\nPillar: {pillar} = {inv.PILLARS[pillar]}")
     facts = inv.cv_text() if channel == "personal" else open(os.path.expanduser(CFG["company_context"]), encoding="utf-8").read()
     img = f"\nPhoto that will be posted with the text: {photo['scene'] or photo['note'] or 'Anton, ' + photo['tags']}\n" if photo else \
@@ -223,7 +226,7 @@ Answer with one JSON object only: {{"text": "the full post incl. hashtags, newli
         d = llm_json("draft", prompt + f"\n\nYour previous answer broke these rules: {v}. Fix them and answer again with the JSON object only.\nPrevious text:\n{text}")
         text = rules_check.fix_orthography(d.get("text", "").strip(), channel); v = rules_check.check(text, channel, d.get("signals"))
         if v: log("rules fail", dt, channel, v); return None
-    if pillar == "thought" and topic and len(topic["angle"]) <= 95: d["card"] = {"kicker": "", "headline": rules_check.fix_orthography(topic["angle"], "personal").rstrip(".")}
+    if pillar == "thought" and topic and len(topic["angle"]) <= 95 and not re.search(r"\b(the|you|your|will|what|if|is|and|not)\b", topic["angle"], re.I): d["card"] = {"kicker": "", "headline": rules_check.fix_orthography(topic["angle"], "personal").rstrip(".")}
     ids = next_ids(plan); kind = "post" if channel == "personal" else "comp"; num = ids[kind] + 1
     slug = re.sub(r"[^a-z0-9]+", "-", (topic["topic"] if topic else "memo").lower()).strip("-")[:28]
     cid = f"li-{kind}-{num:02d}"; base = f"{cid}-{slug}"
