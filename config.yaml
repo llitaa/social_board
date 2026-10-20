@@ -30,6 +30,7 @@ horizon_days: 14
 orthography: ch           # personal posts: Swiss standard German, ss instead of ß (target market since 20.10.2026; de = keep ß)
 personal_card:
   style: off              # off = plain pool photo; band | light | overlay = photo + headline block rendered by personal_card.py (styles in pipeline/templates/personal-card.html)
+  who: name               # bottom line of the card: name = "Anton Lytvynenko · Software Architect & Technical Lead", role = role only, none = no line
 cv_pdf: ~/dev/career/cv/Anton_Lytvynenko_CV_EN.pdf
 company_context: ~/.claude/alpitype/company-context.md
 logo: ~/.claude/templates/alpitype-logo-color-transparent.png

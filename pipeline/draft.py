@@ -32,6 +32,11 @@ def positioning():
     f = os.path.join(LIB, "positioning.md")
     return ("\nPositionierung (gilt für jeden persönlichen Post):\n" + open(f, encoding="utf-8").read().strip() + "\n") if os.path.isfile(f) else ""
 
+def book_phrases():
+    """One sentence per chapter of Anton's book (library/sources/book-phrases.md): his own wording for hooks and card headlines."""
+    f = os.path.join(LIB, "sources", "book-phrases.md")
+    return ("\nSätze aus Antons Buch \"Das KI-System 70/30\", ein Satz pro Kapitel. Das ist seine Sprache: nimm einen davon als Hook oder Karten-Headline, wenn er zum Thema passt (wörtlich), sonst schreibe in diesem Ton:\n" + open(f, encoding="utf-8").read().strip() + "\n") if os.path.isfile(f) else ""
+
 def style_rules():
     """Anton's standing preferences, learned from his notes, edits and skip reasons on the board (learn.py)."""
     f = os.path.join(LIB, "style-rules.txt")
@@ -148,7 +153,7 @@ def draft_one(dt, channel, plan, idx, memo=None):
     img = f"\nPhoto that will be posted with the text: {photo['scene'] or photo['note'] or 'Anton, ' + photo['tags']}\n" if photo else \
           "\nThe post gets a 1200x1200 graphic: give eyebrow (2-3 words), title (max 8 words, may contain one \\n), 3-4 numbered lines (max 9 words each) and a 1-3 word footer.\n"
     prompt = f"""{STYLE[channel]}
-{positioning() if channel == 'personal' else ''}{style_rules()}
+{positioning() + book_phrases() if channel == 'personal' else ''}{style_rules()}
 Slot: {dt.strftime('%A %d.%m.%Y %H:%M')}
 {material}
 {img}

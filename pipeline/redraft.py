@@ -9,7 +9,7 @@ from datetime import datetime
 from common import CFG, LIB, read_csv, write_csv, resolve, log
 from llm import llm_json
 import photo_index as ph, rules_check, inventory as inv
-from draft import STYLE, render_graphic, style_rules, positioning
+from draft import STYLE, render_graphic, style_rules, positioning, book_phrases
 
 PHOTO_WORDS = re.compile(r"foto|photo|bild|picture|image|anderes bild|other pic", re.I)
 GRAPHIC_WORDS = re.compile(r"grafik|graphic|karte|card|visual", re.I)
@@ -41,7 +41,7 @@ def main():
             else: note_for_text = note
             # 2. text
             prompt = f"""{STYLE[channel]}
-{positioning() if channel == 'personal' else ''}{style_rules()}
+{positioning() + book_phrases() if channel == 'personal' else ''}{style_rules()}
 Here is the current post and Anton's note on it. Apply the note exactly; change nothing he did not ask for.
 Note: {note_for_text}
 
