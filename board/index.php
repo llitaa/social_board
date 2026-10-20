@@ -22,7 +22,23 @@ header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:2px solid v
 .tabs button{flex:1;border:0;background:none;padding:8px 0 10px;font-size:14px;color:var(--m);border-bottom:3px solid transparent;cursor:pointer}
 .tabs button.on{color:var(--d);font-weight:600;border-bottom-color:var(--d)}
 main{max-width:1240px;margin:0 auto;padding:12px 14px 90px;overflow-x:hidden}
-.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.items{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.item{position:relative;border:1px solid var(--b);border-radius:12px;overflow:hidden;background:#fff;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:pan-y}
+.item img,.item .noimg{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#dfe6ea;pointer-events:none;-webkit-user-drag:none}
+.item .st{position:absolute;right:8px;top:8px;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.item .handle{position:absolute;left:6px;top:6px;background:rgba(255,255,255,.9);color:var(--d);border-radius:6px;padding:2px 6px;font-size:13px;cursor:grab;display:none}
+.item .meta{padding:8px 10px 0;font-size:12px;color:var(--m)}
+.item .ex{padding:4px 10px 10px;font-size:13px;line-height:1.35;color:var(--t);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.item.locked{opacity:.8}
+.item.drag{z-index:5;box-shadow:0 10px 30px rgba(0,0,0,.3);transition:none}
+body.dragging{-webkit-user-select:none;user-select:none}
+.sheet{position:fixed;inset:0;background:rgba(15,58,80,.55);z-index:8;overflow:auto;-webkit-overflow-scrolling:touch;padding:8px 8px 100px}
+.sheetin{max-width:1000px;margin:0 auto}
+.sheetbar{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:12px 12px 0 0;padding:8px 12px;border-bottom:1px solid var(--b);font-size:13px;color:var(--m)}
+.sheet .card{margin:0;border-radius:0 0 12px 12px}
+body.noscroll{overflow:hidden}
+.rec,.recbar{z-index:9}
+@media(min-width:960px){.items{grid-template-columns:repeat(4,1fr)}.item .handle{display:block}}
 .tile{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#dfe6ea;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tile img,.tile .noimg{width:100%;height:100%;object-fit:cover;display:block}
 .tile .dy{position:absolute;left:5px;top:5px;font-size:11px;font-weight:700;background:rgba(255,255,255,.92);color:var(--d);border-radius:6px;padding:1px 5px}
@@ -223,7 +239,7 @@ function renderPipeline(){
   else if(P.metrics_missing) h+=`<div class="mat">no numbers for ${P.metrics_missing} posts yet: export them from LinkedIn into library/metrics/inbox, or wait for the API</div>`;
   return h+'</div>';
 }
-function goCard(id){const el=document.getElementById('c-'+id);if(!el)return;expanded[id]=true;renderPost();showTab('post');document.getElementById('c-'+id).scrollIntoView({behavior:'smooth',block:'start'})}
+function goCard(id){openCard=id;showTab('post');renderPost()}
 function postHtml(c){
   const who=c.channel==='company'?`<div class="ava co">A</div><div><div class="n">AlpiType</div><div class="s">company page · ${esc(c.lang)} · ${fmtSlot(c.slot)}${c.pillar?' · '+esc(c.pillar):''}</div></div>`
                                  :`<div class="ava">AL</div><div><div class="n">Anton Lytvynenko</div><div class="s">personal · ${esc(c.lang)} · ${fmtSlot(c.slot)}${c.pillar?' · '+esc(c.pillar):''}</div></div>`;
@@ -240,41 +256,18 @@ function systemHtml(){
   const bn=(H.builder_notes||0)?`<div class="q" style="margin:0 0 8px;font-size:12px">${H.builder_notes} spoken note${H.builder_notes>1?"s":""} for the builder, picked up in the next session</div>`:"";
   return bn+issues.map(i=>`<div class="sys"><b>${esc(i.what)}${i.what.startsWith('one post')?'':' needs a fix'}${i.times>1?' · '+i.times+' times':''}</b>${esc(i.log||'')}<code>${esc(i.fix||'')}</code></div>`).join('');
 }
-let reorder=false, order=null;
+let openCard=null;
 const DOT={draft:'#e8a000',change:'#e8a000',approved:'#1a9c4a',scheduled:'#0a66c2',posted:'#999',skipped:'#999'};
-function overviewHtml(){
-  const cards=[...S.cards].sort((a,b)=>a.slot.localeCompare(b.slot)); if(!cards.length) return '';
-  if(reorder&&!order) order=cards.map(c=>c.id);
-  const list=reorder?order.map(id=>cards.find(c=>c.id===id)).filter(Boolean):cards;
-  const tiles=list.map((c,i)=>{const locked=c.status==='scheduled';const same=list.filter(x=>x.channel===c.channel&&x.status!=='scheduled').map(x=>x.id);const k=same.indexOf(c.id);
-    const arrows=reorder&&!locked?`<div class="mv"><button ${k<=0?'disabled':''} onclick="event.stopPropagation();moveTile('${c.id}',-1)">◀</button><button ${k<0||k>=same.length-1?'disabled':''} onclick="event.stopPropagation();moveTile('${c.id}',1)">▶</button></div>`:'';
-    return `<div class="tile ${c.channel==='company'?'co':''} ${locked?'locked':''}" onclick="${reorder?'':`goCard('${c.id}')`}">${c.image?`<img src="${esc(c.image.url)}" loading="lazy">`:'<div class="noimg"></div>'}<span class="dy">${fmtDay(c.slot)}</span><span class="st" style="background:${DOT[c.status]||'#999'}"></span>${c.channel==='company'?'<span class="co">A</span>':''}${locked?'<span class="lk">LinkedIn</span>':''}${arrows}</div>`}).join('');
-  const bar=reorder?`<div class="row" style="margin:8px 0 14px"><button class="b p" onclick="sendOrder()">Done</button><button class="b" onclick="reorder=false;order=null;renderPost()">Cancel</button><span class="q" style="margin:0">◀ ▶ moves a post earlier or later; posts keep the existing slots of their channel</span></div>`
-                    :`<div class="row" style="margin:8px 0 14px"><button class="sm s" onclick="reorder=true;order=null;renderPost()">Reorder</button><span class="q" style="margin:0;font-size:12px">tap a tile to open it · orange = decide · green = scheduled · blue = in LinkedIn</span></div>`;
-  return `<div class="tiles">${tiles}</div>${bar}`;
-}
-function moveTile(id,dir){const cards=[...S.cards].sort((a,b)=>a.slot.localeCompare(b.slot));const ch=cards.find(c=>c.id===id).channel;
-  const idx=order.filter(x=>{const c=cards.find(y=>y.id===x);return c&&c.channel===ch&&c.status!=='scheduled'});const k=idx.indexOf(id);const j=k+dir;if(j<0||j>=idx.length)return;
-  const a=order.indexOf(idx[k]),b=order.indexOf(idx[j]);[order[a],order[b]]=[order[b],order[a]];renderPost()}
-async function sendOrder(){const cards=[...S.cards];const byCh={};for(const id of order){const c=cards.find(x=>x.id===id);if(!c||c.status==='scheduled')continue;(byCh[c.channel]=byCh[c.channel]||[]).push(id)}
-  let n=0;for(const ch in byCh){if(byCh[ch].length<2)continue;const r=await post({a:'decide',card_id:byCh[ch][0],decision:'order',order:byCh[ch]});if(r.ok)n++}
-  reorder=false;order=null;toast(n?'order saved · slots reassigned':'nothing changed');watchUntil=Date.now()+60000;load()}
-function renderPost(){
-  const el=$('#post'); let h=systemHtml()+overviewHtml();
-  for(const m of (S.messages||[])){ if(m.answer) continue; h+=`<div class="msg"><div class="q" style="margin:0 0 6px">${esc(m.kind||'question')}</div><div style="white-space:pre-wrap">${esc(m.text)}</div><div class="row"><button class="b p" onclick="answer('${m.id}','yes')">Yes</button><button class="b" onclick="answer('${m.id}','no')">No</button><button class="b s" onclick="answer('${m.id}','later')">Later</button></div></div>`; }
-  const cards=[...S.cards].sort((a,b)=>(needs(a)?0:1)-(needs(b)?0:1)||a.slot.localeCompare(b.slot));
-  if(!cards.some(needs)) h+='<div class="empty">Nothing to decide. New drafts appear here as soon as a slot opens.</div>';
-  for(const c of cards){
-    const past=new Date(c.slot)<new Date(S.now), act=needs(c), done=['posted','skipped'].includes(c.status);
-    if(!act&&!expanded[c.id]){
-      const manual=c.status==='approved'&&!isAuto(c);
-      const tools=`<div class="tools">${manual?`<button class="sm s" onclick="copyText('${c.id}')">Copy</button>${c.image?`<a class="sm s" href="${esc(c.image.final||c.image.url)}" download="${esc(c.id)}.jpg">Image</a>`:''}`:''}<button class="sm s" onclick="expanded['${c.id}']=true;renderPost()">Show</button></div>`;
-      h+=`<div class="card ${done?'done':''}" id="c-${c.id}"><div class="compact"><div class="d">${fmtDay(c.slot)}<br>${fmtTime(c.slot)}</div><div class="h"><b>${esc(c.channel)}</b> · ${esc(c.text.split('\n')[0])}</div>${tools}<div class="pills">${statusPill(c)}</div></div><div hidden id="t-${c.id}">${esc(c.text)}</div></div>`;
-      continue;
-    }
-    h+=`<div class="card full ${done?'done':''}" id="c-${c.id}"><div class="post">${postHtml(c)}
+function itemHtml(c){const locked=c.status==='scheduled';const txt=c.text.replace(/\s*#\w+/g,'').trim();
+  return `<div class="item ${locked?'locked':''} ${c.channel==='company'?'co':''}" data-id="${c.id}" data-ch="${c.channel}">${c.image?`<img src="${esc(c.image.url)}" loading="lazy" draggable="false">`:'<div class="noimg"></div>'}<span class="st" style="background:${DOT[c.status]||'#999'}"></span>${locked?'':'<span class="handle" title="drag to reorder">⋮⋮</span>'}<div class="meta"><b>${fmtDay(c.slot)}</b> · ${fmtTime(c.slot)} · ${c.channel==='company'?'company':'personal'}${locked?' · LinkedIn':''}${needs(c)?' · <span style="color:#c77700">decide</span>':''}</div><div class="ex">${esc(txt)}</div></div>`}
+function itemsHtml(){const cards=[...S.cards].sort((a,b)=>a.slot.localeCompare(b.slot));
+  if(!cards.length) return '<div class="empty">Nothing planned. New drafts appear here as soon as a slot opens.</div>';
+  return `<div class="items" id="items">${cards.map(itemHtml).join('')}</div><div class="q" style="margin:6px 0 14px;font-size:12px">tap an item to open it · hold and drag to change the order (on a computer: drag ⋮⋮) · orange = decide · green = scheduled · blue = in LinkedIn</div>`}
+function fullCardHtml(c){
+  const past=new Date(c.slot)<new Date(S.now), act=needs(c), done=['posted','skipped'].includes(c.status);
+  return `<div class="card full ${done?'done':''}" id="c-${c.id}"><div class="post">${postHtml(c)}
       ${c.note?`<div class="note ${c.failed?'fail':''}">${c.failed?'could not apply: ':(c.updated?'applied: ':'your note: ')}${esc(c.note)}</div>`:''}
-      <div style="padding:8px 14px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">${statusPill(c)}${c.versions?`<span class="pill">v${c.versions+1}</span>`:''}${(c.status==='approved'&&!isAuto(c))?`<button class="sm s" onclick="copyText('${c.id}')">Copy text</button>${c.image?`<a class="sm s" href="${esc(c.image.final||c.image.url)}" download="${esc(c.id)}.jpg">Download image</a>`:''}`:''}${act?'':`<button class="sm s" onclick="expanded['${c.id}']=false;renderPost()">Hide</button>`}</div></div>
+      <div style="padding:8px 14px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">${statusPill(c)}${c.versions?`<span class="pill">v${c.versions+1}</span>`:''}${(c.status==='approved'&&!isAuto(c))?`<button class="sm s" onclick="copyText('${c.id}')">Copy text</button>${c.image?`<a class="sm s" href="${esc(c.image.final||c.image.url)}" download="${esc(c.id)}.jpg">Download image</a>`:''}`:''}${act?'':`<button class="sm s" onclick="openCard=null;renderPost()">Close</button>`}</div></div>
       <div class="act">
         ${byHand(c)?`<div class="q" style="margin:0 0 8px">1. Copy text · 2. Download image · 3. post both in LinkedIn as ${c.channel==='company'?'AlpiType':'yourself'} · 4. Mark posted</div>
         <button class="b" style="width:100%" onclick="copyText('${c.id}')">Copy text</button>
@@ -297,7 +290,35 @@ function renderPost(){
         :c.status==='change'?`<div class="q">being rewritten with your note; it comes back here to decide</div>`
         :`<div class="q">${esc(STATUS[c.status]||c.status)}</div>`}
       </div></div>`;
-  }
+}
+let drag={id:null};
+function startDrag(){drag.active=true;drag.el.classList.add('drag');document.body.classList.add('dragging');if(navigator.vibrate)navigator.vibrate(15)}
+function endDrag(send){clearTimeout(drag.timer);if(drag.active){drag.el.classList.remove('drag');drag.el.style.transform='';document.body.classList.remove('dragging');if(send)sendOrder()}drag={id:null}}
+document.addEventListener('pointerdown',e=>{const it=e.target.closest('#items .item');if(!it||it.classList.contains('locked')||e.target.closest('button,a'))return;
+  drag={id:it.dataset.id,ch:it.dataset.ch,el:it,x:e.clientX,y:e.clientY,active:false,timer:null};
+  if(e.target.closest('.handle')){e.preventDefault();startDrag()}else drag.timer=setTimeout(startDrag,380)});
+document.addEventListener('pointermove',e=>{if(!drag.id)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  if(!drag.active){if(Math.hypot(dx,dy)>10)endDrag(false);return}
+  e.preventDefault();drag.el.style.transform=`translate(${dx}px,${dy}px) scale(1.04)`;
+  drag.el.style.visibility='hidden';const under=document.elementFromPoint(e.clientX,e.clientY)?.closest('#items .item');drag.el.style.visibility='';
+  if(under&&under!==drag.el&&under.dataset.ch===drag.ch&&!under.classList.contains('locked')){const items=[...document.querySelectorAll('#items .item')];const a=items.indexOf(drag.el),b=items.indexOf(under);
+    under.parentNode.insertBefore(drag.el,a<b?under.nextSibling:under);drag.x=e.clientX;drag.y=e.clientY;drag.el.style.transform='scale(1.04)'}},{passive:false});
+document.addEventListener('pointerup',e=>{if(!drag.id)return;const was=drag.active;endDrag(was);if(!was&&e.target.closest('#items .item')&&!e.target.closest('button,a'))goCard(e.target.closest('.item').dataset.id)});
+document.addEventListener('pointercancel',()=>endDrag(false));
+document.addEventListener('touchmove',e=>{if(drag.id&&(drag.active||Math.hypot(e.touches[0].clientX-drag.x,e.touches[0].clientY-drag.y)<10))e.preventDefault()},{passive:false});
+document.addEventListener('contextmenu',e=>{if(e.target.closest('#items .item'))e.preventDefault()});
+async function sendOrder(){const items=[...document.querySelectorAll('#items .item')];const byCh={};for(const it of items){if(it.classList.contains('locked'))continue;(byCh[it.dataset.ch]=byCh[it.dataset.ch]||[]).push(it.dataset.id)}
+  const before=[...S.cards].sort((a,b)=>a.slot.localeCompare(b.slot)).filter(c=>c.status!=='scheduled').map(c=>c.id);
+  let n=0;for(const ch in byCh){const ids=byCh[ch];if(ids.length<2)continue;const prev=before.filter(id=>S.cards.find(c=>c.id===id).channel===ch);if(prev.join()===ids.join())continue;const r=await post({a:'decide',card_id:ids[0],decision:'order',order:ids});if(r.ok)n++}
+  if(n){toast('order saved · slots reassigned');watchUntil=Date.now()+60000}load()}
+function renderPost(){
+  const el=$('#post'); let h=systemHtml();
+  for(const m of (S.messages||[])){ if(m.answer) continue; h+=`<div class="msg"><div class="q" style="margin:0 0 6px">${esc(m.kind||'question')}</div><div style="white-space:pre-wrap">${esc(m.text)}</div><div class="row"><button class="b p" onclick="answer('${m.id}','yes')">Yes</button><button class="b" onclick="answer('${m.id}','no')">No</button><button class="b s" onclick="answer('${m.id}','later')">Later</button></div></div>`; }
+  h+=itemsHtml();
+  const oc=openCard&&S.cards.find(c=>c.id===openCard);
+  if(openCard&&!oc) openCard=null;
+  if(oc) h+=`<div class="sheet" onclick="if(event.target===this){openCard=null;renderPost()}"><div class="sheetin"><div class="sheetbar"><span>${fmtDay(oc.slot)} · ${fmtTime(oc.slot)} · ${esc(oc.channel)}</span><button class="sm" onclick="openCard=null;renderPost()">✕ close</button></div>${fullCardHtml(oc)}</div></div>`;
+  document.body.classList.toggle('noscroll',!!oc);
   h+=`<div id="inline-pipe">${renderPipeline()}</div>`;
   h+=`<div class="set">Settings · comments expire at <input type="text" id="s-exp" value="${esc(S.settings.expiry)}"> <button class="sm s" onclick="saveSettings()">save</button></div>`;
   el.innerHTML=h;

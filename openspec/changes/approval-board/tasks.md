@@ -31,4 +31,4 @@
 - [x] 7.2 Record buttons unselectable; Schedule without explanation line; note placeholder = default text
 - [x] 7.3 Photos tab: one grid, tap for options; uploads in batches of three with per-file errors
 - [x] 7.4 Recording bar with time, ✕ discard, ✓ send for both recorders (20.10.)
-- [x] 7.5 Overview tiles + Reorder (order decision, API overlay + apply) and feedback memos → library/feedback.md (20.10., from Anton's spoken note 20:33)
+- [x] 7.5 Post items grid (2 per row, picture + text), full post in an overlay sheet, hold-and-drag / handle-drag reorder (order decision: API overlay + apply); feedback memos → library/feedback.md (20.10., from Anton's spoken notes 20:33 and 20:46)

@@ -122,12 +122,16 @@ Every card to decide SHALL have "Record a note" next to "Update the post". The r
 ### Requirement: No redundant explanations
 Action buttons carry no explanation line when the label says it all (Schedule has none; "Post now" keeps its one line because by-hand posting differs).
 
-### Requirement: Overview tiles and order
-The Post tab SHALL open with a tile per upcoming post (square thumbnail, day, status dot: orange decide, green scheduled, blue scheduled in LinkedIn, company marked "A"); a tap opens the card. "Reorder" turns the tiles into an edit mode with ◀ ▶ per tile; Done sends the new sequence per channel, and the posts take the channel's existing slots in that sequence, at once on the board (overlay) and in the plan on the next run. Rows Anton scheduled in the LinkedIn app are shown locked and never moved. A new thought can thus be moved to the front instead of waiting at the end.
+### Requirement: Post items and order
+The Post tab SHALL show every upcoming post as an item in a two-column grid (four on a desktop): the picture, day, time, channel, a status dot (orange decide, green scheduled, blue scheduled in LinkedIn) and the first three lines of the text, so the week is readable at a glance. A tap opens the full post with all actions in an overlay sheet on top of the grid; nothing scrolls away, ✕ or a tap outside closes it. Hold an item (about 0.4 s) and drag it on the phone, or drag its ⋮⋮ handle on a computer, to change the order; on release the posts of that channel take the channel's existing slots in the new sequence, at once on the board (overlay) and in the plan on the next run. Posts Anton scheduled in the LinkedIn app are locked and never moved.
 
 #### Scenario: Thought to the front
-- **WHEN** Anton moves the newest thought tile to the first position and presses Done
+- **WHEN** Anton holds the newest thought item, drags it to the first position and lets go
 - **THEN** that post carries the earliest personal slot, the others shift back one slot each, and the plan shows "[board … reordered to …]" on every moved row
+
+#### Scenario: Open without scrolling
+- **WHEN** Anton taps an item
+- **THEN** the full post opens over the grid; closing it returns to the same place in the grid
 
 ### Requirement: Notes for the builder
 A memo that addresses the board or the system (e.g. "generic note", "feedback", "zum Board") SHALL go to `library/feedback.md` and is shown on the board as "n spoken notes for the builder"; it never becomes a post idea.

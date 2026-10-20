@@ -100,7 +100,7 @@ def pillar_counts(plan, around, days=14):
         m = re.search(r"pillar=([\w-]+)", r.get("notes", "")); c[m.group(1) if m else "unknown"] = c.get(m.group(1) if m else "unknown", 0) + 1
     return c
 
-FEEDBACK = re.compile(r"generic note|note (to|for) (the )?(system|board|you)|feedback|notiz (an|für) (dich|das system|das board)|anmerkung zum board|zum board|the user interface|die oberfläche|das ui\b", re.I)
+FEEDBACK = re.compile(r"generic note|note (to|for) (the )?(system|board|you)|feedback|notiz (an|für) (dich|das system|das board)|anmerkung zum board|zum board|the user interface|die oberfläche|das ui\b|\blayout\b|\bgrid\b|\btrash\b|this (board|page|app)", re.I)
 PHRASE_WORDS = 150  # a memo under this is an idea for a post (pillar thought: the model distils his sentence and builds the post around it); longer = a post in his own words (pillar memo)
 
 def file_phrases():
