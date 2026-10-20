@@ -187,9 +187,32 @@ def render_graphic(g, cid):
                    capture_output=True, timeout=60)
     return png if os.path.isfile(png) else None
 
-def draft_one(dt, channel, plan, idx, memo=None):
+def next_personal_slots(plan, n):
+    """The next n free personal slots (Mon/Wed/Fri 07:30, max 3 per week) after today, beyond the horizon if need be."""
+    taken = {(r.get("planned") or "")[:10] for r in plan if r["channel"] == "linkedin" and r["status"] not in ("dropped", "skipped", "idea")}
+    s = SLOTS["personal"]; out = []; d = date.today() + timedelta(days=1)
+    while len(out) < n and d < date.today() + timedelta(days=180):
+        if d.strftime("%a") in s["days"] and d.isoformat() not in taken: out.append(datetime.strptime(f"{d} {s['time']}", "%Y-%m-%d %H:%M"))
+        d += timedelta(days=1)
+    return out
+
+def draft_thoughts(plan, fields, idx):
+    """Anton's rule (20.10. 22:00): an idea he recorded becomes a post right away, in the next free personal slot, so he sees it
+    on the board and can drag it forward; it never waits in the inventory."""
+    ideas = [r for r in inv.load() if r["pillar"] == "thought" and r["status"] == "unused"]
+    if not ideas: return 0
+    n = 0
+    for dt, t in zip(next_personal_slots(plan, len(ideas)), ideas):
+        try:
+            if draft_one(dt, "personal", plan, idx, None, topic=t): n += 1; write_csv(CFG["content_plan"], plan, fields)
+        except Exception as e: log("thought draft failed", dt, t["id"], repr(e)[:300])
+    log(f"thought posts drafted: {n} of {len(ideas)}")
+    return n
+
+def draft_one(dt, channel, plan, idx, memo=None, topic=None):
     today = date.today(); slot_day = dt.date()
     if memo: pillar, topic = "memo", None
+    elif topic: pillar = topic["pillar"]
     else:
         cnt = pillar_counts(plan, slot_day); order = ["case", "decision", "trend", "model-test"] if channel == "personal" else ["company"]
         if channel == "personal" and not week_thoughts(plan, slot_day) and inv.take("thought"): pillar, topic = "thought", inv.take("thought")
@@ -270,7 +293,7 @@ def main(limit=8):
     plan, fields = read_csv(CFG["content_plan"]); today = date.today()
     idx = {r["id"]: r for r in ph.read_index()}
     file_phrases()
-    if make_room_for_thoughts(plan, today): write_csv(CFG["content_plan"], plan, fields)
+    draft_thoughts(plan, fields, idx)
     slots = open_slots(plan, today)
     if not slots: log("all slots filled"); return
     memo = fresh_memo(); n = 0
