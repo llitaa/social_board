@@ -1,0 +1,24 @@
+{
+ "id": "li-post-20",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t042",
+ "memo": "",
+ "photo": "img3802",
+ "neighbour_shoots": [
+  "2026-01-25_shoot",
+  "2025-12-09_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-20T19:10:11",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "KI im Team",
+  "headline": "Ein Mensch im Team ist reaktiver als eine KI präzise ist"
+ },
+ "signals": {
+  "lead": "Für die Arbeitsteilung habe ich daraus eine Regel gemacht: Präzision an die Maschine, Reaktion beim Menschen.",
+  "ai": "Der Agent liest eine Funktion, findet die teure Schleife und schlägt die Änderung vor."
+ }
+}

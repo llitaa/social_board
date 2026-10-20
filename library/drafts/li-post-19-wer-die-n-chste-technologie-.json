@@ -1,0 +1,24 @@
+{
+ "id": "li-post-19",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t041",
+ "memo": "",
+ "photo": "img4373",
+ "neighbour_shoots": [
+  "2026-02-06_shoot",
+  "2025-12-09_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-20T19:09:44",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "KI im Team",
+  "headline": "KI im Team folgt denselben Mustern wie die letzte Technologie-Welle"
+ },
+ "signals": {
+  "lead": "In der Medizintechnik habe ich ein Test-Framework auf Basis von Google Test und gmock eingeführt, um Legacy-Komponenten testbar zu machen.",
+  "ai": "Ich arbeite täglich mit Coding-Agents in Legacy-C++, und das Werkzeug ist dabei selten das Problem."
+ }
+}

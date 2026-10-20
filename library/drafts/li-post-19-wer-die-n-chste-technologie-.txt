@@ -1,0 +1,19 @@
+KI im Team folgt denselben Mustern wie die letzte Technologie-Welle.
+
+Ich habe das bei Tests erlebt. In der Medizintechnik habe ich ein Test-Framework auf Basis von Google Test und gmock eingeführt, um Legacy-Komponenten testbar zu machen. Der Ablauf war derselbe, den ich heute bei Coding-Agents sehe.
+
+Erst Skepsis. Kostet Zeit, unser Code ist dafür nicht gebaut.
+
+Dann die Werkzeugfrage. Welches Framework, welche Konfiguration, wie kommt es in die Pipeline. Das ist der Teil, der sich gut anfühlt, weil er schnell sichtbar ist.
+
+Dann die eigentliche Frage: Wer trägt es im Alltag? Wer schreibt den ersten Mock für die Komponente, die niemand anfassen will? Wer sagt im Review: ohne Test kein Merge?
+
+Bei den Tests war die Antwort keine Schulung. Es war eine Person mit Mandat und ein paar Beispiele im echten Code, an denen das Team sehen konnte, dass es geht.
+
+Bei KI erwarte ich dasselbe. Ich arbeite täglich mit Coding-Agents in Legacy-C++, und das Werkzeug ist dabei selten das Problem. KI-Projekte scheitern selten am Modell. Offen bleibt meistens, wer festlegt, wo der Agent arbeiten darf, und wer seine Ergebnisse abnimmt.
+
+Wer diese Rolle nicht besetzt, bekommt keine Einführung. Er bekommt Werkzeuge, die jeder anders benutzt.
+
+In welcher Phase steht die KI-Einführung in Ihrem Team gerade?
+
+#KIEntwicklung #SoftwareArchitektur #Teamführung

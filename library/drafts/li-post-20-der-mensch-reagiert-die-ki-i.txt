@@ -1,0 +1,15 @@
+Ein Mensch im Team ist reaktiver als eine KI präzise ist.
+
+Ich sehe das jede Woche an einer grossen C/C++-Codebasis, deren Laufzeit ich mit einem Entwicklungsteam und einem Coding-Agent optimiere. Der Agent liest eine Funktion, findet die teure Schleife und schlägt die Änderung vor. Exakt, schnell, nachvollziehbar. Aber nur innerhalb dessen, was in seinem Kontext liegt.
+
+Was nicht im Kontext liegt, merkt der Mensch. Ein Fachexperte schaut auf ein Ergebnis und sagt: Das sieht richtig aus, ist es aber nicht. Noch bevor ein Test rot wird. Noch bevor es eine Metrik gibt, die es zeigen könnte.
+
+Das ist kein Mangel des Modells. Es ist eine andere Fähigkeit. Präzision heisst: genau tun, was beschrieben ist. Reaktion heisst: merken, dass die Beschreibung nicht mehr stimmt.
+
+Für die Arbeitsteilung habe ich daraus eine Regel gemacht: Präzision an die Maschine, Reaktion beim Menschen. Der Agent bekommt die Analyse, die Varianten, die Fleissarbeit. Die Abstimmung mit den Fachleuten und die Freigabe bleiben im Team, in jeder Zwei-Wochen-Iteration. Dazu habe ich Inter-Prozess-Tests eingeführt, damit das, was jemand früh spürt, später auch messbar wird.
+
+Das ist für mich der Kern des 70/30-Prinzips. Die menschliche Schicht ist nicht die langsamere. Sie ist die, die zuerst merkt, wenn etwas kippt.
+
+Wo hat in Ihrem Team zuletzt ein Mensch etwas bemerkt, das keine Metrik gezeigt hätte?
+
+#KIEntwicklung #SoftwareArchitektur #7030
