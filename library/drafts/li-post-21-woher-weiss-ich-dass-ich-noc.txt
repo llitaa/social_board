@@ -1,0 +1,19 @@
+Ein KI-Modell kann sich ändern, ohne dass sich sein Name ändert.
+
+Der Anbieter tauscht es aus oder trainiert nach, oft ohne Ankündigung. Was im Test funktionierte, ist Monate später ein anderes Produkt unter demselben Namen. Bei den Coding-Agents, die ich täglich in Legacy-C++ einsetze, beurteile ich deshalb die Ergebnisse, nicht den Modellnamen.
+
+Im Maschinenbau wäre das undenkbar. Ändert ein Zulieferer Material oder Prozess eines Teils, meldet er das, und das Teil geht neu in die Freigabe. In der Medizintechnik habe ich unter ISO 13485 entwickelt. Dort ist eine geänderte Komponente eine Änderung am Produkt, mit Nachweis.
+
+Für ein KI-Modell im Produkt gilt für mich dasselbe. Bevor ein Team ein Modell einsetzt, lege ich drei Dinge fest:
+
+Versions-Pinning. Das Modell läuft in einer festen Version, nicht unter einem Alias, der morgen auf etwas anderes zeigt.
+
+Ein eigener Regressionstest pro Release. Unsere Fälle, unsere Grenzfälle, gegen jede neue Version, bevor sie in Betrieb geht.
+
+Ein Vertrag, der den Austausch meldet. Wer ein Modell liefert, ist ein Zulieferer und trägt dieselbe Meldepflicht.
+
+Das ist keine Frage des Misstrauens. Stabilität schlägt Optimalität. Ein besseres Modell, das sich anders verhält, ist in einem Produkt mit langem Lebenszyklus zuerst einmal ein ungeprüftes.
+
+Woran würden Sie heute merken, dass Ihr Modell nicht mehr dasselbe ist?
+
+#KIEntwicklung #SoftwareArchitektur #Medizintechnik

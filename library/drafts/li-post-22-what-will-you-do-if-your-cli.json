@@ -1,0 +1,26 @@
+{
+ "id": "li-post-22",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t044",
+ "memo": "",
+ "photo": "1020193652c22e",
+ "neighbour_shoots": [
+  "2025-12-09_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-20T22:21:39",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "Anforderungen",
+  "headline": "Was tun Sie, wenn Ihr Kunde nicht ans Telefon geht?"
+ },
+ "signals": {
+  "lead": "Deshalb halte ich es in meinen Projekten so: Eine offene Fachfrage wird nicht implementiert, sondern aufgeschrieben.",
+  "ai": "Heute füllt sie mein Coding-Agent in Minuten, ohne jedes Zögern."
+ },
+ "photo_history": [
+  "1020193652c22e"
+ ]
+}

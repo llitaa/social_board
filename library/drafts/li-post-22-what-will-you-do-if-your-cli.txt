@@ -1,0 +1,15 @@
+Was tun Sie, wenn Ihr Kunde nicht ans Telefon geht?
+
+Die Frage klingt nach Vertrieb. Für mich ist sie eine Architekturfrage. Hinter jeder Anforderung steht ein Mensch, der sie entscheiden kann. Ist er drei Wochen nicht erreichbar, steht das Projekt nicht still. Es läuft weiter, nur in eine Richtung, die niemand gewählt hat.
+
+Früher füllte das Team diese Lücke mit Vermutungen, langsam und mit schlechtem Gewissen. Heute füllt sie mein Coding-Agent in Minuten, ohne jedes Zögern. Ein LLM hat keinen inneren Zustand „ich weiss nicht, wie es weitergeht“. Es baut die plausibelste Annahme, und der Code sieht danach aus, als wäre sie geklärt.
+
+Deshalb halte ich es in meinen Projekten so: Eine offene Fachfrage wird nicht implementiert, sondern aufgeschrieben. Mit der Annahme, die wir treffen würden, mit dem Namen der Person, die sie entscheiden muss, und mit dem Datum, ab dem wir auf dieser Annahme weiterbauen. In zweiwöchigen Iterationen mit Fachleuten heisst das: Die Frage liegt spätestens im nächsten Review auf dem Tisch, nicht erst im Abnahmetest.
+
+Der Agent darf gern Varianten durchspielen. Entscheiden darf er nicht.
+
+Das Schweigen auf der anderen Seite ist selten böser Wille. Meist hat nie jemand festgelegt, wer wann entscheidet. Statt einer Eskalation entsteht ein Schweigen, und das Schweigen ist die teuerste Variante.
+
+Wer entscheidet in Ihrem Projekt, wenn der Fachbereich nicht antwortet?
+
+#Anforderungsmanagement #KIEntwicklung #SoftwareArchitektur

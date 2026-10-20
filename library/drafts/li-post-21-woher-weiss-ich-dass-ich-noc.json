@@ -1,0 +1,26 @@
+{
+ "id": "li-post-21",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t043",
+ "memo": "",
+ "photo": "10202153571d6c",
+ "neighbour_shoots": [
+  "2025-12-09_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-20T22:21:15",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "KI im Produkt",
+  "headline": "Ein KI-Modell kann sich ändern, ohne dass sich sein Name ändert."
+ },
+ "signals": {
+  "lead": "Bevor ein Team ein Modell einsetzt, lege ich drei Dinge fest:",
+  "ai": "Bei den Coding-Agents, die ich täglich in Legacy-C++ einsetze, beurteile ich deshalb die Ergebnisse, nicht den Modellnamen."
+ },
+ "photo_history": [
+  "1020193652c22e"
+ ]
+}

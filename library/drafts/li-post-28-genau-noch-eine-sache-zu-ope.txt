@@ -1,0 +1,15 @@
+System Design lässt sich nicht weg-automatisieren.
+
+Ich probiere gerade spec-getriebene Entwicklung mit Coding-Agents aus. Zuerst entsteht die Spezifikation, dann iteriert der Agent daran entlang. Das funktioniert. Aber die Specs, die dabei entstehen, sind oft horizontal geschnitten: Functional Requirements, Kapitel für Kapitel, sauber nummeriert. Und kaum lesbar.
+
+So eine Spec zu prüfen, kostet viel Aufwand. Ich übernehme nichts, was ich nicht selbst geprüft habe. Nur würde ich so nie anfangen.
+
+Wenn ich ein System verstehen will, schneide ich vertikal. Bei der Vermessungssoftware, für die ich Architektur und Anforderungen mit dem Kunden geklärt habe, habe ich zuerst ein Gefühl für das Produkt gesucht: Wie bedient man es im Feld, was sieht der Nutzer, wo hakt die Usability. Dann: Wie läuft das System überhaupt, welche Daten fliessen vom Feldgerät zum Desktop und zum Server.
+
+Erst danach kommt das Abstrahieren. Und genau dieses Wegabstrahieren ist System Design. Ein Muster, das man am Produkt entwickeln muss, nicht an einer Liste.
+
+Ein Agent kann aus einer horizontalen Spec Code erzeugen, der läuft. Wenn aber niemand im Team das System von oben bis unten verstanden hat, läuft er los, ohne zu wissen, wohin.
+
+Wie schneiden Sie Ihre Spezifikationen, wenn ein Agent daran arbeitet?
+
+#SystemDesign #RequirementsEngineering #KIEntwicklung

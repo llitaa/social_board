@@ -1,0 +1,15 @@
+Mein Coding-Agent hält jede Optimierung für fertig, bis ich nachfrage.
+
+Ich arbeite an der Laufzeit einer grossen C/C++-Codebasis. Der Agent findet die ersten Hotspots schnell und sauber. Dann kommt ein Satz, den ich inzwischen gut kenne: Weitere Optimierungen würden die Lesbarkeit gefährden, der Rest liege im Rahmen.
+
+Oft stimmt das nicht. Hinter diesem „Rest“ lag bei uns die Kommunikation mit der Oracle-Datenbank. Der Agent hatte sie gesehen. Er hatte nur entschieden, dass dort nichts mehr zu holen sei.
+
+Ein LLM hat keinen inneren Zustand „ich weiss nicht, wie es weitergeht“. Es hört auf, sobald die Antwort plausibel klingt. Plausibel heisst nicht ausgereizt.
+
+Ich habe deshalb im Team festgelegt: Die Aussage „hier ist nichts mehr zu holen“ ist eine Hypothese, kein Ergebnis. Sie gilt erst, wenn eine Messung sie stützt, und sie wird in der nächsten Iteration mit dem Team und den Fachleuten besprochen. In meinen Prompts steht seitdem ein Satz, der banal klingt: „Du musst mir nicht zustimmen. Zeig mir, wo meine Annahme falsch ist.“
+
+Der Agent liefert Tempo. Das Ziel hält der Mensch. Wer ein grosses Ziel hat, muss das Werkzeug weiter schieben, als es von selbst gehen würde, und jedes „fertig“ hinterfragen.
+
+Woran erkennen Sie, dass Ihr Agent zu früh aufgegeben hat?
+
+#Cpp #KIEntwicklung #Performance

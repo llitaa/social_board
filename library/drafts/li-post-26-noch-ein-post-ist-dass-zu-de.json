@@ -1,0 +1,26 @@
+{
+ "id": "li-post-26",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t050",
+ "memo": "",
+ "photo": "img3593",
+ "neighbour_shoots": [
+  "2025-12-09_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-20T22:23:17",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "KI & Qualität",
+  "headline": "Fehler im Prototyp sind heute billig. Im Betrieb nicht."
+ },
+ "signals": {
+  "lead": "Im aktuellen Projekt habe ich dafür Inter-Prozess-Tests eingeführt.",
+  "ai": "Ausprobieren darf der Agent, so viel er will, auf einem Branch, den niemand ausliefert."
+ },
+ "photo_history": [
+  "1020193652c22e"
+ ]
+}

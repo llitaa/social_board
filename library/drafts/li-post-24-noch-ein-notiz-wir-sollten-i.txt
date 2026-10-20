@@ -1,0 +1,17 @@
+Für Antworten danken wir heute der KI, nicht mehr dem Kollegen.
+
+Früher lief Wertschätzung im Team über Wissen. Ich fragte einen Kollegen, wie ein alter Datenbankzugriff funktioniert. Er unterbrach seine Arbeit, erklärte es mir, und ich bedankte mich. Diese kleine Schleife hielt Teams zusammen. Wer viel wusste und es teilte, war sichtbar.
+
+Heute frage ich zuerst meinen Coding-Agent. Er erklärt mir die Stelle im Legacy-C++ in Sekunden, und niemand muss dafür aufstehen. Das ist effizient. Nur bedankt sich dabei niemand mehr bei einem Menschen.
+
+Beim Einarbeiten neuer Teammitglieder merke ich, was das bedeutet. Die Frage ist nicht, ob wir noch wertschätzen, sondern wofür.
+
+Meine Antwort: für das, was der Agent nicht kann. Für den Kollegen, der sagt, dass die Erklärung des Agents plausibel klingt und trotzdem falsch ist. Für die Fachexpertin, die weiss, warum eine Grenze im Code genau dort liegt. Für den, der eine Entscheidung mitträgt, wenn sie schiefgeht.
+
+Seit ich Scrum in einem Team eingeführt habe, weiss ich, wie viel eine Retrospektive darüber verrät, wofür sich ein Team dankt. Ich würde dort heute anders fragen. Nicht: Wer hat wem geholfen? Sondern: Wessen Einwand hat uns vor einem Fehler bewahrt?
+
+Wissen liefert die Maschine. Urteil, Widerspruch und Verantwortung liefern Menschen. Genau dafür verdienen sie den Dank.
+
+Wofür haben Sie zuletzt einem Kollegen gedankt, das keine KI hätte leisten können?
+
+#Teamführung #KIEntwicklung #SoftwareArchitektur

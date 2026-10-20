@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Open+Sans:wght@400;600&display=block" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}html,body{background:#fff}
+body{font-family:"Montserrat","Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;color:#0f3a50}
+.canvas{position:relative;overflow:hidden;width:1200px;height:1200px;background:#fff}
+.photo{position:absolute;left:0;top:0;width:100%;object-fit:cover;object-position:50% 30%}
+.kicker{font-family:"Open Sans",sans-serif;font-size:26px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#20B8D0}
+h1{font-family:"Montserrat",sans-serif;font-weight:700;letter-spacing:-.4px;line-height:1.22;word-spacing:.04em}
+.who{font-family:"Open Sans",sans-serif;font-size:26px;font-weight:400;letter-spacing:.02em}
+.who b{font-weight:600}
+/* band: photo on top, dark blue block with the headline below, gradient seam between them */
+.band .photo{height:1200px}
+.band .seam{position:absolute;left:0;top:1200px;width:100%;height:10px;background:linear-gradient(90deg,#42F45D 0%,#01BC56 30%,#00BEE6 65%,#08E3FB 100%)}
+.band .block{position:absolute;left:0;right:0;top:1200px;bottom:0;background:#0f3a50;color:#fff;padding:58px 72px 48px}
+.band h1{font-size:44px;color:#fff;margin-top:22px}
+.band .who{position:absolute;left:72px;bottom:46px;color:rgba(255,255,255,.66)}
+.band .who b{color:#fff}
+/* light: photo on top, white block with a cyan left bar (house style of the documents) */
+.light .photo{height:1200px}
+.light .block{position:absolute;left:0;right:0;top:1200px;bottom:0;background:#fff;padding:50px 72px 44px 96px}
+.light .bar{position:absolute;left:0;top:0;bottom:0;width:22px;background:linear-gradient(180deg,#42F45D 0%,#01BC56 30%,#00BEE6 65%,#08E3FB 100%)}
+.light h1{font-size:44px;color:#0f3a50;margin-top:20px}
+.light .who{position:absolute;left:96px;bottom:40px;color:#5a6e7c}
+.light .who b{color:#0f3a50}
+/* overlay: full photo, dark gradient from below, headline on the photo */
+.overlay .photo{height:100%}
+.overlay .shade{position:absolute;left:0;right:0;bottom:0;height:62%;background:linear-gradient(180deg,rgba(15,58,80,0) 0%,rgba(15,58,80,.55) 35%,rgba(15,58,80,.96) 100%)}
+.overlay .block{position:absolute;left:72px;right:72px;bottom:52px;color:#fff}
+.overlay .rule{width:120px;height:10px;background:linear-gradient(90deg,#42F45D,#00BEE6,#08E3FB);border-radius:5px;margin:22px 0 26px}
+.overlay h1{font-size:44px;color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.25)}
+.overlay .who{margin-top:34px;color:rgba(255,255,255,.75)}
+.overlay .who b{color:#fff}
+/* bottom: full photo, the headline alone at the foot, a soft dark fade only where the text is; no kicker, no name */
+.bottom .photo{height:100%}
+.bottom .shade{position:absolute;left:0;right:0;bottom:0;height:46%;background:linear-gradient(180deg,rgba(15,58,80,0) 0%,rgba(15,58,80,.18) 30%,rgba(15,58,80,.62) 62%,rgba(15,58,80,.82) 100%)}
+.bottom .block{position:absolute;left:64px;right:64px;bottom:56px;color:#fff}
+.bottom .kicker{display:none}
+.bottom .rule{width:96px;height:6px;background:linear-gradient(90deg,#42F45D,#00BEE6,#08E3FB);border-radius:3px;margin:0 0 22px}
+.bottom.norule .rule{display:none}
+.bottom h1{font-size:44px;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.35);line-height:1.18}
+.bottom .who{display:none}
+/* bottom line variants: name = name + role, role = role only, none = nothing */
+.who.role b{display:none}.who.role .sep{display:none}
+.who.none{display:none}
+</style></head><body>
+<div class="canvas bottom">
+<img class="photo" src="file:///Users/anton/dev/linkedin-system/library/photos/square/1020215357dd81_sq.png">
+<div class="shade"></div>
+<div class="block"><div class="kicker">Team &amp; KI</div><div class="rule"></div><h1>Für Antworten danken wir heute der KI, nicht mehr dem Kollegen</h1><div class="who none"><b>Anton Lytvynenko</b><span class="sep"> · </span>Software Architect & Technical Lead</div></div>
+</div></body></html>

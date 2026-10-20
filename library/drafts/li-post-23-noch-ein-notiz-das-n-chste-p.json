@@ -1,0 +1,26 @@
+{
+ "id": "li-post-23",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t045",
+ "memo": "",
+ "photo": "1020215357736a",
+ "neighbour_shoots": [
+  "2025-12-09_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-20T22:22:05",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "KI im Team",
+  "headline": "KI nimmt dem Team den Konsens, wenn jeder allein promptet."
+ },
+ "signals": {
+  "lead": "Die Frage, wie die Teile zusammenspielen, habe ich nie einem Einzelnen überlassen.",
+  "ai": "Ich arbeite täglich mit einem Coding-Agent in Legacy-C++, und er liefert in jeder Sitzung eine plausible Struktur."
+ },
+ "photo_history": [
+  "1020193652c22e"
+ ]
+}

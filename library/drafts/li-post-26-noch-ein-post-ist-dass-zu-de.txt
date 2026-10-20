@@ -1,0 +1,15 @@
+Fehler im Prototyp sind heute billig. Im Betrieb nicht.
+
+Früher galt eine einfache Regel: Je früher ein Fehler auffällt, desto billiger ist er. Wer ihn erst Wochen später findet, muss sich zurück in den Kontext arbeiten, und genau das kostet.
+
+Mit Coding-Agents hat sich ein Teil davon verschoben. Einen Prototyp habe ich heute in einem Nachmittag. Funktioniert er nicht, werfe ich ihn weg und lasse den nächsten erzeugen. Der Fehler kostet fast nichts, der Kontextwechsel auch nicht.
+
+Nur gilt das nicht für Software, die ab dem ersten Tag robust laufen muss. In der Medizintechnik habe ich unter ISO 13485 an Bildverarbeitung für die Behandlungsplanung gearbeitet. Dort ist ein Fehler, der beim Anwender ankommt, so teuer wie eh und je. Daran ändert kein Modell etwas.
+
+Deshalb ziehe ich die Grenze bewusst. Ausprobieren darf der Agent, so viel er will, auf einem Branch, den niemand ausliefert. Was in die Codebasis geht, läuft durch Review und Tests, egal wer es geschrieben hat. Im aktuellen Projekt habe ich dafür Inter-Prozess-Tests eingeführt. Sie fangen genau die Fehler, die im Prototyp niemanden stören und im Betrieb alle.
+
+Die alte Regel ist nicht falsch geworden. Sie gilt nur nicht mehr überall gleich. Wo sie gilt, muss die Entwicklungsleitung entscheiden, nicht der Generator.
+
+Wo darf in Ihrem Team heute etwas kaputtgehen, und wo nie?
+
+#SoftwareArchitektur #KIEntwicklung #Medizintechnik

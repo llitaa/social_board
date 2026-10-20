@@ -1,0 +1,26 @@
+{
+ "id": "li-post-24",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t046",
+ "memo": "",
+ "photo": "1020215357dd81",
+ "neighbour_shoots": [
+  "2025-12-09_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-20T22:22:30",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "Team & KI",
+  "headline": "Für Antworten danken wir heute der KI, nicht mehr dem Kollegen."
+ },
+ "signals": {
+  "lead": "Seit ich Scrum in einem Team eingeführt habe, weiss ich, wie viel eine Retrospektive darüber verrät, wofür sich ein Team dankt.",
+  "ai": "Für den Kollegen, der sagt, dass die Erklärung des Agents plausibel klingt und trotzdem falsch ist."
+ },
+ "photo_history": [
+  "1020193652c22e"
+ ]
+}

@@ -1,0 +1,17 @@
+Entwicklung ohne Domänenwissen ist ein Pyrrhussieg.
+
+Wenn ein Projekt nicht vorankommt, frage ich zuerst, woran es fehlt. Meistens fehlt es an einer von zwei Stellen.
+
+Entweder fehlt die technische Kompetenz, das Problem sauber zu lösen. Das sieht man früh: Der Build bricht, Tests fehlen, jede Änderung zieht neue Fehler nach sich.
+
+Oder es fehlt das Domänenwissen. Das sieht man spät. Der Code ist sauber, die Architektur trägt, die Tests sind grün. Und trotzdem löst die Software nicht das, was der Anwender im Feld braucht.
+
+Bei der Vermessungssoftware für einen Messtechnik-Hersteller habe ich Spezifikationen und Anforderungen mit den Fachleuten des Kunden geklärt, bevor das Team die erste Zeile dazu schrieb. Wir konnten programmieren. Aber eine technisch saubere Lösung für das falsche Problem ist teurer als gar keine.
+
+Mit Coding-Agents verschiebt sich diese Balance. Den technisch sauberen Teil liefert mein Agent im Legacy-C++ heute schneller als je zuvor. Das Domänenwissen liefert er nicht. Er weiss nicht, was ein Messwert im Feld bedeutet, und er fragt auch nicht nach.
+
+Damit wird die zweite Lücke häufiger und schwerer zu sehen. Gewonnen ist ein Projekt erst, wenn Technik und Fachwissen am selben Tisch sitzen.
+
+Woran scheitern Ihre Projekte häufiger: an der Technik oder an der Domäne?
+
+#SoftwareArchitektur #Anforderungen #KIEntwicklung

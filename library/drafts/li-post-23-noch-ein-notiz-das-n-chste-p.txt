@@ -1,0 +1,15 @@
+KI nimmt dem Team den Konsens, wenn jeder allein promptet.
+
+Früher hat ein Architekturstreit Zeit gekostet. Zwei Entwickler, ein Whiteboard, eine Stunde. Am Ende wusste das Team, wie das System aussehen soll, und warum.
+
+Heute sitzt jeder mit seinem Agenten. Ich arbeite täglich mit einem Coding-Agent in Legacy-C++, und er liefert in jeder Sitzung eine plausible Struktur. Die Sitzung am Nachbartisch liefert eine andere, ebenso plausible. Beide kompilieren. Keiner hat widersprochen, also hat keiner entschieden.
+
+Das fällt nicht im Review auf. Es fällt auf, wenn drei Module dasselbe Problem auf drei Arten lösen und niemand sagen kann, welche die gemeinte war.
+
+In einem Defence-Projekt habe ich ein Team aus sechs Entwicklern geführt, das neue Software an Legacy-Komponenten anbinden musste. Die Frage, wie die Teile zusammenspielen, habe ich nie einem Einzelnen überlassen. Mit Agents wird das zur Pflicht: Die Struktur entscheidet das Team, gemeinsam und schriftlich, bevor jemand den ersten Prompt schreibt. Der Agent setzt um, was entschieden ist.
+
+Die meisten KI-Projekte scheitern an einer Frage, die niemand stellt: Wer entscheidet wann.
+
+Wo fallen in Ihrem Team die Architekturentscheidungen heute, am Tisch oder im Prompt?
+
+#SoftwareArchitektur #KIEntwicklung #Teamführung

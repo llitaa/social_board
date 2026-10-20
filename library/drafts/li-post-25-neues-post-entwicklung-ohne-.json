@@ -1,0 +1,26 @@
+{
+ "id": "li-post-25",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t049",
+ "memo": "",
+ "photo": "img3643",
+ "neighbour_shoots": [
+  "2025-12-09_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-20T22:22:49",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "Domänenwissen",
+  "headline": "Entwicklung ohne Domänenwissen ist ein Pyrrhussieg."
+ },
+ "signals": {
+  "lead": "Bei der Vermessungssoftware für einen Messtechnik-Hersteller habe ich Spezifikationen und Anforderungen mit den Fachleuten des Kunden geklärt, bevor das Team die erste Zeile dazu schrieb.",
+  "ai": "Den technisch sauberen Teil liefert mein Agent im Legacy-C++ heute schneller als je zuvor. Das Domänenwissen liefert er nicht."
+ },
+ "photo_history": [
+  "1020193652c22e"
+ ]
+}

@@ -1,0 +1,26 @@
+{
+ "id": "li-post-28",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t052",
+ "memo": "",
+ "photo": "img1671",
+ "neighbour_shoots": [
+  "2025-12-09_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-20T22:24:07",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "System Design",
+  "headline": "System Design lässt sich nicht weg-automatisieren."
+ },
+ "signals": {
+  "lead": "Bei der Vermessungssoftware, für die ich Architektur und Anforderungen mit dem Kunden geklärt habe, habe ich zuerst ein Gefühl für das Produkt gesucht: Wie bedient man es im Feld, was sieht der Nutzer, wo hakt die Usability.",
+  "ai": "Ein Agent kann aus einer horizontalen Spec Code erzeugen, der läuft."
+ },
+ "photo_history": [
+  "1020193652c22e"
+ ]
+}

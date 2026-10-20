@@ -1,0 +1,26 @@
+{
+ "id": "li-post-27",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t051",
+ "memo": "",
+ "photo": "img3455",
+ "neighbour_shoots": [
+  "2025-12-09_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-20T22:23:43",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "KI & Performance",
+  "headline": "Mein Coding-Agent hält jede Optimierung für fertig, bis ich nachfrage."
+ },
+ "signals": {
+  "lead": "Ich habe deshalb im Team festgelegt: Die Aussage „hier ist nichts mehr zu holen“ ist eine Hypothese, kein Ergebnis.",
+  "ai": "In meinen Prompts steht seitdem ein Satz, der banal klingt: „Du musst mir nicht zustimmen. Zeig mir, wo meine Annahme falsch ist.“"
+ },
+ "photo_history": [
+  "1020193652c22e"
+ ]
+}

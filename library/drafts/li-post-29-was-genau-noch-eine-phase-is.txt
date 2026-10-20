@@ -1,0 +1,15 @@
+Entwicklung und Betrieb sollten sich nur in den Tokens unterscheiden.
+
+Ein Beispiel aus meiner Arbeit: eine Anwendung, in der KI-Agenten Aufgaben erledigen. In der Produktion ruft sie ein Modell über die API eines Cloud-Anbieters auf. Bei mir lokal läuft derselbe Ablauf aus der Kommandozeile.
+
+Was ist anders? Die Menge an Tokens. Und die Zeit: Ich will früh ein Gefühl dafür bekommen, wie lange echte Operationen dauern. Der Rest ist gleich. Auch die dynamischen Teile. Wenn Agenten zur Laufzeit erzeugt werden, dann passiert das schon in der Entwicklung, nicht erst beim Kunden.
+
+Den Satz „Im Prototyp hat es funktioniert, in der Produktion nicht“ höre ich oft. Dann frage ich: Wozu war der Prototyp? Meistens wurde bei seiner Planung so viel weg-abstrahiert, dass er ins echte System nicht mehr hineinpasst.
+
+In der Mechanik wäre das selbstverständlich. Ein Ersatzteil, das nicht in die Maschine passt, ist kein Ersatzteil.
+
+Als technischer Lead lasse ich deshalb keine Abkürzung zu, die später wieder ausgebaut werden muss. Was der Agent im Betrieb tut, tut er auch auf meinem Rechner, nur mit kleinerem Budget. Dann ist es kein Prototyp mehr. Dann ist es Entwicklung.
+
+Worin unterscheiden sich bei Ihnen Prototyp und Produktion, ausser im Budget?
+
+#KIEntwicklung #SoftwareArchitektur #KIAgenten
