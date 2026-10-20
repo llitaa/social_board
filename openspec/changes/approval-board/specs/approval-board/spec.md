@@ -103,3 +103,17 @@ Every screen SHALL have a Record button; holding it records audio, releasing sto
 #### Scenario: Record a thought
 - **WHEN** Anton presses Record, talks, presses again
 - **THEN** the memo is uploaded, transcribed on the Mac at the next run, and becomes the material of the next personal draft (spec content-generation, Memo to draft); memos under 15 words are ignored as tests
+
+### Requirement: Spoken note on a card
+Every card to decide SHALL have "Record a note" next to "Update the post". The recording goes to the server with the card id; the worker's fast chain transcribes it locally (whisper, zero tokens), writes it as a change decision into its own folder (`board/data/decisions-local/`, never into the server mirror) and applies it in the same run like a typed note: redraft within about a minute, the card comes back to decide, `learn.py` reads the note and keeps a general remark as a rule for all posts. While the note travels the card shows "voice note on its way · about a minute". The chain runs transcription before decisions in both modes, so a spoken note never waits for the 10-minute full run.
+
+#### Scenario: Spoken "kürzer"
+- **WHEN** Anton records "kürzer, und nie mit einer Zahl anfangen" on a card and presses Stop
+- **THEN** within about a minute the card shows the shorter text as "updated per your note", and `library/style-rules.txt` gains "nie mit einer Zahl anfangen"
+
+#### Scenario: Recorder buttons
+- **WHEN** Anton taps the round record button or "Record a note" on the phone
+- **THEN** nothing inside the button can be selected or long-press-highlighted; the button only starts and stops
+
+### Requirement: No redundant explanations
+Action buttons carry no explanation line when the label says it all (Schedule has none; "Post now" keeps its one line because by-hand posting differs).

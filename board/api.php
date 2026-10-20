@@ -149,7 +149,9 @@ switch ($a) {
     $name = date('Y-m-d_His') . ".$ext";
     move_uploaded_file($_FILES['audio']['tmp_name'], "$D/uploads/memos/$name");
     $txt = trim((string)($_POST['text'] ?? '')); if ($txt !== '') file_put_contents("$D/uploads/memos/$name.note.txt", $txt);
-    decide(['type'=>'memo','file'=>$name,'seconds'=>(int)($_POST['seconds'] ?? 0)]);
+    $card = preg_replace('/[^\w-]/', '', (string)($_POST['card_id'] ?? ''));   // a spoken note for one post: the Mac transcribes it and applies it like a typed note
+    if ($card !== '') { file_put_contents("$D/uploads/memos/$name.card.txt", $card); set_overlay('cards', $card, ['note_pending' => true]); }
+    decide(['type'=>'memo','file'=>$name,'seconds'=>(int)($_POST['seconds'] ?? 0),'card_id'=>$card]);
     out(['ok'=>true,'file'=>$name]);
 
   case 'settings':

@@ -55,9 +55,11 @@ def main():
     plan, pf = read_csv(CFG["content_plan"]); plog, lf = read_csv(CFG["posts_log"])
     cards = {c["id"]: c for c in jload(os.path.join(BOARD_LOCAL, "cards.json"), [])}
     changed_plan = changed_log = False; last_ts = jload(os.path.join(BOARD_LOCAL, "applied.json"), {}).get("until", "")
-    for f in sorted(glob.glob(os.path.join(BOARD_LOCAL, "decisions", "*.jsonl"))):
+    files = [(os.path.basename(f), f) for f in sorted(glob.glob(os.path.join(BOARD_LOCAL, "decisions", "*.jsonl")))] + \
+            [("local/" + os.path.basename(f), f) for f in sorted(glob.glob(os.path.join(BOARD_LOCAL, "decisions-local", "*.jsonl")))]   # voice notes transcribed on the Mac
+    for key, f in files:
         lines = open(f, encoding="utf-8").read().splitlines()
-        start = done.get(os.path.basename(f), 0)
+        start = done.get(key, 0)
         for ln in lines[start:]:
             try: d = json.loads(ln)
             except json.JSONDecodeError: continue
@@ -90,7 +92,7 @@ def main():
             elif t in ("photo", "upload", "memo", "settings", "answer"):
                 append(os.path.join(LOGDIR, "board-events.csv"), ["ts", "type", "id", "decision", "files", "file", "note", "answer", "expiry", "review", "card_id"],
                        {**d, "files": ",".join(d.get("files", []) or [])})
-        done[os.path.basename(f)] = len(lines)
+        done[key] = len(lines)
     if promote_scheduled(plan, plog): changed_plan = changed_log = True
     if changed_plan: write_csv(CFG["content_plan"], plan, pf); log("content-plan.csv updated")
     if changed_log: write_csv(CFG["posts_log"], plog, lf); log("posts-log.csv updated")

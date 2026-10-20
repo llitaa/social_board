@@ -19,10 +19,10 @@ step() {  # step <name> <command...>
 }
 MODE=${1:-full}
 step pull        $P pipeline/board_sync.py pull || { $P pipeline/health.py; exit 1; }
+step transcribe  $P pipeline/transcribe.py          # before apply: a spoken note on a card becomes a change decision in this run
 step apply       $P pipeline/apply_decisions.py
 step learn       $P pipeline/learn.py
 if [ "$MODE" = full ]; then
-step transcribe  $P pipeline/transcribe.py
 step photos      $P pipeline/photo_index.py
 step mail        $P pipeline/mail_watch.py
 step metrics     $P pipeline/metrics_import.py

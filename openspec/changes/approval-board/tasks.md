@@ -25,3 +25,8 @@
 ## 4. Verify
 - [ ] 4.1 Anton opens the board on the phone with the Mac asleep and on the Mac in Safari, presses Post on a test card, the next run reads it
 - [x] 4.2 One memo recorded on the phone appears as text on the Mac (19.10. 11:21: "Test message one two three", 1.4 s whisper)
+
+## 7. Voice notes (20.10.)
+- [x] 7.1 "Record a note" per card → `<file>.card.txt` on the server → `transcribe.py` → `decisions-local/` → apply → redraft → learn; transcription in the fast chain
+- [x] 7.2 Record buttons unselectable; Schedule without explanation line; note placeholder = default text
+- [x] 7.3 Photos tab: one grid, tap for options; uploads in batches of three with per-file errors

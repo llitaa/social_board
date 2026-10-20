@@ -91,9 +91,13 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--m);m
 .pact .row{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
 html,body{overflow-x:hidden}.q{min-width:0;overflow-wrap:anywhere}
 .grid .ph .st{position:absolute;left:4px;bottom:4px;font-size:10px;background:rgba(255,255,255,.88);padding:1px 5px;border-radius:4px;color:var(--d);max-width:calc(100% - 8px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rec{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;background:var(--d);color:#fff;font-size:22px;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:6;cursor:pointer}
+.rec{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;background:var(--d);color:#fff;font-size:0;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:6;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.rec::after{content:"";display:block;width:18px;height:18px;margin:0 auto;border-radius:50%;background:#fff}
+.rec.on::after{border-radius:3px}
+button,.b,.sm,label.b{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .rec.on{background:#d33;animation:p 1s infinite}
 @keyframes p{50%{transform:scale(1.08)}}
+.b.rn.on{background:#c0392b;color:#fff;border-color:#c0392b}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--d);color:#fff;padding:8px 14px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;z-index:7;pointer-events:none}
 .toast.on{opacity:1}
 .set{font-size:13px;color:var(--m);margin:16px 0 0}
@@ -165,7 +169,7 @@ function statusPill(c){
   if(c.status==='change') return c.failed?`<span class="pill warn">update failed · decide again</span>`:`<span class="pill warn">being updated · about a minute</span>`;
   if(c.status==='scheduled') return `<span class="pill li">scheduled by you in the LinkedIn app · ${fmtSlot(c.slot)}</span>`;
   if(c.status==='approved') return past?(auto?`<span class="pill ok">posting now …</span>`:`<span class="pill todo">waits for you: post it by hand</span> <span class="pill warn">${c.channel==='company'?'company page':'profile'} not connected to the API</span>`):auto?`<span class="pill ok">scheduled · posts itself ${fmtSlot(c.slot)}</span>`:`<span class="pill ok">scheduled ${fmtSlot(c.slot)}</span> <span class="pill warn">${c.channel==='company'?'company page not connected: you post it then':'LinkedIn not connected: you post it then'}</span>`;
-  if(c.status==='draft') return (c.updated?`<span class="pill ok">updated per your note</span> `:'')+(c.image_pending?`<span class="pill warn">image being changed · about 20 s</span> `:'')+`<span class="pill todo">to decide</span>`;
+  if(c.status==='draft') return (c.updated?`<span class="pill ok">updated per your note</span> `:'')+(c.image_pending?`<span class="pill warn">image being changed · about 20 s</span> `:'')+(c.note_pending?`<span class="pill warn">voice note on its way · about a minute</span> `:'')+`<span class="pill todo">to decide</span>`;
   return `<span class="pill">${esc(STATUS[c.status]||c.status)}</span>`;
 }
 function renderPipeline(){
@@ -236,10 +240,9 @@ function renderPost(){
         <div class="q" style="margin:4px 0 0;font-size:13px">${isAuto(c)?'goes out within about 20 seconds':(c.channel==='company'?'company page':'profile')+' is not connected to the API: the card comes to the top with Copy text, Download image and Mark posted'}</div>
         <input type="datetime-local" id="w-${c.id}" value="${esc(c.slot.slice(0,16))}" style="margin-top:12px">
         <button class="b" style="width:100%;margin-top:6px" onclick="decide('${c.id}','schedule')">Schedule</button>
-        <div class="q" style="margin:4px 0 0;font-size:13px">${isAuto(c)?'posts itself at that time; Unschedule until then':'kept until that time, then you post it'}</div>
-        <textarea id="n-${c.id}" rows="3" placeholder="or tell it what to change (kürzer, anderes Foto, ohne den Harvard-Vergleich …)" style="margin-top:12px"></textarea>
-        <button class="b" style="width:100%;margin-top:6px" onclick="decide('${c.id}','change')">Update the post</button>
-        <div class="q" style="margin:4px 0 0;font-size:13px">rewritten in about a minute, comes back here to decide; your notes also shape future drafts</div>
+        <textarea id="n-${c.id}" rows="3" placeholder="Note for this post: what to change, or a rule for all posts (immer …, nie …)" style="margin-top:12px"></textarea>
+        <div class="row" style="margin-top:6px"><button class="b" style="flex:1" onclick="decide('${c.id}','change')">Update the post</button><button class="b s rn" id="rn-${c.id}" onclick="recNote('${c.id}')">● Record a note</button></div>
+        <div class="q" style="margin:4px 0 0;font-size:13px">typed or spoken: applied in about a minute, the post comes back here to decide; a general remark becomes a rule for all posts</div>
         <div class="row"><button class="b s" onclick="skipPost('${c.id}')">Drop</button></div>
         <div class="q" style="margin:4px 0 0;font-size:13px">removes this post for good; the slot gets a new draft</div>
         <div class="reasons" id="r-${c.id}"><button class="sm s" onclick="decide('${c.id}','skip','not the topic')">not the topic</button><button class="sm s" onclick="decide('${c.id}','skip','not the form')">not the form</button><button class="sm s" onclick="decide('${c.id}','skip','')">no reason</button></div>`
@@ -322,8 +325,15 @@ async function startUpload(inp){const files=[...inp.files],note=$('#up').note.va
   inp.value='';toast(failed.length?`${ok} of ${files.length} uploaded · failed: ${failed.slice(0,3).join(' · ')}`:`${ok} uploaded · the Mac fetches them within 10 minutes`,failed.length?12000:4000);load()}
 async function pdec(id,dec){const r=await post({a:'photo',id,decision:dec});toast(r.ok?({mark_used:'marked used',hold:'held back',use_friday:'planned for Friday',delete:'deleted'}[dec]):'error');load()}
 // --- Record
-let mr=null,chunks=[],t0=0;
-async function sendMemo(blob,mime,seconds){const fd=new FormData();fd.append('a','memo');fd.append('audio',blob,'memo');fd.append('mime',mime);fd.append('seconds',String(seconds));toast('saving memo …');const r=await (await fetch(api,{method:'POST',body:fd})).json();toast(r.ok?'memo saved · becomes a draft on the Mac':'memo failed');load();return r}
+let mr=null,chunks=[],t0=0,recCard=null;
+async function recNote(id){
+  if(mr&&mr.state==='recording'){mr.stop();return}
+  try{const st=await navigator.mediaDevices.getUserMedia({audio:true});const mime=MediaRecorder.isTypeSupported('audio/mp4')?'audio/mp4':(MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'');mr=new MediaRecorder(st,mime?{mimeType:mime}:{});chunks=[];t0=Date.now();recCard=id;
+    mr.ondataavailable=e=>chunks.push(e.data);
+    mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());const b=document.getElementById('rn-'+id);if(b){b.textContent='● Record a note';b.classList.remove('on')}const cid=recCard;recCard=null;sendMemo(new Blob(chunks,{type:mr.mimeType||'audio/mp4'}),mr.mimeType||'audio/mp4',Math.round((Date.now()-t0)/1000),cid)};
+    mr.start();const b=document.getElementById('rn-'+id);if(b){b.textContent='■ Stop';b.classList.add('on')}toast('recording your note … press Stop when done',60000)}catch(e){toast('microphone not available: '+(e.name||e))}
+}
+async function sendMemo(blob,mime,seconds,cardId){const fd=new FormData();fd.append('a','memo');fd.append('audio',blob,'memo');fd.append('mime',mime);fd.append('seconds',String(seconds));if(cardId)fd.append('card_id',cardId);toast(cardId?'sending your note …':'saving memo …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={}}toast(r.ok?(cardId?'note sent · the post is updated in about a minute':'memo saved · becomes a post or a phrase on the Mac'):'recording failed',4000);if(cardId)watchUntil=Date.now()+240000;load();return r}
 $('#rec').onclick=async()=>{
   if(mr&&mr.state==='recording'){mr.stop();return}
   try{const st=await navigator.mediaDevices.getUserMedia({audio:true});const mime=MediaRecorder.isTypeSupported('audio/mp4')?'audio/mp4':(MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'');mr=new MediaRecorder(st,mime?{mimeType:mime}:{});chunks=[];t0=Date.now();
@@ -332,7 +342,7 @@ $('#rec').onclick=async()=>{
     mr.start();$('#rec').classList.add('on');toast('recording … press again to stop')}catch(e){toast('microphone not available: '+(e.name||e))}
 };
 load(); setInterval(load,60000);
-setInterval(()=>{if(document.activeElement&&document.activeElement.isContentEditable)return; if(S&&(Date.now()<watchUntil||S.cards.some(c=>(c.status==='change'&&!c.failed)||c.image_pending)))load()},5000);
+setInterval(()=>{if(document.activeElement&&document.activeElement.isContentEditable)return; if(S&&(Date.now()<watchUntil||S.cards.some(c=>(c.status==='change'&&!c.failed)||c.image_pending||c.note_pending)))load()},5000);
 </script>
 </body>
 </html>
