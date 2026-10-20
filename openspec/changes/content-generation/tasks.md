@@ -23,7 +23,7 @@
 - [x] 5.2 `personal_card.py` + template with styles band / light / overlay; `personal_card.style` in config (off until Anton approves a style)
 - [x] 5.3 li-post-13..17 redrafted with the positioning note (versions kept); li-post-18 from Anton's thought "a prompt is a sentence in a conversation" with the band card
 - [x] 5.4 Style decided 20.10.: bottom (full photo, dark fade at the foot, white Montserrat headline, no kicker, no name); Montserrat/Open Sans = website fonts
-- [x] 5.5 Pillar thought: phrases from memos (< 60 words) and chat → inventory, hook + headline verbatim, at least one per week (`make_room_for_thoughts`); book phrase bank `library/book-phrases.md` in the prompts
+- [x] 5.5 Pillar thought: every memo and chat sentence → inventory → drafted at once into the next free slot (`draft_thoughts`); phantom filter; feedback memos → library/feedback.md; book phrase bank `library/book-phrases.md` in the prompts
 - [ ] 5.6 Anton picks a style → config → next drafts carry the card; check the first post's numbers against the plain-photo posts after 2 weeks
 
 ## 4. Verify
