@@ -111,6 +111,10 @@ Every card to decide SHALL have "Record a note" next to "Update the post". The r
 - **WHEN** Anton records "kürzer, und nie mit einer Zahl anfangen" on a card and presses Stop
 - **THEN** within about a minute the card shows the shorter text as "updated per your note", and `library/style-rules.txt` gains "nie mit einer Zahl anfangen"
 
+#### Scenario: Discard before sending
+- **WHEN** a recording runs (round button or Record a note)
+- **THEN** a bar at the bottom shows the running time with ✕ (discard) and ✓ (send); nothing leaves the phone until ✓ or the round button is pressed; ✕ throws the recording away with "recording discarded"
+
 #### Scenario: Recorder buttons
 - **WHEN** Anton taps the round record button or "Record a note" on the phone
 - **THEN** nothing inside the button can be selected or long-press-highlighted; the button only starts and stops

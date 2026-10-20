@@ -30,3 +30,4 @@
 - [x] 7.1 "Record a note" per card → `<file>.card.txt` on the server → `transcribe.py` → `decisions-local/` → apply → redraft → learn; transcription in the fast chain
 - [x] 7.2 Record buttons unselectable; Schedule without explanation line; note placeholder = default text
 - [x] 7.3 Photos tab: one grid, tap for options; uploads in batches of three with per-file errors
+- [x] 7.4 Recording bar with time, ✕ discard, ✓ send for both recorders (20.10.)

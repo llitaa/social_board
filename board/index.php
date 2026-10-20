@@ -101,6 +101,12 @@ html,body{overflow-x:hidden}.q{min-width:0;overflow-wrap:anywhere}
 .rec.on::after{border-radius:3px}
 button,.b,.sm,label.b{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .rec.on{background:#d33;animation:p 1s infinite}
+.recbar{position:fixed;left:14px;right:86px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:6;display:flex;align-items:center;gap:10px;background:#111;color:#fff;border-radius:999px;padding:8px 10px 8px 16px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.recbar .dot{width:10px;height:10px;border-radius:50%;background:#e33;animation:p 1s infinite;flex:0 0 auto}
+.recbar .t{margin-left:auto;font-variant-numeric:tabular-nums;color:#ccc}
+.recbar button{width:38px;height:38px;border-radius:50%;border:0;font-size:18px;cursor:pointer;flex:0 0 auto}
+.recbar .x{background:#333;color:#fff}.recbar .ok{background:var(--c);color:#fff}
+@media(min-width:960px){.recbar{left:auto;width:420px}}
 @keyframes p{50%{transform:scale(1.08)}}
 .b.rn.on{background:#c0392b;color:#fff;border-color:#c0392b}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--d);color:#fff;padding:8px 14px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;z-index:7;pointer-events:none}
@@ -141,6 +147,7 @@ button,.b,.sm,label.b{-webkit-user-select:none;user-select:none;-webkit-touch-ca
  <aside id="side"></aside>
 </main>
 <button class="rec" id="rec" title="Record">●</button>
+<div class="recbar" id="recbar" hidden><span class="dot"></span><span id="recwhat">recording</span><span id="rectime" class="t">0:00</span><button class="x" onclick="stopRec(false)" title="discard">✕</button><button class="ok" onclick="stopRec(true)" title="send">✓</button></div>
 <div class="toast" id="toast"></div>
 <script>
 const $=s=>document.querySelector(s), api='api.php';
@@ -332,21 +339,26 @@ async function startUpload(inp){const files=[...inp.files],note=$('#up').note.va
 async function pdec(id,dec){const r=await post({a:'photo',id,decision:dec});toast(r.ok?({mark_used:'marked used',hold:'held back',use_friday:'planned for Friday',delete:'deleted'}[dec]):'error');load()}
 // --- Record
 let mr=null,chunks=[],t0=0,recCard=null;
-async function recNote(id){
-  if(mr&&mr.state==='recording'){mr.stop();return}
-  try{const st=await navigator.mediaDevices.getUserMedia({audio:true});const mime=MediaRecorder.isTypeSupported('audio/mp4')?'audio/mp4':(MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'');mr=new MediaRecorder(st,mime?{mimeType:mime}:{});chunks=[];t0=Date.now();recCard=id;
+// one recorder for both: the round button (memo or phrase) and "Record a note" on a card. While it runs, a bar at the
+// bottom shows the time with ✕ discard and ✓ send (nothing leaves the phone before ✓); the round button also sends.
+let recDiscard=false,recTimer=null;
+async function startRec(cardId){
+  if(mr&&mr.state==='recording')return;
+  try{const st=await navigator.mediaDevices.getUserMedia({audio:true});const mime=MediaRecorder.isTypeSupported('audio/mp4')?'audio/mp4':(MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'');mr=new MediaRecorder(st,mime?{mimeType:mime}:{});chunks=[];t0=Date.now();recCard=cardId||null;recDiscard=false;
     mr.ondataavailable=e=>chunks.push(e.data);
-    mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());const b=document.getElementById('rn-'+id);if(b){b.textContent='● Record a note';b.classList.remove('on')}const cid=recCard;recCard=null;sendMemo(new Blob(chunks,{type:mr.mimeType||'audio/mp4'}),mr.mimeType||'audio/mp4',Math.round((Date.now()-t0)/1000),cid)};
-    mr.start();const b=document.getElementById('rn-'+id);if(b){b.textContent='■ Stop';b.classList.add('on')}toast('recording your note … press Stop when done',60000)}catch(e){toast('microphone not available: '+(e.name||e))}
+    mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());clearInterval(recTimer);$('#recbar').hidden=true;$('#rec').classList.remove('on');const b=recCard&&document.getElementById('rn-'+recCard);if(b){b.textContent='● Record a note';b.classList.remove('on')}
+      const cid=recCard,sec=Math.round((Date.now()-t0)/1000);recCard=null;
+      if(recDiscard||sec<1){toast('recording discarded');return}
+      sendMemo(new Blob(chunks,{type:mr.mimeType||'audio/mp4'}),mr.mimeType||'audio/mp4',sec,cid)};
+    mr.start();$('#rec').classList.add('on');const b=cardId&&document.getElementById('rn-'+cardId);if(b){b.textContent='■ recording';b.classList.add('on')}
+    $('#recwhat').textContent=cardId?'note for this post':'memo or phrase for a post';$('#rectime').textContent='0:00';$('#recbar').hidden=false;
+    recTimer=setInterval(()=>{const s=Math.round((Date.now()-t0)/1000);$('#rectime').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')},500);
+  }catch(e){toast('microphone not available: '+(e.name||e))}
 }
+function stopRec(send){if(!(mr&&mr.state==='recording'))return;recDiscard=!send;mr.stop()}
+async function recNote(id){if(mr&&mr.state==='recording'){stopRec(true);return}startRec(id)}
+$('#rec').onclick=()=>{if(mr&&mr.state==='recording'){stopRec(true);return}startRec(null)};
 async function sendMemo(blob,mime,seconds,cardId){const fd=new FormData();fd.append('a','memo');fd.append('audio',blob,'memo');fd.append('mime',mime);fd.append('seconds',String(seconds));if(cardId)fd.append('card_id',cardId);toast(cardId?'sending your note …':'saving memo …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={}}toast(r.ok?(cardId?'note sent · the post is updated in about a minute':'memo saved · becomes a post or a phrase on the Mac'):'recording failed',4000);if(cardId)watchUntil=Date.now()+240000;load();return r}
-$('#rec').onclick=async()=>{
-  if(mr&&mr.state==='recording'){mr.stop();return}
-  try{const st=await navigator.mediaDevices.getUserMedia({audio:true});const mime=MediaRecorder.isTypeSupported('audio/mp4')?'audio/mp4':(MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'');mr=new MediaRecorder(st,mime?{mimeType:mime}:{});chunks=[];t0=Date.now();
-    mr.ondataavailable=e=>chunks.push(e.data);
-    mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());$('#rec').classList.remove('on');sendMemo(new Blob(chunks,{type:mr.mimeType||'audio/mp4'}),mr.mimeType||'audio/mp4',Math.round((Date.now()-t0)/1000))};
-    mr.start();$('#rec').classList.add('on');toast('recording … press again to stop')}catch(e){toast('microphone not available: '+(e.name||e))}
-};
 load(); setInterval(load,60000);
 setInterval(()=>{if(document.activeElement&&document.activeElement.isContentEditable)return; if(S&&(Date.now()<watchUntil||S.cards.some(c=>(c.status==='change'&&!c.failed)||c.image_pending||c.note_pending)))load()},5000);
 </script>
