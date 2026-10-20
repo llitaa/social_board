@@ -22,3 +22,6 @@ library/log/.applied.json
 library/sources/
 config.local.linkedin.json
 config.local.linkedin-org.json
+library/log/*.err
+library/log/*.out
+library/log/steps.jsonl
