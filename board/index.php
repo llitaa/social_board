@@ -102,6 +102,7 @@ html,body{overflow-x:hidden}.q{min-width:0;overflow-wrap:anywhere}
 button,.b,.sm,label.b{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .rec.on{background:#d33;animation:p 1s infinite}
 .recbar{position:fixed;left:14px;right:86px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:6;display:flex;align-items:center;gap:10px;background:#111;color:#fff;border-radius:999px;padding:8px 10px 8px 16px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.recbar[hidden]{display:none}
 .recbar .dot{width:10px;height:10px;border-radius:50%;background:#e33;animation:p 1s infinite;flex:0 0 auto}
 .recbar .t{margin-left:auto;font-variant-numeric:tabular-nums;color:#ccc}
 .recbar button{width:38px;height:38px;border-radius:50%;border:0;font-size:18px;cursor:pointer;flex:0 0 auto}

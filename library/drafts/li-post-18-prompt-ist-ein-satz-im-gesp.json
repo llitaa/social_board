@@ -10,14 +10,20 @@
  ],
  "model": "written in session 20.10. from Anton's thought",
  "created": "2026-10-20T18:34:37",
- "versions": [],
+ "versions": [
+  {
+   "v": 1,
+   "note": "Okay, also hier Korrektur eine Aufgabe in einem Saat zu übergeben oder im Prinzip eine Dokumentation einem neuen Mitarbeitenden zu geben würde nicht reichen.",
+   "ts": "2026-10-20T20:07:09"
+  }
+ ],
  "graphic": null,
  "card": {
-  "kicker": "KI im Team",
+  "kicker": "Agents führen",
   "headline": "Ein Prompt ist nur ein Satz in einem Gespräch."
  },
  "signals": {
-  "lead": "Als technischer Koordinator eines Teams von sechs Entwicklern habe ich niemandem eine Aufgabe in einem Satz übergeben",
+  "lead": "Als technischer Koordinator eines Teams von sechs Entwicklern habe ich gelernt: Eine Aufgabe in einem Satz zu übergeben reicht nicht.",
   "ai": "Ich arbeite täglich mit Coding-Agents in einer grossen Legacy-C++-Codebasis."
  }
 }
