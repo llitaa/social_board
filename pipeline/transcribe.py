@@ -46,5 +46,9 @@ def main():
     with open(INDEX, "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=FIELDS); w.writeheader(); w.writerows(out)
     log(f"memos transcribed: {n}")
+    if n:   # ideas become thought topics in the same run, not at the next full run
+        try:
+            import draft; draft.file_phrases()
+        except Exception as e: log("filing phrases failed:", repr(e)[:200])
 
 if __name__ == "__main__": main()
