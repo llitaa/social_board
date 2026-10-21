@@ -37,3 +37,6 @@ A small AWS instance (t3.small, ≈ 17 € a month) runs everything in the table
 `claude login` from that box (device flow), otherwise use the API key (≈ 6–8 $ a month at today's volume). It buys nothing
 over a PC at home except uptime; the board does not need uptime, presses wait on the server. A PC at home is the cheaper
 answer; the AWS box is not needed and can go.
+
+## What the Mac is not needed for (21.10.)
+Publishing at the slot is done by the host (`server/publish.php`, see linkedin-setup.md step 7). The Mac drafts, redrafts, transcribes, learns and folds results; if it is off, posts still go out, drafts and notes wait.

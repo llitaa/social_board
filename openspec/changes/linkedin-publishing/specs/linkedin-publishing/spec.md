@@ -55,3 +55,14 @@ The publishing component SHALL perform no action on LinkedIn other than creating
 #### Scenario: Scope audit
 - **WHEN** the granted scopes are listed
 - **THEN** only posting scopes are present; no read, comment, like or message scope
+
+### Requirement: Publishing does not depend on the Mac
+Approved cards SHALL be published by the always-on host at their slot: `server/publish.php` in `~/board-worker` (outside the web root) reads the board's cards and overlay, posts text and image through the LinkedIn Posts API, writes the result into the overlay (posted + URL, or publish_error) and a `posted` decision the Mac folds into the CSVs. It runs from a 5-minute cron in hPanel and whenever the board page or the Mac calls `api.php?a=tick` (at most once a minute, locked). The Mac's `publish.py` only publishes with `--force`. The LinkedIn-Version header is computed (two months back) so it never ages out. A due post not published 30 minutes after its slot is a board issue. A hung sync on the Mac is killed after 25 minutes.
+
+#### Scenario: Mac asleep at 07:30
+- **WHEN** a personal post is approved for 07:30 and the Mac is closed
+- **THEN** the cron posts it by 07:35, the card shows "posted by the server" with the link, and the Mac records it in posts-log.csv when it wakes
+
+#### Scenario: LinkedIn rejects the call
+- **WHEN** the API answers an error
+- **THEN** the card shows "publishing failed: …", the attempt is retried every 5 minutes, and nothing is posted twice (published.json)

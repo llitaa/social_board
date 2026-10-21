@@ -111,3 +111,17 @@ The token expires. The board shows a red line "LinkedIn token · expires in n da
 ## What the system never does
 
 Only posts what you approved, on your profile (and the page once step 6 is done). No reading of other people's content through the API, no comments, no messages. Token and secret stay in the local file; the board, the repo and the docs never show them.
+
+## Step 7 · Publishing runs on the server (since 21.10.2026)
+
+The host posts approved cards at their slot by itself; the Mac is no longer needed for publishing. The worker lives in
+`~/board-worker/` on Hostinger (outside public_html): `publish.php`, `linkedin.json` (token, pushed by the Mac on every
+full run), `published.json`, `publish.log`. It runs when the board page or the Mac calls `api.php?a=tick` (once a minute)
+and from a cron job that you add once in hPanel:
+
+1. hPanel → Websites → alpitype.de → Advanced → **Cron Jobs**.
+2. Type: Custom. Command: `php /home/u473784875/board-worker/publish.php` · every 5 minutes (`*/5 * * * *`).
+3. Save. From then on a post goes out within 5 minutes of its slot even when the Mac is off.
+
+Check by hand: `ssh hostinger-alpitype 'php ~/board-worker/publish.php --dry'` lists what is due; `tail ~/board-worker/publish.log`.
+A failed attempt shows on the card as "publishing failed: …" and is retried every 5 minutes.
