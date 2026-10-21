@@ -344,7 +344,7 @@ async function decide(id,dec,reason){
   const r=await post(o);
   toast(r.ok?({post:isAuto(c)?'posting …':'approved · post it yourself',schedule:'scheduled',change:'noted · updating …',skip:'dropped',unschedule:'back to decide',photo_next:'changing the photo …'}[dec]):'error');
   if(dec==='change'||dec==='photo_next'||dec==='post') watchUntil=Date.now()+240000;
-  load();
+  if(dec==='post'){setTimeout(tick,3000);setTimeout(tick,20000)}load();
 }
 function skipPost(id){$('#r-'+id).classList.toggle('on')}
 async function uploadFor(id,inp){const fd=new FormData();fd.append('a','upload');fd.append('card_id',id);for(const f of inp.files)fd.append('photos[]',f,f.name||'photo.jpg');toast('uploading …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={failed:[e.message||'network error']}}toast(r.ok?'uploaded · the picture changes in about 20 s':'upload failed: '+((r.failed||[])[0]||'no file arrived'),r.ok?4000:12000);watchUntil=Date.now()+240000;load()}
@@ -423,7 +423,8 @@ function stopRec(send){if(!(mr&&mr.state==='recording'))return;recDiscard=!send;
 async function recNote(id){if(mr&&mr.state==='recording'){stopRec(true);return}startRec(id)}
 $('#rec').onclick=()=>{if(mr&&mr.state==='recording'){stopRec(true);return}startRec(null)};
 async function sendMemo(blob,mime,seconds,cardId){const fd=new FormData();fd.append('a','memo');fd.append('audio',blob,'memo');fd.append('mime',mime);fd.append('seconds',String(seconds));if(cardId)fd.append('card_id',cardId);toast(cardId?'sending your note …':'saving memo …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={}}toast(r.ok?(cardId?'note sent · the post is updated in about a minute':'memo saved · becomes a post or a phrase on the Mac'):'recording failed',4000);if(cardId)watchUntil=Date.now()+240000;load();return r}
-load(); setInterval(load,60000);
+async function tick(){try{const r=await (await fetch(api+'?a=tick&_='+Date.now())).json();if((r.published||[]).length){toast('posted');load()}}catch(e){}}
+load(); setInterval(load,60000); setInterval(tick,60000);
 setInterval(()=>{if(document.activeElement&&document.activeElement.isContentEditable)return; if(S&&(Date.now()<watchUntil||S.cards.some(c=>(c.status==='change'&&!c.failed)||c.image_pending||c.note_pending)))load()},5000);
 </script>
 </body>

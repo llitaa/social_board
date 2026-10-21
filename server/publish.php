@@ -6,6 +6,7 @@
 // the board's data dir (cards.json, overlay.json, img/<id>-final.jpg). Writes: overlay (status posted + url, or publish_error),
 // a decision line the Mac folds into the CSVs, published.json as its own memory, publish.log.
 declare(strict_types=1);
+date_default_timezone_set('Europe/Berlin');   // the host runs UTC; slots are Berlin time (found in the 21.10. review: the cron would have posted two hours late)
 $W = __DIR__; $DATA = getenv('BOARD_DATA') ?: glob($_SERVER['HOME'] . '/domains/alpitype.de/public_html/board/*/data')[0] ?? '';
 $DRY = in_array('--dry', $argv ?? [], true);
 function L(string $m): void { global $W, $DRY; $l = date('Y-m-d H:i:s') . ($DRY ? ' [dry] ' : ' ') . $m; echo $l, "\n"; if (!$DRY) file_put_contents("$W/publish.log", $l . "\n", FILE_APPEND); }
