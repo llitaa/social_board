@@ -1,0 +1,23 @@
+{
+ "id": "li-post-30",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t054",
+ "memo": "",
+ "photo": "img4826",
+ "neighbour_shoots": [
+  "2026-06-05_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-21T09:25:55",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "KI in der Entwicklung",
+  "headline": "Gott sei Dank hat es die KI nicht geschafft."
+ },
+ "signals": {
+  "lead": "Als technischer Leiter eines Teams von sechs Entwicklern habe ich neue Software mit Legacy-Komponenten integriert.",
+  "ai": "Jedes Ergebnis lese und prüfe ich, bevor es in den Build geht."
+ }
+}

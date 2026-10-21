@@ -1,0 +1,15 @@
+Gott sei Dank hat es die KI nicht geschafft.
+
+Ein Bekannter arbeitet in einem Grossunternehmen. Dort lief ein Experiment: möglichst viele Tokens einsetzen, um eine Lösung zu generieren, an der mehrere Dutzend Leute seit fünf Jahren entwickeln. Ergebnis: Die KI hat es nicht geschafft.
+
+Ich finde das gut. Nicht aus Angst um Arbeitsplätze, sondern wegen der Frage, die danach gekommen wäre: Wer prüft das? Fünf Jahre Entscheidungen und Sonderfälle, generiert in wenigen Tagen. Die Maschine generiert schneller, als der Mensch prüfen kann.
+
+Ich arbeite täglich mit Coding-Agents in einer grossen Legacy-C++-Codebasis. Sie tragen gut bei klar abgegrenzten Aufgaben: eine Datenbankabfrage umbauen, einen Pfad analysieren, Tests vorschlagen. Jedes Ergebnis lese und prüfe ich, bevor es in den Build geht. Bei einem ganzen System gibt es diesen Prüfpunkt nicht mehr.
+
+Als technischer Leiter eines Teams von sechs Entwicklern habe ich neue Software mit Legacy-Komponenten integriert. Die schwierigen Wochen waren nicht die, in denen Code entstand. Es waren die, in denen wir klärten, was das alte System eigentlich tut und welches Verhalten bleiben muss. Dieses Wissen steckt im Team, nicht im Repository.
+
+Ein gescheitertes Experiment zeigt, wo die Grenze liegt. Ein scheinbar gelungenes hätte sie versteckt.
+
+Wer würde in Ihrem Haus ein generiertes System abnehmen, an dem Ihr Team fünf Jahre gearbeitet hat?
+
+#KIEntwicklung #SoftwareArchitektur #7030

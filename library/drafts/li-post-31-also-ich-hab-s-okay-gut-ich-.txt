@@ -1,0 +1,15 @@
+Ich spreche eine Idee ein, und das System schreibt daraus den Entwurf.
+
+Ein Gedanke nach einem Gespräch oder etwas, das ein Kollege erzählt hat: Früher blieb so etwas als Notiz im Telefon liegen. Heute nehme ich eine Sprachnachricht auf. Ein Agent transkribiert sie, baut einen Entwurf und legt ihn mir zur Freigabe vor.
+
+Die Regeln dafür habe ich selbst festgelegt, bevor die erste Zeile generiert wurde: keine Kundennamen, keine Zahl, die nicht aus meinen eigenen Fakten stammt, kein Post ohne meine Freigabe. Ohne diese Grenzen erfindet ein Agent gern eine plausible Zahl, und sie klingt genauso überzeugend wie eine echte.
+
+Das ist dieselbe Arbeitsteilung, die ich aus der regulierten Entwicklung kenne. In der Medizintechnik ging kein Arbeitsergebnis ohne Prüfung gegen das Qualitätssystem hinaus. Nicht, weil die Entwickler schlecht waren, sondern weil Schnelligkeit kein Nachweis ist.
+
+Die Maschine generiert schneller, als der Mensch prüfen kann. Deshalb liegt der Wert nicht im Entwurf, sondern in den Grenzen, die vorher stehen, und in der einen Stelle, an der ein Mensch entscheidet.
+
+Die Idee kostet mich jetzt eine Minute. Die Verantwortung für das, was erscheint, bleibt vollständig bei mir.
+
+Wo in Ihrem Team liegt die Stelle, an der ein Mensch freigibt, was der Agent erzeugt hat?
+
+#KIinDerPraxis #TechnicalLeadership #7030
