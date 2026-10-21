@@ -25,3 +25,6 @@ config.local.linkedin-org.json
 library/log/*.err
 library/log/*.out
 library/log/steps.jsonl
+
+# spoken memo transcripts stay local (the repo is public until Anton sets it private)
+library/memos/*.txt
