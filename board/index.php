@@ -181,7 +181,7 @@ button,.b,.sm,label.b{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 <div class="toast" id="toast"></div>
 <script>
 const $=s=>document.querySelector(s), api='api.php';
-let S=null, tab='post', expanded={}, showUsed=false, showAllUp=false, showAllPub=false;
+let S=null, openCard=null, tab='post', expanded={}, showUsed=false, showAllUp=false, showAllPub=false;
 let toastT=null;const toast=(m,ms=1800)=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),ms)};
 const post=async(o)=>{const r=await fetch(api,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(o)});return r.json()};
 const fmtSlot=s=>{const d=new Date(s);return d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'})+' · '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})};
@@ -196,6 +196,7 @@ function keepState(fn){const sh=document.querySelector('.sheet');const top=sh?sh
 function showTab(n){tab=n;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===n));['post','comments','photos'].forEach(t=>$('#'+t).hidden=t!==tab);history.replaceState(null,'','#'+n)}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
 if(['post','comments','photos'].includes(location.hash.slice(1))) showTab(location.hash.slice(1));
+if(location.hash.startsWith('#post/')) openCard=location.hash.slice(6);   // deep link to one post: #post/li-post-14
 const byHand=c=>c.status==='approved'&&new Date(c.slot)<new Date(S.now)&&!isAuto(c);   // approved, due, channel not connected: Anton posts it himself
 const needs=c=>c.status==='draft'||(c.status==='change'&&c.failed)||byHand(c);
 function render(){keepState(renderAll)}
@@ -261,7 +262,6 @@ function systemHtml(){
   const pend=(S.memos||[]).length+S.cards.filter(c=>c.note_pending||(c.status==='change'&&!c.failed)).length;const bn=pend?`<div class="q" style="margin:0 0 8px;font-size:12px">${pend} note${pend>1?"s":""} pending</div>`:"";
   return bn+issues.map(i=>`<div class="sys"><b>${esc(i.what)}${i.what.startsWith('one post')?'':' needs a fix'}${i.times>1?' · '+i.times+' times':''}</b>${esc(i.log||'')}<code>${esc(i.fix||'')}</code></div>`).join('');
 }
-let openCard=null;
 const DOT={draft:'#e8a000',change:'#e8a000',approved:'#1a9c4a',scheduled:'#0a66c2',posted:'#999',skipped:'#999'};
 function itemHtml(c){const locked=c.status==='scheduled';const txt=c.text.replace(/\s*#\w+/g,'').trim();
   return `<div class="item ${locked?'locked':''} ${c.channel==='company'?'co':''}" data-id="${c.id}" data-ch="${c.channel}">${c.image?`<img src="${esc(c.image.url)}" loading="lazy" draggable="false">`:'<div class="noimg"></div>'}<span class="st" style="background:${DOT[c.status]||'#999'}"></span>${locked?'':'<span class="handle" title="drag to reorder">⋮⋮</span>'}<div class="meta"><b>${fmtDay(c.slot)}</b> · ${fmtTime(c.slot)} · ${c.channel==='company'?'company':'personal'}${locked?' · LinkedIn':''}${needs(c)?' · <span style="color:#c77700">decide</span>':''}</div><div class="ex">${esc(txt)}</div></div>`}
