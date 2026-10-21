@@ -51,6 +51,9 @@ def main():
     li = linkedin()
     # (20.10.) a by-hand company post is no issue any more: the company page gets its API soon; the card itself still says "post it by hand"
     for r in plan:
+        if r["status"] == "approved" and r["channel"] == "linkedin" and li["connected"] and (r.get("planned") or "9999")[:16].replace("T", " ") < (datetime.now() - timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M"):
+            issues.append({"what": "post overdue", "since": r.get("planned", ""), "times": 1, "log": f"{os.path.basename(r.get('caption_ref', ''))[:10]} was due {r.get('planned', '')} and is not published", "fix": "check library/log/board-sync.err; run: zsh pipeline/run.sh fast"})
+    for r in plan:
         if r["status"] == "approved" and r.get("notes", "").startswith("[publish failed"): issues.append({"what": "LinkedIn publishing", "since": today.isoformat(), "times": 1, "log": r["notes"][:160], "fix": "post it yourself (Copy text) or run: python3 pipeline/publish.py; token: pipeline/linkedin_auth.py"})
     inv, _ = read_csv(os.path.join(LIB, "inventory.csv")); unused = sum(1 for r in inv if r["status"] == "unused" and r["pillar"] != "company")
     if unused < 4: issues.append({"what": "material", "since": today.isoformat(), "times": 1, "log": f"{unused} unused personal topics left", "fix": "record memos or run inventory.py"})
