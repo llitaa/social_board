@@ -72,7 +72,7 @@ if (($_SERVER['CONTENT_TYPE'] ?? '') === 'application/json') { $body = json_deco
 
 switch ($a) {
   case 'tick': // run the server-side publisher (server/publish.php lives outside public_html in ~/board-worker); at most once a minute
-    $wf = $_SERVER['HOME'] . '/board-worker/publish.php'; $tf = "$D/.tick";
+    $home = $_SERVER['HOME'] ?? (getenv('HOME') ?: dirname(__DIR__, 5)); $wf = "$home/board-worker/publish.php"; $tf = "$D/.tick";   // web PHP has no HOME: public_html/board/<token> is five levels below it
     if (!is_file($wf)) out(['ok' => false, 'error' => 'no worker on the server']);
     if (is_file($tf) && filemtime($tf) > time() - 55) out(['ok' => true, 'skipped' => 'ran less than a minute ago']);
     touch($tf); putenv("BOARD_DATA=$D"); $argv = []; require_once $wf; out(['ok' => true] + run());
