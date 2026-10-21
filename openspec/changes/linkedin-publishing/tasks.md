@@ -16,3 +16,4 @@
 - [ ] 4.1 Fri 06.11.: one approved test card publishes at its slot with no click; URL in posts-log.csv
 - [x] Server-side publisher + tick + cron doc + computed API version + Mac watchdog (21.10., after the 07:30 post was missed)
 - [ ] Anton adds the hPanel cron job (step 7)
+- [x] Review 21.10.: 21 findings fixed (docs/robustness.md); open: token renewal is manual, repo still public

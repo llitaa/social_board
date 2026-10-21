@@ -66,3 +66,11 @@ Approved cards SHALL be published by the always-on host at their slot: `server/p
 #### Scenario: LinkedIn rejects the call
 - **WHEN** the API answers an error
 - **THEN** the card shows "publishing failed: …", the attempt is retried every 5 minutes, and nothing is posted twice (published.json)
+
+#### Scenario: Lost answer, permanent error
+- **WHEN** LinkedIn creates the post but the answer never arrives, or answers the same error five times
+- **THEN** no second post is made within 10 minutes of the attempt, and after five failures the card says "needs you" and the host stops retrying
+
+#### Scenario: Pending change
+- **WHEN** a voice note or an image change is still being applied by the Mac
+- **THEN** the host waits, but never longer than 10 minutes; an approved card with a past slot stays on the board until it is out
