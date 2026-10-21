@@ -32,9 +32,21 @@ def run(mode):
         log(f"{datetime.now():%H:%M:%S} {mode} run KILLED after {LIMIT}s, lock freed")
     log(f"{datetime.now():%H:%M:%S} {mode} run rc={rc} in {time.time() - t:.0f}s")
 
+TICK = URL.replace("a=ping", "a=tick"); last_tick = 0
+def tick():
+    """Ask the server to publish what is due (server/publish.php). Independent of the Mac's chain; the hPanel cron does the same every 5 min."""
+    global last_tick
+    if time.time() - last_tick < 60: return
+    last_tick = time.time()
+    try:
+        with urllib.request.urlopen(TICK, timeout=90) as r: d = json.load(r)
+        if d.get("published") or d.get("failed"): log("server tick:", d)
+    except Exception as e: log("tick failed:", str(e)[:120])
+
 def main():
     last = None; last_full = 0
     while True:
+        tick()
         try: s = stamp()
         except Exception as e: log("ping failed:", str(e)[:120]); time.sleep(30); continue
         if last is None: last = s                       # first stamp: the full run below handles whatever is there

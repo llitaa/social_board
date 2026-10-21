@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from common import CFG, ROOT, read_csv, write_csv, log
 
 ORG_FILE = os.path.join(ROOT, "config.local.linkedin-org.json")
-API, VERSION = "https://api.linkedin.com/rest", "202609"
+API = "https://api.linkedin.com/rest"; VERSION = (datetime.now().replace(day=1) - timedelta(days=40)).strftime("%Y%m")
 METRICS = {"impressions": "IMPRESSION", "reactions": "REACTION", "comments": "COMMENT"}
 
 def creds():

@@ -36,3 +36,4 @@ step publish     $P pipeline/publish.py
 step cards       $P pipeline/cards.py
 step health      $P pipeline/health.py
 step push        $P pipeline/board_sync.py push
+[ "$MODE" = full ] && step worker $P pipeline/board_sync.py worker

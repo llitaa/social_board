@@ -214,6 +214,8 @@ function statusPill(c){
   if(c.status==='change') return c.failed?`<span class="pill warn">update failed · decide again</span>`:`<span class="pill warn">being updated · about a minute</span>`;
   if(c.status==='scheduled') return `<span class="pill li">scheduled by you in the LinkedIn app · ${fmtSlot(c.slot)}</span>`;
   if(c.status==='approved') return past?(auto?`<span class="pill ok">posting now …</span>`:`<span class="pill todo">waits for you: post it by hand</span> <span class="pill warn">${c.channel==='company'?'company page':'profile'} not connected to the API</span>`):auto?`<span class="pill ok">scheduled · posts itself ${fmtSlot(c.slot)}</span>`:`<span class="pill ok">scheduled ${fmtSlot(c.slot)}</span> <span class="pill warn">${c.channel==='company'?'company page not connected: you post it then':'LinkedIn not connected: you post it then'}</span>`;
+  if(c.publish_error) return `<span class="pill warn">publishing failed: ${esc(c.publish_error.slice(0,80))}</span> `+(c.status==='approved'?`<span class="pill ok">retried every 5 minutes</span>`:'');
+  if(c.status==='posted'&&c.url) return `<span class="pill ok">posted by the server</span> <a class="pill" href="${esc(c.url)}" target="_blank">open</a>`;
   if(c.status==='draft') return (c.updated?`<span class="pill ok">updated per your note</span> `:'')+(c.image_pending?`<span class="pill warn">image being changed · about 20 s</span> `:'')+(c.note_pending?`<span class="pill warn">voice note on its way · about a minute</span> `:'')+`<span class="pill todo">to decide</span>`;
   return `<span class="pill">${esc(STATUS[c.status]||c.status)}</span>`;
 }

@@ -27,6 +27,8 @@ slots:                    # weekday -> channel and time; the pipeline keeps ever
   personal: {days: [Mon, Wed, Fri], time: "07:30", lang: de}
   company:  {days: [Thu], time: "09:00", lang: en}
 horizon_days: 14
+publish:
+  where: server           # server = the host posts approved cards at their slot (server/publish.php, hPanel cron + ticks); mac = pipeline/publish.py posts from here
 orthography: ch           # personal posts: Swiss standard German, ss instead of ß (target market since 20.10.2026; de = keep ß)
 personal_card:
   style: bottom           # off = plain pool photo; bottom = full photo, headline alone at the foot (Anton 20.10.); band | light | overlay = older variants (pipeline/templates/personal-card.html)

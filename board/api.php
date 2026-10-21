@@ -71,6 +71,12 @@ $body = [];
 if (($_SERVER['CONTENT_TYPE'] ?? '') === 'application/json') { $body = json_decode((string)file_get_contents('php://input'), true) ?? []; $a = $body['a'] ?? $a; }
 
 switch ($a) {
+  case 'tick': // run the server-side publisher (server/publish.php lives outside public_html in ~/board-worker); at most once a minute
+    $wf = $_SERVER['HOME'] . '/board-worker/publish.php'; $tf = "$D/.tick";
+    if (!is_file($wf)) out(['ok' => false, 'error' => 'no worker on the server']);
+    if (is_file($tf) && filemtime($tf) > time() - 55) out(['ok' => true, 'skipped' => 'ran less than a minute ago']);
+    touch($tf); putenv("BOARD_DATA=$D"); $argv = []; require_once $wf; out(['ok' => true] + run());
+
   case 'ping': // cheap change stamp: the worker polls this every few seconds and runs the chain when it moves
     $st = 0;
     foreach (array_merge(glob("$D/decisions/*.jsonl"), glob("$D/uploads/photos/*"), glob("$D/uploads/memos/*")) as $f) $st = max($st, filemtime($f) * 1000 + (filesize($f) % 1000));

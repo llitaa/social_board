@@ -4,11 +4,11 @@ Only status approved, only at or after the slot, only once; the post URL goes in
 becomes posted. Company cards need the organisation scope; until granted they stay on the board with Copy text.
 Dry run: python3 pipeline/publish.py --dry   (shows what would go out, publishes nothing)."""
 import json, os, re, sys, urllib.request
-from datetime import datetime
+from datetime import datetime, timedelta
 from common import CFG, ROOT, read_csv, write_csv, resolve, log
 
 CFG_FILE = os.path.join(ROOT, "config.local.linkedin.json"); ORG_FILE = os.path.join(ROOT, "config.local.linkedin-org.json")
-API = "https://api.linkedin.com/rest"; VERSION = "202609"   # LinkedIn keeps a version about a year; 202509 answered 426 on 21.10.2026
+API = "https://api.linkedin.com/rest"; VERSION = (datetime.now().replace(day=1) - timedelta(days=40)).strftime("%Y%m")   # two months back: always inside LinkedIn's ~12-month window (202509 answered 426 on 21.10.2026)
 
 def creds(org=False):
     f = ORG_FILE if org else CFG_FILE
@@ -49,6 +49,8 @@ def publish(row, dry=False):
 
 def main():
     dry = "--dry" in sys.argv; now = datetime.now()
+    if CFG.get("publish", {}).get("where", "server") == "server" and not dry and "--force" not in sys.argv:
+        log("publishing is done by the server (server/publish.php); the Mac only folds results. --force publishes from here"); return
     plan, pf = read_csv(CFG["content_plan"]); plog, lf = read_csv(CFG["posts_log"]); n = 0
     for r in plan:
         if r["status"] != "approved" or not r["channel"].startswith("linkedin"): continue
