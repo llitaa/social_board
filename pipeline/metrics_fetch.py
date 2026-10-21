@@ -17,7 +17,7 @@ METRICS = {"impressions": "IMPRESSION", "reactions": "REACTION", "comments": "CO
 def creds():
     try: c = json.load(open(ORG_FILE))
     except (FileNotFoundError, json.JSONDecodeError): return None
-    return c if c.get("access_token") and "r_member_postAnalytics" in c.get("scope", "") else None
+    return c if c.get("access_token") and "r_member_postAnalytics" in str(c.get("scopes", c.get("scope", ""))) else None
 
 def get(url, token):
     req = urllib.request.Request(url, headers={"Authorization": "Bearer " + token, "LinkedIn-Version": VERSION, "X-Restli-Protocol-Version": "2.0.0"})
