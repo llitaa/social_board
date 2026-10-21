@@ -9,9 +9,11 @@ from common import CFG, BOARD_LOCAL, remote_dir, log
 
 ALIAS = CFG["board"]["ssh_alias"]; R = remote_dir()
 
-def rsync(args):
-    cmd = ["rsync", "-az", "--timeout=60"] + args
-    r = subprocess.run(cmd, capture_output=True, text=True)
+SSH = "ssh -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o BatchMode=yes"   # a dead connection ends in a minute, never hangs (21.10.: a pull hung 4.5 h)
+def rsync(args, must=True):
+    cmd = ["rsync", "-az", "--timeout=60", "-e", SSH] + args
+    try: r = subprocess.run(cmd, capture_output=True, text=True, timeout=240)
+    except subprocess.TimeoutExpired: log("rsync timed out:", " ".join(cmd)); sys.exit(1) if must else None; return
     if r.returncode: log("rsync failed:", " ".join(cmd), r.stderr.strip()); sys.exit(1)
 
 def push():
@@ -30,9 +32,9 @@ def pull():
         os.makedirs(os.path.join(BOARD_LOCAL, d), exist_ok=True)
         rsync(["--remove-source-files", f"{ALIAS}:{R}/data/{d}/", os.path.join(BOARD_LOCAL, d) + "/"])
     # macOS ships openrsync without --ignore-missing-args (19.10.: that flag silently skipped these three files for two days); a missing file is simply ignored
-    subprocess.run(["rsync", "-az", f"{ALIAS}:{R}/data/uploads/photo-notes.json", os.path.join(BOARD_LOCAL, "uploads") + "/"], capture_output=True)
-    for item in ("settings.json", "overlay.json"):
-        subprocess.run(["rsync", "-az", f"{ALIAS}:{R}/data/{item}", BOARD_LOCAL + "/"], capture_output=True)
+    for src, dst in ((f"{R}/data/uploads/photo-notes.json", os.path.join(BOARD_LOCAL, "uploads") + "/"), (f"{R}/data/settings.json", BOARD_LOCAL + "/"), (f"{R}/data/overlay.json", BOARD_LOCAL + "/")):
+        try: subprocess.run(["rsync", "-az", "--timeout=60", "-e", SSH, f"{ALIAS}:{src}", dst], capture_output=True, timeout=120)
+        except subprocess.TimeoutExpired: log("rsync timed out:", src)
 
 def deploy():
     """Code only: index.php, api.php, .htaccess, icon."""

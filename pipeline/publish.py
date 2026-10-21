@@ -8,7 +8,7 @@ from datetime import datetime
 from common import CFG, ROOT, read_csv, write_csv, resolve, log
 
 CFG_FILE = os.path.join(ROOT, "config.local.linkedin.json"); ORG_FILE = os.path.join(ROOT, "config.local.linkedin-org.json")
-API = "https://api.linkedin.com/rest"; VERSION = "202509"
+API = "https://api.linkedin.com/rest"; VERSION = "202609"   # LinkedIn keeps a version about a year; 202509 answered 426 on 21.10.2026
 
 def creds(org=False):
     f = ORG_FILE if org else CFG_FILE

@@ -19,9 +19,18 @@ def slot_due():
     now = datetime.now().isoformat(timespec="minutes")
     return any(c.get("status") == "approved" and c.get("slot", "9999") <= now for c in jload(os.path.join(BOARD_LOCAL, "cards.json"), []))
 
+LIMIT = 1500   # a run that is still going after 25 minutes is stuck (a hung ssh, a stuck model call): kill it and free the lock
+
 def run(mode):
-    t = time.time(); r = subprocess.run(["/bin/zsh", RUN, mode])
-    log(f"{datetime.now():%H:%M:%S} {mode} run rc={r.returncode} in {time.time() - t:.0f}s")
+    import signal
+    t = time.time(); p = subprocess.Popen(["/bin/zsh", RUN, mode], start_new_session=True)
+    try: rc = p.wait(timeout=LIMIT)
+    except subprocess.TimeoutExpired:
+        os.killpg(os.getpgid(p.pid), signal.SIGKILL); rc = -9
+        lock = os.path.join(os.path.dirname(RUN), "..", "library", "log", ".run.lock")
+        if os.path.isdir(lock): os.rmdir(lock)
+        log(f"{datetime.now():%H:%M:%S} {mode} run KILLED after {LIMIT}s, lock freed")
+    log(f"{datetime.now():%H:%M:%S} {mode} run rc={rc} in {time.time() - t:.0f}s")
 
 def main():
     last = None; last_full = 0
