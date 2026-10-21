@@ -59,13 +59,19 @@ def main():
             [("local/" + os.path.basename(f), f) for f in sorted(glob.glob(os.path.join(BOARD_LOCAL, "decisions-local", "*.jsonl")))]   # voice notes transcribed on the Mac
     for key, f in files:
         lines = open(f, encoding="utf-8").read().splitlines()
-        start = done.get(key, 0)
+        start = done.get(key, 0); ok_upto = start
         for ln in lines[start:]:
             try: d = json.loads(ln)
-            except json.JSONDecodeError: continue
-            t = d.get("type"); last_ts = max(last_ts, d.get("ts", ""))
+            except json.JSONDecodeError: break   # a half-written last line: stop here, read it again next run
+            ok_upto += 1
+            t = d.get("type")
+            try: last_ts = d["ts"] if not last_ts or datetime.fromisoformat(d.get("ts", "")) > datetime.fromisoformat(last_ts) else last_ts
+            except (ValueError, KeyError): pass
             if t == "post":
                 cid = d["card_id"]; card = cards.get(cid, {})
+                if not card:   # the card left cards.json (aged off, renamed): find the plan row by the same id derivation cards.py uses
+                    for r in plan:
+                        if r.get("caption_ref") and "-".join(os.path.basename(r["caption_ref"]).split("-")[0:3]) == cid: card = {"plan_row": r["id"], "status": r["status"]}; break
                 if d["decision"] == "order":   # the listed cards take their existing slots in the new sequence (rows Anton scheduled in LinkedIn are never moved)
                     ids = [x for x in d.get("order", []) if x in cards and cards[x].get("status") != "scheduled"]
                     byrow = {x: next((r for r in plan if r["id"] == cards[x].get("plan_row")), None) for x in ids}
@@ -88,11 +94,18 @@ def main():
                         if d.get("text") and status in ("approved", "posted") and write_edit(r, d["text"], d["ts"]): r["notes"] = f"[board {d['ts'][:16]} edited on the card] " + r.get("notes", ""); d["edited"] = "yes"
                         changed_plan = True
                 if status == "posted":
+                    hit = False
                     for r in plog:
                         if r["post_id"] == cid:
-                            r["note"] = f"POSTED via board {d['ts'][:10]}. " + r.get("note", "")
+                            r["note"] = f"POSTED via {d.get('via', 'board')} {d['ts'][:10]}. " + r.get("note", "")
                             if d.get("url"): r["link"] = d["url"]
-                            changed_log = True
+                            changed_log = hit = True
+                    if not hit:   # drafts have no posts-log row yet: create it (21.10.: server-published posts were invisible to metrics and featured)
+                        row = next((r for r in plan if r["id"] == card.get("plan_row")), None)
+                        if row:
+                            tp = resolve(row.get("caption_ref", "")); hook = open(tp, encoding="utf-8").readline().strip()[:120] if tp and os.path.isfile(tp) else ""
+                            plog.append({"date": (row.get("planned") or d["ts"])[:10], "channel": row["channel"], "post_id": cid, "hook": hook, "type": row.get("format", ""), "language": row.get("language", ""),
+                                         "link": d.get("url", ""), "note": f"POSTED via {d.get('via', 'board')} {d['ts'][:10]}"}); changed_log = True
                 if card and status: card["status"] = status
                 append(os.path.join(LOGDIR, "post-decisions.csv"), ["ts", "card_id", "decision", "option", "note", "reason", "url", "edited", "when"], d)
             elif t == "comment":
@@ -100,7 +113,7 @@ def main():
             elif t in ("photo", "upload", "memo", "settings", "answer"):
                 append(os.path.join(LOGDIR, "board-events.csv"), ["ts", "type", "id", "decision", "files", "file", "note", "answer", "expiry", "review", "card_id"],
                        {**d, "files": ",".join(d.get("files", []) or [])})
-        done[key] = len(lines)
+        done[key] = ok_upto
     if promote_scheduled(plan, plog): changed_plan = changed_log = True
     if changed_plan: write_csv(CFG["content_plan"], plan, pf); log("content-plan.csv updated")
     if changed_log: write_csv(CFG["posts_log"], plog, lf); log("posts-log.csv updated")

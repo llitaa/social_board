@@ -298,6 +298,8 @@ def main(fast=False):
         elif card: row = next((r for r in read_index() if os.path.basename(r["file"]) == f), None)   # already in the pool
         if card and row: uploaded[card] = row
         if card and not row: log("card upload not usable:", f)
+        if not row and os.path.isfile(os.path.join(up, f)):   # rejected (duplicate, unreadable): out of the inbox, never retried every run
+            os.makedirs(os.path.join(up, "rejected"), exist_ok=True); os.replace(os.path.join(up, f), os.path.join(up, "rejected", f)); log("upload rejected ->", f)
     card_images(uploaded)
     if fast: export_board(); return
     srcs = [CFG.get("legacy_photos")] + [os.path.expanduser(s) for s in CFG.get("photo_sources", [])]

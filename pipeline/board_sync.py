@@ -41,8 +41,13 @@ def push_worker():
     approved cards at their slot by itself (21.10.); the Mac only folds the result into the CSVs."""
     subprocess.run(["ssh"] + SSH.split()[1:] + [ALIAS, "mkdir -p ~/board-worker && chmod 700 ~/board-worker"], capture_output=True, timeout=60)
     files = [os.path.join(ROOT, "server", "publish.php")]
+    import json, tempfile
     for f, name in ((os.path.join(ROOT, "config.local.linkedin.json"), "linkedin.json"), (os.path.join(ROOT, "config.local.linkedin-org.json"), "linkedin-org.json")):
-        if os.path.isfile(f): rsync([f, f"{ALIAS}:~/board-worker/{name}"], must=False)
+        if not os.path.isfile(f): continue
+        c = json.load(open(f)); keep = {k: c[k] for k in ("access_token", "expires", "person_urn", "org_urn", "scopes") if k in c}   # no client secret on the host
+        if not keep.get("access_token"): continue
+        fd, tmp = tempfile.mkstemp(suffix=".json"); os.close(fd); json.dump(keep, open(tmp, "w")); os.chmod(tmp, 0o600)
+        rsync([tmp, f"{ALIAS}:~/board-worker/{name}"], must=False); os.remove(tmp)
     rsync([files[0], f"{ALIAS}:~/board-worker/publish.php"], must=False)
     subprocess.run(["ssh"] + SSH.split()[1:] + [ALIAS, "chmod 600 ~/board-worker/*.json 2>/dev/null; true"], capture_output=True, timeout=60)
 

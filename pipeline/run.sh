@@ -6,6 +6,7 @@
 # health.py turns that into board/data/health.json, and the board shows a red line when something is wrong.
 cd "$(dirname "$0")/.." || exit 1
 LOCK=library/log/.run.lock; STEPS=library/log/steps.jsonl
+if [ -d "$LOCK" ] && [ -z "$(find "$LOCK" -maxdepth 0 -mmin -30)" ] && ! pgrep -f "pipeline/run.sh" | grep -qv $$; then rmdir "$LOCK"; echo "$(date +%H:%M) stale lock removed"; fi   # a crash or reboot must not stop the chain for good
 if ! mkdir "$LOCK" 2>/dev/null; then echo "$(date +%H:%M) another run is active"; exit 0; fi
 trap 'rmdir "$LOCK"' EXIT
 P=${PYTHON:-$( [ -x /opt/anaconda3/bin/python3 ] && echo /opt/anaconda3/bin/python3 || command -v python3 )}   # the worker: any machine with the requirements in docs/worker.md
@@ -37,3 +38,4 @@ step cards       $P pipeline/cards.py
 step health      $P pipeline/health.py
 step push        $P pipeline/board_sync.py push
 [ "$MODE" = full ] && step worker $P pipeline/board_sync.py worker
+exit 0

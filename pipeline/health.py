@@ -7,7 +7,7 @@ from datetime import datetime, date, timedelta
 from common import CFG, LIB, BOARD_LOCAL, read_csv, jdump, jload, log
 
 STEPS = os.path.join(LIB, "log", "steps.jsonl")
-NAMES = {"pull": "server sync (pull)", "apply": "decisions → CSV", "learn": "notes → preferences", "transcribe": "memo transcription", "photos": "photo pool",
+NAMES = {"worker": "token push to the host", "metrics": "metrics import", "metrics_api": "metrics from the API", "pull": "server sync (pull)", "apply": "decisions → CSV", "learn": "notes → preferences", "transcribe": "memo transcription", "photos": "photo pool",
          "redraft": "notes → redraft", "publish": "LinkedIn publishing", "mail": "mailbox watch (read only)", "draft": "slot filling", "cards": "cards + pipeline", "push": "server sync (push)"}
 LI = os.path.join(os.path.dirname(LIB), "config.local.linkedin.json"); LI_ORG = os.path.join(os.path.dirname(LIB), "config.local.linkedin-org.json")
 
@@ -51,7 +51,7 @@ def main():
     li = linkedin()
     # (20.10.) a by-hand company post is no issue any more: the company page gets its API soon; the card itself still says "post it by hand"
     for r in plan:
-        if r["status"] == "approved" and r["channel"] == "linkedin" and li["connected"] and (r.get("planned") or "9999")[:16].replace("T", " ") < (datetime.now() - timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M"):
+        if r["status"] == "approved" and (r["channel"] == "linkedin" or li["org"]) and (r.get("planned") or "9999")[:16].replace("T", " ") < (datetime.now() - timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M"):
             issues.append({"what": "post overdue", "since": r.get("planned", ""), "times": 1, "log": f"{os.path.basename(r.get('caption_ref', ''))[:10]} was due {r.get('planned', '')} and is not published", "fix": "check library/log/board-sync.err; run: zsh pipeline/run.sh fast"})
     for r in plan:
         if r["status"] == "approved" and r.get("notes", "").startswith("[publish failed"): issues.append({"what": "LinkedIn publishing", "since": today.isoformat(), "times": 1, "log": r["notes"][:160], "fix": "post it yourself (Copy text) or run: python3 pipeline/publish.py; token: pipeline/linkedin_auth.py"})
@@ -70,6 +70,7 @@ def main():
     if pipe.get("metrics_missing", 0) >= 3: ok.append(f"numbers missing for {pipe['metrics_missing']} published posts: export from LinkedIn (post > View analytics > Export, page: Analytics > Content > Export) into library/metrics/inbox; the API fills them itself once the Community Management API is granted")
     memos, _ = read_csv(os.path.join(LIB, "memos", "index.csv")); fb = sum(1 for m in memos if m.get("status") == "feedback")
     if fb: ok.append(f"{fb} note{'s' if fb > 1 else ''} for the builder in library/feedback.md")
+    if not li["connected"]: issues.append({"what": "LinkedIn token", "since": today.isoformat(), "times": 1, "log": "no valid token for the profile: nothing can be published", "fix": "run: python3 pipeline/linkedin_auth.py (then the full run pushes it to the host)"})
     if li["connected"] and li["days_left"] < 7: issues.append({"what": "LinkedIn token", "since": today.isoformat(), "times": 1, "log": f"expires in {li['days_left']} days", "fix": "run: python3 pipeline/linkedin_auth.py"})
     rules = [l for l in open(os.path.join(LIB, "style-rules.txt"), encoding="utf-8") if l.strip() and not l.startswith("#")] if os.path.isfile(os.path.join(LIB, "style-rules.txt")) else []
     jdump(os.path.join(BOARD_LOCAL, "health.json"), {"ts": datetime.now().isoformat(timespec="seconds"), "issues": issues, "ok": ok, "month_cost_usd": round(cost, 2), "slots_planned": len(slots), "topics_unused": unused,

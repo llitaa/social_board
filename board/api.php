@@ -45,7 +45,10 @@ function overlay_photos(array $ph): array {
   return $ph;
 }
 function set_overlay(string $kind, string $id, array $patch): void {
-  global $D; $ov = jread("$D/overlay.json", []); $ov[$kind][$id] = array_merge($ov[$kind][$id] ?? [], $patch, ['ts' => date('c')]); jwrite("$D/overlay.json", $ov);
+  global $D; $lk = fopen("$D/.overlay.lock", 'c'); flock($lk, LOCK_EX);   // read-modify-write under one lock (page ticks, cron and taps run at the same time)
+  $ov = jread("$D/overlay.json", []); $cur = $ov[$kind][$id] ?? [];
+  if ($kind === 'cards' && isset($patch['status'])) unset($cur['image_pending'], $cur['note_pending'], $cur['publish_error']);   // a new decision ends what was pending
+  $ov[$kind][$id] = array_merge($cur, $patch, ['ts' => date('c')]); jwrite("$D/overlay.json", $ov); flock($lk, LOCK_UN); fclose($lk);
 }
 function today_queue(): array {
   global $D; $s = settings(); $today = date('Y-m-d'); $f = "$D/queue/$today.json";
@@ -103,15 +106,19 @@ switch ($a) {
       foreach ($cards as $c) if (in_array($c['id'], $ids, true) && ($c['status'] ?? '') !== 'scheduled') $slots[$c['id']] = $c['slot'];
       $ids = array_values(array_filter($ids, fn($x) => isset($slots[$x]))); $free = array_values($slots); sort($free);
       if (count($ids) < 2) out(['error' => 'nothing to reorder']);
+      $stat = []; foreach ($cards as $c) $stat[$c['id']] = (jread("$D/overlay.json", [])['cards'][$c['id']]['status'] ?? $c['status']);
+      foreach ($ids as $i => $cid) if ($stat[$cid] === 'approved' && $free[$i] < date('Y-m-d\TH:i')) out(['error' => "$cid is approved and would land in a slot that has passed, it would post at once; unschedule it first"]);
       foreach ($ids as $i => $cid) set_overlay('cards', $cid, ['slot' => $free[$i], 'decided' => date('c')]);
       decide(['type'=>'post','card_id'=>$ids[0],'decision'=>'order','order'=>$ids]);
       out(['ok' => true, 'slots' => array_combine($ids, array_slice($free, 0, count($ids)))]);
     }
+    $known = array_column(jread("$D/cards.json", []), 'id'); if (!in_array($id, $known, true)) out(['error' => 'unknown card']);
+    if (isset($body['text']) && strlen((string)$body['text']) > 4000) out(['error' => 'text too long']);
     $status = ['post'=>'approved','schedule'=>'approved','change'=>'change','skip'=>'skipped','posted'=>'posted','unschedule'=>'draft'][$dec] ?? null;
     $patch = ['decided' => date('c')]; if ($status) $patch['status'] = $status;
     if ($dec === 'post') $patch['slot'] = date('Y-m-d\TH:i');
     if ($dec === 'schedule') { $w = preg_replace('/[^0-9T:-]/', '', (string)($body['when'] ?? '')); if (strlen($w) < 16) out(['error' => 'when missing']); $patch['slot'] = substr($w, 0, 16); $body['when'] = $patch['slot']; }
-    if ($dec === 'photo_next') $patch['image_pending'] = true;
+    if ($dec === 'photo_next') $patch['image_pending'] = time();
     foreach (['option','image_id','note','reason','url','text','when'] as $k) if (isset($body[$k]) && $body[$k] !== '') $patch[$k] = $body[$k];
     set_overlay('cards', $id, $patch);   // text: the post as Anton edited it on the card; shown at once, written to the draft by the worker
     decide(['type'=>'post','card_id'=>$id,'decision'=>$dec] + array_intersect_key($patch, array_flip(['option','image_id','note','reason','url','text','when'])));
@@ -153,7 +160,7 @@ switch ($a) {
       }
     }
     $note = trim((string)($_POST['note'] ?? '')); $card = preg_replace('/[^\w-]/', '', (string)($_POST['card_id'] ?? ''));
-    if ($card !== '') { $note = "card:$card"; if ($saved) set_overlay('cards', $card, ['image_pending' => true]); }   // image for one post, not for the pool
+    if ($card !== '') { $note = "card:$card"; if ($saved) set_overlay('cards', $card, ['image_pending' => time()]); }   // image for one post, not for the pool
     if ($note !== '' && $saved) { $notes = jread("$D/uploads/photo-notes.json", []); foreach ($saved as $s) $notes[$s] = $note; jwrite("$D/uploads/photo-notes.json", $notes); }
     if (!$saved && !$failed) $failed[] = 'no file arrived in the request (the browser sent none: pick the photos again, fewer at once)';
     decide(['type'=>'upload','files'=>$saved,'failed'=>$failed,'note'=>$note,'card_id'=>$card]);
@@ -163,10 +170,11 @@ switch ($a) {
     if (empty($_FILES['audio']) || $_FILES['audio']['error'] !== UPLOAD_ERR_OK) out(['error' => 'no audio']);
     $mime = (string)($_POST['mime'] ?? 'audio/mp4'); $ext = str_contains($mime, 'webm') ? 'webm' : (str_contains($mime, 'ogg') ? 'ogg' : 'm4a');
     $name = date('Y-m-d_His') . ".$ext";
-    move_uploaded_file($_FILES['audio']['tmp_name'], "$D/uploads/memos/$name");
     $txt = trim((string)($_POST['text'] ?? '')); if ($txt !== '') file_put_contents("$D/uploads/memos/$name.note.txt", $txt);
     $card = preg_replace('/[^\w-]/', '', (string)($_POST['card_id'] ?? ''));   // a spoken note for one post: the Mac transcribes it and applies it like a typed note
-    if ($card !== '') { file_put_contents("$D/uploads/memos/$name.card.txt", $card); set_overlay('cards', $card, ['note_pending' => true]); }
+    if ($card !== '') file_put_contents("$D/uploads/memos/$name.card.txt", $card);   // sidecars first, audio last: a pull in between never separates them
+    move_uploaded_file($_FILES['audio']['tmp_name'], "$D/uploads/memos/$name");
+    if ($card !== '') { set_overlay('cards', $card, ['note_pending' => time()]); }
     decide(['type'=>'memo','file'=>$name,'seconds'=>(int)($_POST['seconds'] ?? 0),'card_id'=>$card]);
     out(['ok'=>true,'file'=>$name]);
 

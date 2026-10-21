@@ -88,7 +88,7 @@ def main():
     for r in rows:
         if r["channel"] not in SLOT: continue
         w = when(r); st = STATUS.get(r["status"], r["status"])
-        if not w or st in ("posted", "dropped", "skipped") or w.date() < today: continue
+        if not w or st in ("posted", "dropped", "skipped") or (w.date() < today and st != "approved"): continue   # an approved post stays until it is out
         text = text_of(r); cid = card_id(r)
         if not text: log("no text for", cid); continue
         meta = meta_of(r); pm = re.search(r"pillar=([\w-]+)", r.get("notes", ""))

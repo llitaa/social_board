@@ -71,6 +71,8 @@ def next_ids(plan):
     n = {"post": 12, "comp": 12}
     for r in plan:
         for k, v in re.findall(r"li-(post|comp)-(\d+)", r.get("caption_ref", "") + " " + r.get("asset", "")): n[k] = max(n[k], int(v))
+    for f in os.listdir(DRAFTS):   # a deleted plan row must not free its id
+        for k, v in re.findall(r"li-(post|comp)-(\d+)", f): n[k] = max(n[k], int(v))
     return n
 
 def week(d): return d.isocalendar()[:2]
@@ -259,7 +261,10 @@ Answer with one JSON object only: {{"text": "the full post incl. hashtags, newli
     if v:
         d = llm_json("draft", prompt + f"\n\nYour previous answer broke these rules: {v}. Fix them and answer again with the JSON object only.\nPrevious text:\n{text}")
         text = rules_check.fix_orthography(d.get("text", "").strip(), channel); v = rules_check.check(text, channel, d.get("signals"))
-        if v: log("rules fail", dt, channel, v); return None
+        if v:
+            log("rules fail", dt, channel, v)
+            if topic: inv.set_status(topic["id"], "blocked", f"rules: {'; '.join(v)[:80]}"); log("topic blocked:", topic["id"])   # never the same two Opus calls every 10 minutes
+            return None
     if pillar == "thought" and topic and len(topic["angle"]) <= 95 and not re.search(r"\b(the|you|your|will|what|if|is|and|not)\b", topic["angle"], re.I): d["card"] = {"kicker": "", "headline": rules_check.fix_orthography(topic["angle"], "personal").rstrip(".")}
     ids = next_ids(plan); kind = "post" if channel == "personal" else "comp"; num = ids[kind] + 1
     slug = re.sub(r"[^a-z0-9]+", "-", (topic["topic"] if topic else "memo").lower()).strip("-")[:28]
