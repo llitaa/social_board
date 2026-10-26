@@ -9,6 +9,11 @@ L = CFG.get("llm", {})
 MODELS = {"draft": "claude-opus-5-5", "redraft": "claude-opus-5-5", "inventory": "claude-opus-5-5",
           "tags": "claude-haiku-5-5", "comment": "claude-sonnet-5-5", "learn": "claude-sonnet-5-5"} | L.get("models", {})
 CALLS = os.path.join(LIB, "log", "llm-calls.csv")
+DEFERRED = "deferred: model calls are off in the background (config llm.auto: false); run python3 pipeline/process.py in a terminal"
+
+def allowed():
+    """Model calls run only when config llm.auto is true or the chain was started from the terminal (process.py sets LLM_INTERACTIVE=1)."""
+    return bool(L.get("auto", True)) or os.environ.get("LLM_INTERACTIVE") == "1"
 
 def claude_bin():
     """The claude CLI: config llm.claude, else PATH, else the usual install places (launchd/cron have a short PATH)."""
@@ -31,6 +36,7 @@ def _log(step, model, ms, u, cost, ok):
 def llm(step, prompt, system=None, files=False, model=None, timeout=300):
     """Returns the model's text. files=True lets the model Read files named in the prompt (images, documents)."""
     model = model or MODELS.get(step, MODELS["draft"])
+    if not allowed(): raise RuntimeError(DEFERRED)
     if L.get("backend", "claude-p") == "api": return _api(step, prompt, system, model)
     cmd = [claude_bin(), "-p", "--model", model, "--output-format", "json", "--no-session-persistence", "--disable-slash-commands"]
     cmd += ["--allowedTools", "Read", "--max-turns", "6"] if files else ["--tools", "", "--max-turns", "1"]

@@ -131,8 +131,12 @@ def ingest(path, note="", status="ready", copy=True, src="board"):
 
 def tag_photos(limit=120):
     """scene / tags / people for rows that have none yet: one small model call per photo on the 400 px thumbnail."""
-    from llm import llm_json
+    from llm import llm_json, allowed
     rows = read_index(); n = 0
+    if not allowed():
+        w = sum(1 for r in rows if not r["scene"] and r["status"] != "deleted" and os.path.isfile(os.path.join(THUMBS, r["id"] + ".jpg")))
+        if w: log(f"{w} photo(s) wait for tagging: python3 pipeline/process.py")
+        return 0
     for r in rows:
         if r["scene"] or r["status"] == "deleted" or n >= limit: continue
         th = os.path.join(THUMBS, r["id"] + ".jpg")

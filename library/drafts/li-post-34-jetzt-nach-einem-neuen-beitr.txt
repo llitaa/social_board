@@ -1,0 +1,15 @@
+Wer ist Senior in einem Fach, das gefühlt ein halbes Jahr alt ist?
+
+Ich sehe inzwischen Stellen wie „Senior Agentic Architect“. Senior heisst für mich: geprägt durch Jahre, durch Fehler, die man selbst gemacht und selbst getragen hat. Agentische Systeme, wie wir sie heute nutzen, haben diese Jahre noch nicht.
+
+Trotzdem glaube ich, dass es Senior-Erfahrung dafür gibt. Sie kommt nur aus einem anderen Fach.
+
+In C++ programmiere ich seit 13 Jahren mit Ergebnissen, die es noch nicht gibt. std::future ist so ein Konstrukt: Ich gebe Arbeit ab, bekomme ein Versprechen zurück und muss entscheiden, wann ich warte, was bei einem Fehler passiert und ob ich dem Wert traue. Mit Coding-Agents arbeite ich täglich in einer grossen Legacy-C++-Codebasis, und es ist dasselbe Muster. Der Agent liefert immer etwas. Ob es stimmt, sagt er nicht.
+
+Dazu kommt die Führungsseite. Im Defence-Projekt habe ich sechs Entwickler technisch koordiniert: Aufgaben schneiden, übergeben, in Reviews prüfen, gemeinsam entscheiden, wann etwas fertig ist. Genau diese Arbeit verlangt ein Agent auch, nur in höherem Takt.
+
+Senior im agentischen Bereich ist für mich deshalb nicht, wer am längsten mit Agents arbeitet. Sondern wer beurteilen kann, was zurückkommt, und dafür einsteht.
+
+Gibt es in Ihrer Organisation schon eine solche Rolle, und woran messen Sie dort Seniorität?
+
+#AgenticAI #Softwarearchitektur #TechnicalLeadership

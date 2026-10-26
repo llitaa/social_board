@@ -1,0 +1,17 @@
+Agents rücken an den Menschen heran, wir Menschen an die Agents.
+
+Auf der einen Seite das Geschäft: Unternehmen bauen Agents, die mit Kunden sprechen, Anfragen beantworten, Termine vereinbaren. Das Ziel ist, dass der Agent so nah wie möglich an den Menschen herankommt.
+
+Auf der anderen Seite wir Entwickler. Ich arbeite täglich mit Coding-Agents in einer grossen Legacy-C++-Codebasis, und meine Bewegung geht in die Gegenrichtung: Ich muss nah genug an den Agent heran, um zu prüfen, ob er Schrott geschrieben hat. Welche Annahme hat er getroffen? Welchen Pfad hat er nicht gesehen?
+
+Dazwischen liegt eine Lücke. Die Maschine generiert schneller, als der Mensch prüfen kann.
+
+Genau diese Lücke halte ich für das eigentliche Feld für neue Firmen. Nicht der nächste Agent, sondern Werkzeuge, die einem Menschen zeigen, was der Agent getan hat, warum, und an welcher Stelle er selbst hinschauen muss.
+
+Neu ist die Frage nicht. In der Medizintechnik habe ich ein automatisiertes Testframework mit Google Test und gmock eingeführt, mit dem auch Legacy-Komponenten testbar wurden. Dahinter stand dieselbe Frage: Wie wird Verhalten, das man nicht selbst geschrieben hat, für Menschen überprüfbar?
+
+Bei Agents stellt sie sich nur jeden Tag und in grösserer Menge.
+
+Von welcher Seite schliesst Ihr Team diese Lücke gerade?
+
+#KIEntwicklung #CodeReview #7030

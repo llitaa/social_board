@@ -27,6 +27,16 @@ def linkedin():
     if org_ok and o["expires"] < exp: exp = o["expires"]
     return {"connected": ok, "org": org_ok, "expires": exp[:10], "days_left": (date.fromisoformat(exp[:10]) - date.today()).days if ok else 0}
 
+def pending(plan, memos):
+    """What waits for a model call (config llm.auto: false): memos not yet drafted, notes not yet applied, open slots, untagged photos."""
+    inv, _ = read_csv(os.path.join(LIB, "inventory.csv")); unused = {r["id"] for r in inv if r["status"] == "unused"}
+    out = {"memos": sum(1 for m in memos if m.get("status") == "new" or (m.get("status") == "phrase" and m.get("used_in") in unused)), "notes": sum(1 for r in plan if r["status"] == "change" and "[redraft failed" not in r.get("notes", ""))}
+    try:
+        import draft; out["slots"] = len(draft.open_slots(plan, date.today()))
+    except Exception as e: out["slots"] = 0; log("pending slots:", repr(e)[:80])
+    ph, _ = read_csv(os.path.join(LIB, "photos", "index.csv")); out["photos"] = sum(1 for r in ph if not r.get("scene") and r.get("status") != "deleted")
+    return out
+
 def last_runs(n=3):
     rows = [json.loads(l) for l in open(STEPS, encoding="utf-8")] if os.path.isfile(STEPS) else []
     by = {}
@@ -73,8 +83,10 @@ def main():
     if not li["connected"]: issues.append({"what": "LinkedIn token", "since": today.isoformat(), "times": 1, "log": "no valid token for the profile: nothing can be published", "fix": "run: python3 pipeline/linkedin_auth.py (then the full run pushes it to the host)"})
     if li["connected"] and li["days_left"] < 7: issues.append({"what": "LinkedIn token", "since": today.isoformat(), "times": 1, "log": f"expires in {li['days_left']} days", "fix": "run: python3 pipeline/linkedin_auth.py"})
     rules = [l for l in open(os.path.join(LIB, "style-rules.txt"), encoding="utf-8") if l.strip() and not l.startswith("#")] if os.path.isfile(os.path.join(LIB, "style-rules.txt")) else []
+    auto = bool(CFG.get("llm", {}).get("auto", True)); pend = pending(plan, memos)
+    if not auto and any(pend.values()): ok.append("waiting for python3 pipeline/process.py on the Mac: " + ", ".join(f"{v} {k}" for k, v in pend.items() if v))
     jdump(os.path.join(BOARD_LOCAL, "health.json"), {"ts": datetime.now().isoformat(timespec="seconds"), "issues": issues, "ok": ok, "month_cost_usd": round(cost, 2), "slots_planned": len(slots), "topics_unused": unused,
-          "linkedin": li, "rules_learned": len(rules), "builder_notes": fb})
+          "linkedin": li, "rules_learned": len(rules), "builder_notes": fb, "auto": auto, "pending": pend})
     log(f"health: {len(issues)} issue(s)" + (": " + "; ".join(i["what"] for i in issues) if issues else ""))
 
 if __name__ == "__main__": main()

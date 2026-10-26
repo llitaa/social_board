@@ -192,6 +192,7 @@ const fmtDay=s=>new Date(s).toLocaleDateString('de-DE',{weekday:'short',day:'2-d
 const fmtTime=s=>new Date(s).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
 const fmtD=s=>s?new Date(s).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}):'';
 const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const MANUAL=()=>(S&&S.health||{}).auto===false, LATER='when you run process.py on the Mac';   // model work waits for the terminal (26.10.)
 const STATUS={draft:'to decide',approved:'approved',change:'being updated',skipped:'skipped',posted:'posted',scheduled:'scheduled in LinkedIn'};
 let BUILD=null;
 async function load(){const st=await (await fetch(api+'?a=state&_='+Date.now())).json(); if(BUILD===null)BUILD=st.build; const busy=(document.activeElement&&(document.activeElement.isContentEditable||/^(TEXTAREA|INPUT)$/.test(document.activeElement.tagName)))||(mr&&mr.state==='recording')||drag.id; if(st.build&&st.build!==BUILD&&!busy){location.reload();return} if(busy){S=st;return} S=st;render()}
@@ -215,12 +216,12 @@ function statusPill(c){
   const past=new Date(c.slot)<new Date(S.now);
   if(c.status==='scheduled') return `<span class="pill li">scheduled in LinkedIn · ${fmtTime(c.slot)}</span>`;
   const auto=isAuto(c);
-  if(c.status==='change') return c.failed?`<span class="pill warn">update failed · decide again</span>`:`<span class="pill warn">being updated · about a minute</span>`;
+  if(c.status==='change') return c.failed?`<span class="pill warn">update failed · decide again</span>`:(MANUAL()?`<span class="pill warn">note saved · applied ${LATER}</span>`:`<span class="pill warn">being updated · about a minute</span>`);
   if(c.status==='scheduled') return `<span class="pill li">scheduled by you in the LinkedIn app · ${fmtSlot(c.slot)}</span>`;
   if(c.status==='approved') return past?(auto?`<span class="pill ok">posting now …</span>`:`<span class="pill todo">waits for you: post it by hand</span> <span class="pill warn">${c.channel==='company'?'company page':'profile'} not connected to the API</span>`):auto?`<span class="pill ok">scheduled · posts itself ${fmtSlot(c.slot)}</span>`:`<span class="pill ok">scheduled ${fmtSlot(c.slot)}</span> <span class="pill warn">${c.channel==='company'?'company page not connected: you post it then':'LinkedIn not connected: you post it then'}</span>`;
   if(c.publish_error) return `<span class="pill warn">publishing failed: ${esc(c.publish_error.slice(0,80))}</span> `+(c.status==='approved'?`<span class="pill ok">retried every 5 minutes</span>`:'');
   if(c.status==='posted'&&c.url) return `<span class="pill ok">posted by the server</span> <a class="pill" href="${esc(c.url)}" target="_blank">open</a>`;
-  if(c.status==='draft') return (c.updated?`<span class="pill ok">updated per your note</span> `:'')+(c.image_pending?`<span class="pill warn">image being changed · about 20 s</span> `:'')+(c.note_pending?`<span class="pill warn">voice note on its way · about a minute</span> `:'')+`<span class="pill todo">to decide</span>`;
+  if(c.status==='draft') return (c.updated?`<span class="pill ok">updated per your note</span> `:'')+(c.image_pending?`<span class="pill warn">image being changed · about 20 s</span> `:'')+(c.note_pending?`<span class="pill warn">voice note saved · applied ${MANUAL()?LATER:'in about a minute'}</span> `:'')+`<span class="pill todo">to decide</span>`;
   return `<span class="pill">${esc(STATUS[c.status]||c.status)}</span>`;
 }
 function renderPipeline(){
@@ -233,13 +234,13 @@ function renderPipeline(){
       <div class="d">${fmtDay(u.when)}<br>${fmtTime(u.when)}</div>
       <div><span class="pill ${u.status==='scheduled'?'li':u.status==='approved'?'ok':u.status==='draft'?'todo':u.status==='change'?'warn':''}">${esc(u.status==='scheduled'?'LinkedIn (you)':u.status==='draft'?'decide':u.status==='change'?'updating':u.status==='approved'?'scheduled':u.status)}</span><span class="pill">${esc(u.channel)}${u.pillar?' · '+esc(u.pillar):''}</span><div class="h">${esc(u.hook)}</div></div></div>`;
   }
-  if(!up.length) h+='<div class="r"><div class="d"></div><div class="h">drafts arrive with the next run</div></div>';
+  if(!up.length) h+=`<div class="r"><div class="d"></div><div class="h">drafts arrive ${MANUAL()?LATER:'with the next run'}</div></div>`;
   if(P.upcoming.length>8) h+=`<button class="more" onclick="showAllUp=!showAllUp;render()">${showAllUp?'less':'all '+P.upcoming.length}</button>`;
   const mat=P.material||{}; const mk=Object.keys(mat);
   if(mk.length) h+=`<div class="mat">material: ${mk.map(k=>esc(k)+' '+mat[k]).join(' · ')}${(P.memos||[]).some(m=>m.status==='new')?' · memo waiting':''}</div>`;
   const mem=P.memos||[];
   if(mem.length){h+=`<div class="mat"><b style="color:var(--d)">Voice memos</b><br>`+mem.map(m=>{
-    const dest=['phrase','new','drafted'].includes(m.status)?(m.post?`became <b>${esc(m.post)}</b>${m.when?' · '+fmtDay(m.when):''}${m.post_status?' · '+esc(STATUS[m.post_status]||m.post_status):''}`:(m.topic?'topic '+esc(m.topic)+' · waits for a free slot':'waits for the next run'))
+    const dest=['phrase','new','drafted'].includes(m.status)?(m.post?`became <b>${esc(m.post)}</b>${m.when?' · '+fmtDay(m.when):''}${m.post_status?' · '+esc(STATUS[m.post_status]||m.post_status):''}`:(m.topic?'topic '+esc(m.topic)+' · waits for a free slot':(MANUAL()?'waits for process.py on the Mac':'waits for the next run')))
       :m.status==='card-note'?'note applied to '+esc(m.post):m.status==='feedback'?'note for the builder':m.status==='noise'?'noise, ignored':m.status==='short'?'too short, ignored':esc(m.status);
     const card=m.post&&S.cards.some(c=>c.id===m.post);
     return `<span style="white-space:nowrap">${fmtDay(m.recorded)} ${fmtTime(m.recorded)}</span> · ${esc(m.words)} words → ${card?`<span class="pill" style="cursor:pointer" onclick="goCard('${m.post}')">${dest}</span>`:dest}`}).join('<br>')+'</div>'}
@@ -280,7 +281,8 @@ function systemHtml(){
   if(seen===null) issues.unshift({what:'Mac',log:'no health report yet',fix:'check launchctl list | grep board-sync on the Mac'});
   else if(seen>45) issues.unshift({what:'Mac',log:`last run ${seen} min ago, presses wait on the server`,fix:'wake the Mac; if awake: launchctl kickstart gui/501/com.alpitype.board-sync, then library/log/board-sync.err'});
   const li=H.linkedin||{};
-  if(!issues.length) return `<div class="sys ok">system ok · last run ${seen} min ago · ${H.slots_planned||0} posts planned · ${H.topics_unused||0} topics left · ${H.rules_learned||0} preferences learned · $${H.month_cost_usd||0} this month · LinkedIn ${li.connected?'connected until '+fmtD(li.expires)+(li.org?' incl. company page':' (personal only)'):'not connected: approved posts you copy and post yourself'}</div>`;
+  const pd=H.pending||{}; const pl=Object.keys(pd).filter(k=>pd[k]).map(k=>pd[k]+' '+k).join(', ');
+  if(!issues.length) return `<div class="sys ok">system ok · last run ${seen} min ago${MANUAL()&&pl?` · <b style="display:inline;font-size:13px;color:#8a4b00">waiting for process.py on the Mac: ${pl}</b>`:''} · ${H.slots_planned||0} posts planned · ${H.topics_unused||0} topics left · ${H.rules_learned||0} preferences learned · $${H.month_cost_usd||0} this month · LinkedIn ${li.connected?'connected until '+fmtD(li.expires)+(li.org?' incl. company page':' (personal only)'):'not connected: approved posts you copy and post yourself'}</div>`;
   const pend=(S.memos||[]).length+S.cards.filter(c=>c.note_pending||(c.status==='change'&&!c.failed)).length;const bn=pend?`<div class="q" style="margin:0 0 8px;font-size:12px">${pend} note${pend>1?"s":""} pending</div>`:"";
   return bn+issues.map(i=>`<div class="sys"><b>${esc(i.what)}${i.what.startsWith('one post')?'':' needs a fix'}${i.times>1?' · '+i.times+' times':''}</b>${esc(i.log||'')}<code>${esc(i.fix||'')}</code></div>`).join('');
 }
@@ -310,7 +312,7 @@ function fullCardHtml(c){
         <button class="b" style="width:100%;margin-top:6px" onclick="decide('${c.id}','schedule')">Schedule</button>
         <textarea id="n-${c.id}" rows="3" placeholder="Note for this post: what to change, or a rule for all posts (immer …, nie …)" style="margin-top:12px"></textarea>
         <div class="row" style="margin-top:6px;align-items:center"><button class="b" style="flex:1" onclick="decide('${c.id}','change')">Update the post</button><button class="rec inline" id="rn-${c.id}" onclick="recNote('${c.id}')" title="speak the note"></button></div>
-        <div class="q" style="margin:4px 0 0;font-size:13px">typed or spoken: applied in about a minute, the post comes back here to decide; a general remark becomes a rule for all posts</div>
+        <div class="q" style="margin:4px 0 0;font-size:13px">typed or spoken: applied ${MANUAL()?LATER:'in about a minute'}, the post comes back here to decide; a general remark becomes a rule for all posts</div>
         <div class="row"><button class="b s" onclick="skipPost('${c.id}')">Drop</button></div>
         <div class="q" style="margin:4px 0 0;font-size:13px">removes this post for good; the slot gets a new draft</div>${self}
         <div class="reasons" id="r-${c.id}"><button class="sm s" onclick="decide('${c.id}','skip','not the topic')">not the topic</button><button class="sm s" onclick="decide('${c.id}','skip','not the form')">not the form</button><button class="sm s" onclick="decide('${c.id}','skip','')">no reason</button></div>`
@@ -367,7 +369,7 @@ async function decide(id,dec,reason){
   if((dec==='post'||dec==='schedule')&&el&&c&&el.isContentEditable&&el.innerText.trim()!==c.text.trim()) o.text=el.innerText.trim();
   if(dec==='schedule'){o.when=($('#w-'+id)||{}).value||'';if(o.when.length<16){toast('pick date and time first');return}}
   const r=await post(o);
-  toast(r.ok?({post:isAuto(c)?'posting …':'approved · post it yourself',schedule:'scheduled',change:'noted · updating …',skip:'dropped',unschedule:'back to decide',photo_next:'changing the photo …'}[dec]):'error');
+  toast(r.ok?({post:isAuto(c)?'posting …':'approved · post it yourself',schedule:'scheduled',change:MANUAL()?'noted · applied '+LATER:'noted · updating …',skip:'dropped',unschedule:'back to decide',photo_next:'changing the photo …'}[dec]):'error');
   if(dec==='change'||dec==='photo_next'||dec==='post') watchUntil=Date.now()+240000;
   if(dec==='post'){setTimeout(tick,3000);setTimeout(tick,20000)}load();
 }
@@ -455,7 +457,7 @@ async function startRec(cardId){
 function stopRec(send){if(!(mr&&mr.state==='recording'))return;recDiscard=!send;mr.stop()}
 async function recNote(id){if(mr&&mr.state==='recording'){stopRec(true);return}startRec(id)}
 $('#rec').onclick=()=>{if(mr&&mr.state==='recording'){stopRec(true);return}startRec(null)};
-async function sendMemo(blob,mime,seconds,cardId){const fd=new FormData();fd.append('a','memo');fd.append('audio',blob,'memo');fd.append('mime',mime);fd.append('seconds',String(seconds));if(cardId)fd.append('card_id',cardId);toast(cardId?'sending your note …':'saving memo …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={}}toast(r.ok?(cardId?'note sent · the post is updated in about a minute':'memo saved · becomes a post or a phrase on the Mac'):'recording failed',4000);if(cardId)watchUntil=Date.now()+240000;load();return r}
+async function sendMemo(blob,mime,seconds,cardId){const fd=new FormData();fd.append('a','memo');fd.append('audio',blob,'memo');fd.append('mime',mime);fd.append('seconds',String(seconds));if(cardId)fd.append('card_id',cardId);toast(cardId?'sending your note …':'saving memo …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={}}toast(r.ok?(cardId?'note sent · the post is updated in about a minute':(MANUAL()?'memo saved · becomes a post '+LATER:'memo saved · becomes a post or a phrase on the Mac')):'recording failed',4000);if(cardId)watchUntil=Date.now()+240000;load();return r}
 async function tick(){try{const r=await (await fetch(api+'?a=tick&_='+Date.now())).json();if((r.published||[]).length){toast('posted');load()}}catch(e){}}
 load(); setInterval(load,60000); setInterval(tick,60000);
 setInterval(()=>{if(document.activeElement&&document.activeElement.isContentEditable)return; if(S&&(Date.now()<watchUntil||S.cards.some(c=>(c.status==='change'&&!c.failed)||c.image_pending||c.note_pending)))load()},5000);

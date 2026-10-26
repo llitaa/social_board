@@ -1,0 +1,23 @@
+{
+ "id": "li-post-33",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t056",
+ "memo": "",
+ "photo": "img3785",
+ "neighbour_shoots": [
+  "2026-03-05_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-25T12:55:54",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "KI-Entwicklung",
+  "headline": "Agents rücken an den Menschen heran, wir Menschen an die Agents."
+ },
+ "signals": {
+  "lead": "In der Medizintechnik habe ich ein automatisiertes Testframework mit Google Test und gmock eingeführt, mit dem auch Legacy-Komponenten testbar wurden.",
+  "ai": "Ich arbeite täglich mit Coding-Agents in einer grossen Legacy-C++-Codebasis, und meine Bewegung geht in die Gegenrichtung: Ich muss nah genug an den Agent heran, um zu prüfen, ob er Schrott geschrieben hat."
+ }
+}

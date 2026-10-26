@@ -1,0 +1,25 @@
+{
+ "id": "li-comp-14",
+ "channel": "company",
+ "pillar": "company",
+ "topic": "t031",
+ "memo": "",
+ "photo": "",
+ "neighbour_shoots": [],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-21T10:26:25",
+ "versions": [],
+ "graphic": {
+  "eyebrow": "Our five rules",
+  "title": "Human in the loop\nuntil 90 percent",
+  "lines": [
+   "A person checks the system from day one",
+   "The system proves more than 90 percent reliability",
+   "The hand-over is a decision, not a toggle",
+   "Someone signs it, and the name stays written"
+  ],
+  "footer": "Signed, not assumed"
+ },
+ "card": null,
+ "signals": null
+}

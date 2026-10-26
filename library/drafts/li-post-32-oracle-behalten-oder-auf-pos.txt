@@ -1,0 +1,17 @@
+Oracle behalten oder auf PostgreSQL wechseln? Ich würde zuerst eine andere Frage stellen: Wie spricht die Anwendung heute mit ihrer Datenbank?
+
+Diese Entscheidung steht in vielen Häusern dieses Jahr an. Lizenzkosten, Abhängigkeit vom Anbieter, Betrieb in der eigenen Infrastruktur. Alles berechtigte Gründe. Nur sagen sie nichts darüber, wo die Laufzeit heute verloren geht.
+
+In meinem aktuellen Projekt, einer grossen Legacy-C/C++-Codebasis, war die Kommunikation mit Oracle eine der Stellen, an denen ich die Laufzeit verbessert habe. Die Datenbank selbst blieb dieselbe. Was sich änderte, war der Weg dorthin.
+
+Typische Muster sind viele kleine Abfragen statt einer, Daten, die mehrfach geholt werden, Transaktionen, die länger offen bleiben als nötig. Diese Muster hängen nicht am Produkt. Wer sie nicht kennt, zieht sie mit um und bezahlt die Migration obendrauf.
+
+Ein Coding-Agent schreibt die Anpassungen für PostgreSQL heute in kurzer Zeit. Die Engpässe migriert er genauso zuverlässig mit. Ich nutze Agents deshalb zuerst für das Fleissige: alle Stellen finden, an denen der Code die Datenbank anspricht. Welche davon im Betrieb zählt, entscheidet die Messung, nicht der Agent.
+
+Meine Reihenfolge ist deshalb fest: erst messen, dann die Kommunikation bereinigen, dann über die Datenbank entscheiden. Danach ist der Wechsel oft eine Kostenfrage, keine Performance-Frage.
+
+Wer migriert, ohne zu messen, zieht die Engpässe mit um.
+
+Wissen Sie, wie viele Abfragen Ihre Anwendung für einen typischen Vorgang an die Datenbank schickt?
+
+#Softwarearchitektur #PostgreSQL #Oracle

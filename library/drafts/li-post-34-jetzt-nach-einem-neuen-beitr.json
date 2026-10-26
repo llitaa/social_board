@@ -1,0 +1,23 @@
+{
+ "id": "li-post-34",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t057",
+ "memo": "",
+ "photo": "img1153",
+ "neighbour_shoots": [
+  "2025-11-20_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-10-26T08:03:39",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "Agentic Engineering",
+  "headline": "Wer ist Senior in einem Fach, das gefühlt ein halbes Jahr alt ist?"
+ },
+ "signals": {
+  "lead": "Im Defence-Projekt habe ich sechs Entwickler technisch koordiniert: Aufgaben schneiden, übergeben, in Reviews prüfen, gemeinsam entscheiden, wann etwas fertig ist.",
+  "ai": "Mit Coding-Agents arbeite ich täglich in einer grossen Legacy-C++-Codebasis, und es ist dasselbe Muster."
+ }
+}

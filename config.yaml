@@ -14,6 +14,7 @@ photo_sources:            # scanned for camera photos with a face; copies go to 
 photo_reuse_days: 90      # a used photo is eligible again after this many days
 photo_fresh_months: 24    # older photos are picked only when nothing newer is eligible
 llm:
+  auto: false             # false (Anton, 26.10.): the background chain makes NO model calls; drafts, redrafts, learning and photo tags wait until `python3 pipeline/process.py` is run in a terminal. true = as before, every 10 min
   backend: claude-p       # claude-p = `claude -p` on the subscription; api = Anthropic API (ANTHROPIC_API_KEY)
   claude: ''              # path of the claude CLI when it is not on the worker's PATH (launchd/cron); empty = search the usual places
   models:

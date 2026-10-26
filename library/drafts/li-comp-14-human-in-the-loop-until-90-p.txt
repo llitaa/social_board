@@ -1,0 +1,15 @@
+Until a system proves more than 90 percent reliability, a person stays in the loop. Then someone signs.
+
+That is one of the five rules we build by. Every system we put into a client's environment starts with a person checking what it does. It stays that way until the system has shown, on the work it actually handles, that it is reliable more than 90 percent of the time.
+
+The hand-over is not a setting someone switches on during a quiet afternoon. It is a decision, written down, with a name under it.
+
+Why this matters: automation rarely fails on day one. It fails months later, when nobody remembers who decided the machine could act alone, or on what evidence. A signed hand-over answers both questions before anyone has to ask them.
+
+It also changes the conversation in the room. The person who signs wants to see the record: the cases, the errors, the corrections. Reliability stops being a feeling and becomes something you can point to.
+
+The signature does not remove the human. The exceptions still go to a person who approves them. The 90 percent rule decides when the routine may run on its own, not whether anyone is still watching.
+
+Who in your company would sign that decision today?
+
+#Automation #HumanInTheLoop #7030

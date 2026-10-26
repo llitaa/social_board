@@ -19,10 +19,18 @@ step() {  # step <name> <command...>
   return $rc
 }
 MODE=${1:-full}
+# model calls: only when config llm.auto is true or process.py started this run (LLM_INTERACTIVE=1); otherwise those steps are
+# logged as deferred and health.py counts what waits. Transcription (whisper, local) and everything else still run.
+AUTO=$($P -c "from common import CFG; print(str(CFG.get('llm', {}).get('auto', True)).lower())" 2>/dev/null)
+if [ "$AUTO" = true ] || [ "${LLM_INTERACTIVE:-0}" = 1 ]; then MODELS=1; else MODELS=0; fi
+export LLM_INTERACTIVE
+mstep() {  # a step that calls a model: runs only when MODELS=1
+  if [ $MODELS = 1 ]; then step "$@"; else printf '{"step":"%s","ts":"%s","seconds":0,"rc":0,"last":"deferred: model calls run from the terminal (python3 pipeline/process.py)"}\n' "$1" "$(date '+%Y-%m-%dT%H:%M:%S')" >> "$STEPS"; fi
+}
 step pull        $P pipeline/board_sync.py pull || { $P pipeline/health.py; exit 1; }
 step transcribe  $P pipeline/transcribe.py          # before apply: a spoken note on a card becomes a change decision in this run
 step apply       $P pipeline/apply_decisions.py
-step learn       $P pipeline/learn.py
+mstep learn      $P pipeline/learn.py
 if [ "$MODE" = full ]; then
 step photos      $P pipeline/photo_index.py
 step mail        $P pipeline/mail_watch.py
@@ -31,9 +39,9 @@ step metrics_api $P pipeline/metrics_fetch.py
 else
 step photos      $P pipeline/photo_index.py fast
 fi
-step redraft     $P pipeline/redraft.py
+mstep redraft    $P pipeline/redraft.py
 step publish     $P pipeline/publish.py
-[ "$MODE" = full ] && step draft $P pipeline/draft.py
+[ "$MODE" = full ] && mstep draft $P pipeline/draft.py
 step cards       $P pipeline/cards.py
 step health      $P pipeline/health.py
 step push        $P pipeline/board_sync.py push
