@@ -74,7 +74,10 @@ input[type=datetime-local]{width:100%;border:1px solid var(--b);border-radius:8p
 .txt.busy{opacity:.45}
 .img img{display:block;width:100%;height:auto;max-height:70vh;object-fit:contain}
 .act{padding:12px 14px 14px;border-top:1px solid var(--b);background:#fff}
-textarea,input[type=text],input[type=url]{width:100%;border:1px solid var(--b);border-radius:8px;padding:9px;font:inherit;font-size:15px;background:#fff}
+textarea,input[type=text],input[type=url],input[type=number],input[type=date],select{width:100%;border:1px solid var(--b);border-radius:8px;padding:9px;font:inherit;font-size:15px;background:#fff;min-width:0}
+.pipe .r .row input{padding:6px;font-size:14px}
+.grid.arch .ph img{opacity:.8}
+.reasons.col{flex-direction:column}
 .row{display:flex;gap:8px;margin-top:10px}
 .row>*{flex:1}
 button.b,a.b{border:1.5px solid var(--d);background:#fff;color:var(--d);border-radius:8px;padding:12px 10px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;text-align:center;text-decoration:none}
@@ -181,7 +184,7 @@ button,.b,.sm,label.b{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 <div class="toast" id="toast"></div>
 <script>
 const $=s=>document.querySelector(s), api='api.php';
-let S=null, openCard=null, tab='post', expanded={}, showUsed=false, showAllUp=false, showAllPub=false;
+let S=null, openCard=null, tab='post', expanded={}, showUsed=false, showAllUp=false, showAllPub=false, numEdit=null, extOpen=false;
 let toastT=null;const toast=(m,ms=1800)=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),ms)};
 const post=async(o)=>{const r=await fetch(api,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(o)});return r.json()};
 const fmtSlot=s=>{const d=new Date(s);return d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit'})+' · '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})};
@@ -192,7 +195,7 @@ const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]
 const STATUS={draft:'to decide',approved:'approved',change:'being updated',skipped:'skipped',posted:'posted',scheduled:'scheduled in LinkedIn'};
 let BUILD=null;
 async function load(){const st=await (await fetch(api+'?a=state&_='+Date.now())).json(); if(BUILD===null)BUILD=st.build; const busy=(document.activeElement&&(document.activeElement.isContentEditable||/^(TEXTAREA|INPUT)$/.test(document.activeElement.tagName)))||(mr&&mr.state==='recording')||drag.id; if(st.build&&st.build!==BUILD&&!busy){location.reload();return} if(busy){S=st;return} S=st;render()}
-function keepState(fn){const sh=document.querySelector('.sheet');const top=sh?sh.scrollTop:null;const vals={};document.querySelectorAll('textarea[id^="n-"],input[id^="u-"],input[id^="w-"]').forEach(e=>{if(e.value&&e.value!==e.defaultValue)vals[e.id]=e.value});fn();for(const id in vals){const e=document.getElementById(id);if(e)e.value=vals[id]}const sh2=document.querySelector('.sheet');if(sh2&&top!==null)sh2.scrollTop=top}
+function keepState(fn){const sh=document.querySelector('.sheet');const top=sh?sh.scrollTop:null;const vals={};document.querySelectorAll('textarea[id^="n-"],input[id^="u-"],input[id^="w-"],input[id^="m"],input[id^="x-"]').forEach(e=>{if(e.value&&e.value!==e.defaultValue)vals[e.id]=e.value});fn();for(const id in vals){const e=document.getElementById(id);if(e)e.value=vals[id]}const sh2=document.querySelector('.sheet');if(sh2&&top!==null)sh2.scrollTop=top}
 function showTab(n){tab=n;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===n));['post','comments','photos'].forEach(t=>$('#'+t).hidden=t!==tab);history.replaceState(null,'','#'+n)}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
 if(['post','comments','photos'].includes(location.hash.slice(1))) showTab(location.hash.slice(1));
@@ -234,17 +237,36 @@ function renderPipeline(){
   if(P.upcoming.length>8) h+=`<button class="more" onclick="showAllUp=!showAllUp;render()">${showAllUp?'less':'all '+P.upcoming.length}</button>`;
   const mat=P.material||{}; const mk=Object.keys(mat);
   if(mk.length) h+=`<div class="mat">material: ${mk.map(k=>esc(k)+' '+mat[k]).join(' · ')}${(P.memos||[]).some(m=>m.status==='new')?' · memo waiting':''}</div>`;
+  const mem=P.memos||[];
+  if(mem.length){h+=`<div class="mat"><b style="color:var(--d)">Voice memos</b><br>`+mem.map(m=>{
+    const dest=['phrase','new','drafted'].includes(m.status)?(m.post?`became <b>${esc(m.post)}</b>${m.when?' · '+fmtDay(m.when):''}${m.post_status?' · '+esc(STATUS[m.post_status]||m.post_status):''}`:(m.topic?'topic '+esc(m.topic)+' · waits for a free slot':'waits for the next run'))
+      :m.status==='card-note'?'note applied to '+esc(m.post):m.status==='feedback'?'note for the builder':m.status==='noise'?'noise, ignored':m.status==='short'?'too short, ignored':esc(m.status);
+    const card=m.post&&S.cards.some(c=>c.id===m.post);
+    return `<span style="white-space:nowrap">${fmtDay(m.recorded)} ${fmtTime(m.recorded)}</span> · ${esc(m.words)} words → ${card?`<span class="pill" style="cursor:pointer" onclick="goCard('${m.post}')">${dest}</span>`:dest}`}).join('<br>')+'</div>'}
   h+='</div><h2>Published</h2><div class="pipe">';
   for(const p of pub){
-    const n=[p.impressions&&p.impressions+' imp',p.reactions&&p.reactions+' react',p.comments&&p.comments+' comm'].filter(Boolean).join(' · ');
-    h+=`<div class="r"><div class="d">${fmtDay(p.date)}</div><div><span class="pill">${esc(p.channel)}</span><div class="h">${esc(p.hook)}</div><div class="n">${esc(n)||'numbers missing'}</div></div></div>`;
+    const n=[p.impressions!==''&&p.impressions+' impressions',p.reactions!==''&&p.reactions+' reactions',p.comments!==''&&p.comments+' comments'].filter(Boolean).join(' · ');
+    const ed=numEdit===p.id;
+    h+=`<div class="r link" onclick="numEdit=numEdit==='${p.id}'?null:'${p.id}';render()"><div class="d">${fmtDay(p.date)}</div><div><span class="pill">${esc(p.channel)}</span>${p.link?`<a class="pill li" href="${esc(p.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">open in LinkedIn</a>`:''}<div class="h">${esc(p.hook)}</div>
+      <div class="n">${n?esc(n)+(p.numbers_at?' · as of '+fmtD(p.numbers_at):''):'no numbers yet · tap to type them'}</div>
+      ${ed?`<div class="row" style="margin-top:6px" onclick="event.stopPropagation()"><input type="number" inputmode="numeric" id="mi-${p.id}" placeholder="impressions" value="${esc(p.impressions)}"><input type="number" inputmode="numeric" id="mr-${p.id}" placeholder="reactions" value="${esc(p.reactions)}"><input type="number" inputmode="numeric" id="mc-${p.id}" placeholder="comments" value="${esc(p.comments)}"></div>
+      <div class="row" style="margin-top:6px" onclick="event.stopPropagation()"><button class="sm" onclick="saveNums('${p.id}')">save numbers</button><button class="sm s" onclick="numEdit=null;render()">close</button></div>
+      <div class="q" style="margin:4px 0 0;font-size:12px">read them in the LinkedIn app under the post; the API cannot read them until LinkedIn grants the analytics scope</div>`:''}
+    </div></div>`;
   }
   if(!pub.length) h+='<div class="r"><div class="d"></div><div class="h">—</div></div>';
   if(P.published.length>5) h+=`<button class="more" onclick="showAllPub=!showAllPub;render()">${showAllPub?'less':'all '+P.published.length+' posts'}</button>`;
+  h+=`<button class="more" onclick="extOpen=!extOpen;render()">${extOpen?'close':'+ a post you published yourself in LinkedIn'}</button>`;
+  if(extOpen) h+=`<div class="mat" style="color:var(--t)"><div class="row" style="margin:0"><input type="date" id="x-date" value="${today}"><select id="x-ch"><option value="personal">personal</option><option value="company">company</option></select></div>
+    <input type="text" id="x-hook" placeholder="first line of the post" style="margin-top:6px"><input type="url" id="x-url" placeholder="LinkedIn post URL (optional)" style="margin-top:6px">
+    <div class="row" style="margin-top:6px"><button class="sm" onclick="addExternal()">add to Published</button></div>
+    <div class="q" style="margin:6px 0 0;font-size:12px">the board cannot read LinkedIn: a post you publish or schedule there yourself is known only when you add it here, or mark its card as posted</div></div>`;
   if((P.featured||[]).length) h+=`<div class="mat">Featured on your profile should be: ${P.featured.map(f=>esc(f.hook.slice(0,50))+' ('+f.impressions+' imp)').join(' · ')}</div>`;
-  else if(P.metrics_missing) h+=`<div class="mat">no numbers for ${P.metrics_missing} posts yet: export them from LinkedIn into library/metrics/inbox, or wait for the API</div>`;
+  else if(P.metrics_missing) h+=`<div class="mat">no numbers for ${P.metrics_missing} posts yet: tap a post and type them, or save LinkedIn's export into Downloads on the Mac</div>`;
   return h+'</div>';
 }
+async function saveNums(id){const v=k=>($('#m'+k+'-'+id)||{}).value||'';const r=await post({a:'metrics',post_id:id,impressions:v('i'),reactions:v('r'),comments:v('c')});toast(r.ok?'numbers saved':'error: '+(r.error||''));numEdit=null;load()}
+async function addExternal(){const r=await post({a:'external',date:$('#x-date').value,channel:$('#x-ch').value,hook:$('#x-hook').value,url:$('#x-url').value});toast(r.ok?'added to Published':'error: '+(r.error||''),r.ok?2000:5000);if(r.ok)extOpen=false;load()}
 function goCard(id){openCard=id;showTab('post');renderPost()}
 function postHtml(c){
   const who=c.channel==='company'?`<div class="ava co">A</div><div><div class="n">AlpiType</div><div class="s">company page · ${esc(c.lang)} · ${fmtSlot(c.slot)}${c.pillar?' · '+esc(c.pillar):''}</div></div>`
@@ -270,6 +292,8 @@ function itemsHtml(){const cards=[...S.cards].sort((a,b)=>a.slot.localeCompare(b
   return `<div class="items" id="items">${cards.map(itemHtml).join('')}</div><div class="q" style="margin:6px 0 14px;font-size:12px">tap an item to open it · hold and drag to change the order (on a computer: drag ⋮⋮) · orange = decide · green = scheduled · blue = in LinkedIn</div>`}
 function fullCardHtml(c){
   const past=new Date(c.slot)<new Date(S.now), act=needs(c), done=['posted','skipped'].includes(c.status);
+  const self=`<div class="row"><button class="b s" onclick="$('#ps-${c.id}').classList.toggle('on')">I posted it myself in LinkedIn</button></div>
+        <div class="reasons col" id="ps-${c.id}"><input type="url" id="u-${c.id}" placeholder="LinkedIn post URL (optional)"><button class="b p" onclick="markPosted('${c.id}')">Mark posted</button><div class="q" style="margin:0;font-size:12px">leaves the board, appears under Published; nothing is posted by the system</div></div>`;
   return `<div class="card full ${done?'done':''}" id="c-${c.id}"><div class="post">${postHtml(c)}
       ${c.note?`<div class="note ${c.failed?'fail':''}">${c.failed?'could not apply: ':(c.updated?'applied: ':'your note: ')}${esc(c.note)}</div>`:''}
       <div style="padding:8px 14px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">${statusPill(c)}${c.versions?`<span class="pill">v${c.versions+1}</span>`:''}${(c.status==='approved'&&!isAuto(c))?`<button class="sm s" onclick="copyText('${c.id}')">Copy text</button>${c.image?`<a class="sm s" href="${esc(c.image.final||c.image.url)}" download="${esc(c.id)}.jpg">Download image</a>`:''}`:''}${act?'':`<button class="sm s" onclick="openCard=null;renderPost()">Close</button>`}</div></div>
@@ -288,10 +312,10 @@ function fullCardHtml(c){
         <div class="row" style="margin-top:6px;align-items:center"><button class="b" style="flex:1" onclick="decide('${c.id}','change')">Update the post</button><button class="rec inline" id="rn-${c.id}" onclick="recNote('${c.id}')" title="speak the note"></button></div>
         <div class="q" style="margin:4px 0 0;font-size:13px">typed or spoken: applied in about a minute, the post comes back here to decide; a general remark becomes a rule for all posts</div>
         <div class="row"><button class="b s" onclick="skipPost('${c.id}')">Drop</button></div>
-        <div class="q" style="margin:4px 0 0;font-size:13px">removes this post for good; the slot gets a new draft</div>
+        <div class="q" style="margin:4px 0 0;font-size:13px">removes this post for good; the slot gets a new draft</div>${self}
         <div class="reasons" id="r-${c.id}"><button class="sm s" onclick="decide('${c.id}','skip','not the topic')">not the topic</button><button class="sm s" onclick="decide('${c.id}','skip','not the form')">not the form</button><button class="sm s" onclick="decide('${c.id}','skip','')">no reason</button></div>`
-        :c.status==='approved'?`${past?'':`<button class="b p" style="width:100%" onclick="decide('${c.id}','post')">${isAuto(c)?'Post now':'Post now · by hand'}</button>`}<div class="row"><button class="b" onclick="decide('${c.id}','unschedule')">Unschedule</button></div><div class="q" style="margin:4px 0 0;font-size:13px">back to decide; nothing is posted</div>`
-        :c.status==='scheduled'?`<div class="row"><button class="b" onclick="decide('${c.id}','unschedule')">Unschedule</button></div><div class="q" style="margin:4px 0 0;font-size:13px">you scheduled this one in the LinkedIn app; the board cannot reach it. Cancel it there first, then press Unschedule here and it comes back to decide</div>`
+        :c.status==='approved'?`${past?'':`<button class="b p" style="width:100%" onclick="decide('${c.id}','post')">${isAuto(c)?'Post now':'Post now · by hand'}</button>`}<div class="row"><button class="b" onclick="decide('${c.id}','unschedule')">Unschedule</button></div><div class="q" style="margin:4px 0 0;font-size:13px">back to decide; nothing is posted</div>${self}`
+        :c.status==='scheduled'?`<div class="row"><button class="b" onclick="decide('${c.id}','unschedule')">Unschedule</button></div><div class="q" style="margin:4px 0 0;font-size:13px">you scheduled this one in the LinkedIn app; the board cannot reach it. Cancel it there first, then press Unschedule here and it comes back to decide</div>${self}`
         :c.status==='change'?`<div class="q">being rewritten with your note; it comes back here to decide</div>`
         :`<div class="q">${esc(STATUS[c.status]||c.status)}</div>`}
       </div></div>`;
@@ -299,8 +323,9 @@ function fullCardHtml(c){
 let drag={id:null};
 function startDrag(){drag.active=true;drag.el.classList.add('drag');document.body.classList.add('dragging');if(navigator.vibrate)navigator.vibrate(15)}
 function endDrag(send){clearTimeout(drag.timer);if(drag.active){drag.el.classList.remove('drag');drag.el.style.transform='';document.body.classList.remove('dragging');if(send)sendOrder()}drag={id:null}}
-document.addEventListener('pointerdown',e=>{const it=e.target.closest('#items .item');if(!it||it.classList.contains('locked')||e.target.closest('button,a'))return;
+document.addEventListener('pointerdown',e=>{const it=e.target.closest('#items .item');if(!it||e.target.closest('button,a'))return;
   drag={id:it.dataset.id,ch:it.dataset.ch,el:it,x:e.clientX,y:e.clientY,active:false,timer:null};
+  if(it.classList.contains('locked'))return;   // scheduled in LinkedIn: a tap opens it, dragging is off
   if(e.target.closest('.handle')){e.preventDefault();startDrag()}else drag.timer=setTimeout(startDrag,380)});
 document.addEventListener('pointermove',e=>{if(!drag.id)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
   if(!drag.active){if(Math.hypot(dx,dy)>10)endDrag(false);return}
@@ -380,17 +405,25 @@ function photoCell(p,s){const lab=p.status==='used'?(p.used_in||'used')+(p.free_
 function actionBar(cells){const c=cells.find(x=>x.p.id===selPhoto);if(!c)return '';const {p,s}=c;
   return `<div class="pact"><div>${fmtD(s.date)} · ${esc(p.scene||s.label||'')}${p.status==='used'?' · used in '+esc(p.used_in||'')+(p.free_from?', free from '+fmtD(p.free_from):''):''}</div><div class="row">${p.status==='new'?'':`<button class="sm s" onclick="pdec('${s.id}','hold')">don't use this shoot</button><button class="sm s" onclick="pdec('${p.id}','use_friday')">Friday post</button>`}<button class="sm s" onclick="pdec('${p.id}','delete')">delete</button><button class="sm" onclick="selPhoto=null;renderPhotos()">close</button></div></div>`}
 function renderPhotos(){
-  const el=$('#photos'); const sm=S.photos.summary||{};
+  const el=$('#photos'); const sm=S.photos.summary||{}; const shoots=S.photos.shoots||[]; const cut=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
+  const byId={}; for(const s of shoots) for(const p of (s.photos||[])) byId[p.id]={p,s};
   let h=`<form id="up" style="margin-bottom:10px"><label class="b p" style="display:block;text-align:center;border-radius:8px;padding:12px;background:var(--c);color:#fff;font-weight:600;cursor:pointer">+ Add photos<input type="file" name="photos[]" accept="image/*" multiple style="display:none" onchange="startUpload(this)"></label><input type="text" name="note" placeholder="note for these photos (optional)" style="margin-top:8px"></form>`;
-  h+=`<div class="q" style="margin:0 0 10px"><b>${sm.eligible||0}</b> available · ${sm.used||0} used${sm.next_free?' (next free '+fmtD(sm.next_free)+')':''} · ${sm.hold||0} held back · the system picks; tap a photo for options</div>`;
-  const shoots=S.photos.shoots||[]; const cells=[];
-  for(const p of S.pending) cells.push({p:{id:p.id,url:p.url,status:'new',scene:''},s:{id:'',date:p.ts.slice(0,10),label:'uploaded, waiting for the Mac'}});
-  for(const s of shoots) for(const p of (s.photos||[])) if(p.eligible) cells.push({p,s});
-  h+=`<div class="grid">${cells.map(c=>photoCell(c.p,c.s)).join('')}</div>`;
-  if(!cells.length) h+='<div class="empty">No photo available right now. Add photos from the camera roll; originals stay on the phone.</div>';
-  const rest=[];for(const s of shoots) for(const p of (s.photos||[])) if(!p.eligible) rest.push({p,s});
-  if(rest.length){h+=`<div class="row" style="margin-top:12px"><button class="sm s" onclick="showUsed=!showUsed;renderPhotos()">${showUsed?'hide used and held':'used and held · '+rest.length}</button></div>`; if(showUsed) h+=`<div class="grid" style="margin-top:8px">${rest.map(c=>photoCell(c.p,c.s)).join('')}</div>`}
-  h+=actionBar(cells.concat(showUsed?rest:[]));
+  // 1. the photos already on planned posts, in slot order; tap opens the post
+  const next=[...S.cards].sort((a,b)=>a.slot.localeCompare(b.slot)).filter(c=>c.photo&&byId[c.photo]).map(c=>({c,...byId[c.photo]}));
+  h+=`<h2>On the next posts · ${next.length}</h2>`;
+  h+=next.length?`<div class="grid">${next.map(x=>`<div class="ph" onclick="goCard('${x.c.id}')"><img src="${esc(x.p.thumb||x.p.url)}" loading="lazy"><span class="st">${fmtDay(x.c.slot)} · ${x.c.channel==='company'?'company':'personal'}</span></div>`).join('')}</div><div class="q" style="margin:6px 0 0;font-size:12px">tap a photo to open its post; change the picture there (next from the pool, or upload)</div>`:'<div class="q">no pool photo on a planned post yet</div>';
+  // 2. new: uploaded or shot in the last 30 days and still available
+  const cells=[]; for(const p of S.pending) cells.push({p:{id:p.id,url:p.url,status:'new',scene:''},s:{id:'',date:p.ts.slice(0,10),label:'uploaded, waiting for the Mac'}});
+  for(const s of shoots) for(const p of (s.photos||[])) if(p.eligible&&s.date>=cut) cells.push({p,s});
+  h+=`<h2>New · ${cells.length}</h2>`;
+  h+=cells.length?`<div class="grid">${cells.map(c=>photoCell(c.p,c.s)).join('')}</div><div class="q" style="margin:6px 0 0;font-size:12px">from the last 30 days, not used yet; the system picks from these first · tap one for options</div>`:'<div class="q">nothing new: add photos from the camera roll, originals stay on the phone</div>';
+  // 3. archive: the older pool, used and held photos; hidden by default
+  const arch=[]; for(const s of shoots) for(const p of (s.photos||[])) if(!(p.eligible&&s.date>=cut)) arch.push({p,s});
+  const avail=arch.filter(x=>x.p.eligible).length;
+  h+=`<h2>Archive · ${arch.length}</h2><div class="q" style="margin:0 0 8px">${avail} older photos still available · ${sm.used||0} used${sm.next_free?' (next free '+fmtD(sm.next_free)+')':''} · ${sm.hold||0} held back · the system takes an older one only when nothing new is left</div>`;
+  if(arch.length) h+=`<div class="row" style="margin:0 0 8px"><button class="sm s" onclick="showUsed=!showUsed;renderPhotos()">${showUsed?'hide the archive':'show the archive'}</button></div>`;
+  if(showUsed) h+=`<div class="grid arch">${arch.map(c=>photoCell(c.p,c.s)).join('')}</div>`;
+  h+=actionBar(cells.concat(showUsed?arch:[]));
   if(S.memos.length) h+=`<div class="set">memos waiting for the Mac: ${S.memos.length}</div>`;
   el.innerHTML=h;
 }

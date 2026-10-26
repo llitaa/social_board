@@ -44,6 +44,21 @@ function overlay_photos(array $ph): array {
   } unset($s);
   return $ph;
 }
+function overlay_pipeline(array $pipe): array {   // posts Anton logged as published himself, and numbers he typed, show before the Mac folds them into the CSVs
+  global $D; $ov = jread("$D/overlay.json", []); $pipe['published'] = $pipe['published'] ?? [];
+  $have = array_column($pipe['published'], 'id');
+  foreach ($ov['published'] ?? [] as $id => $st) {
+    if (!fresh($st) || in_array($id, $have, true)) continue;
+    array_unshift($pipe['published'], ['id' => $id, 'date' => $st['date'] ?? '', 'channel' => $st['channel'] ?? 'personal', 'hook' => $st['hook'] ?? '', 'impressions' => '', 'reactions' => '', 'comments' => '', 'link' => $st['url'] ?? '', 'numbers_at' => '']);
+  }
+  foreach ($pipe['published'] as &$p) {
+    $st = $ov['metrics'][$p['id']] ?? null; if (!fresh($st)) continue;
+    foreach (['impressions', 'reactions', 'comments'] as $k) if (isset($st[$k]) && $st[$k] !== '') $p[$k] = $st[$k];
+    $p['numbers_at'] = substr((string)$st['ts'], 0, 16);
+  } unset($p);
+  usort($pipe['published'], fn($a, $b) => strcmp((string)$b['date'], (string)$a['date']));
+  return $pipe;
+}
 function set_overlay(string $kind, string $id, array $patch): void {
   global $D; $lk = fopen("$D/.overlay.lock", 'c'); flock($lk, LOCK_EX);   // read-modify-write under one lock (page ticks, cron and taps run at the same time)
   $ov = jread("$D/overlay.json", []); $cur = $ov[$kind][$id] ?? [];
@@ -88,7 +103,7 @@ switch ($a) {
   case 'state':
     $cards = overlay_cards(jread("$D/cards.json", []));
     $photos = overlay_photos(jread("$D/photos.json", ['shoots' => []]));
-    $pipe = jread("$D/pipeline.json", ['upcoming' => [], 'published' => []]);
+    $pipe = overlay_pipeline(jread("$D/pipeline.json", ['upcoming' => [], 'published' => []]));
     $pending = [];
     foreach (glob("$D/uploads/photos/*") as $f) { $pending[] = ['id' => basename($f), 'url' => 'data/uploads/photos/' . rawurlencode(basename($f)), 'ts' => date('c', filemtime($f))]; }
     $memos = [];
@@ -177,6 +192,23 @@ switch ($a) {
     if ($card !== '') { set_overlay('cards', $card, ['note_pending' => time()]); }
     decide(['type'=>'memo','file'=>$name,'seconds'=>(int)($_POST['seconds'] ?? 0),'card_id'=>$card]);
     out(['ok'=>true,'file'=>$name]);
+
+  case 'external': // a post Anton published or scheduled in LinkedIn himself, outside the board: goes into posts-log so Published is complete
+    $date = preg_replace('/[^0-9-]/', '', (string)($body['date'] ?? '')); if (strlen($date) !== 10) $date = date('Y-m-d');
+    $ch = (($body['channel'] ?? 'personal') === 'company') ? 'company' : 'personal';
+    $hook = trim((string)($body['hook'] ?? '')); $hook = function_exists('mb_substr') ? mb_substr($hook, 0, 160) : substr($hook, 0, 160);
+    $url = trim((string)($body['url'] ?? '')); if ($url !== '' && !preg_match('~^https://(www\.)?linkedin\.com/~', $url)) out(['error' => 'not a LinkedIn URL']);
+    if ($hook === '' && $url === '') out(['error' => 'first line or URL needed']);
+    $id = 'li-ext-' . date('Ymd-Hi');
+    set_overlay('published', $id, ['date' => $date, 'channel' => $ch, 'hook' => $hook, 'url' => $url]);
+    decide(['type' => 'external', 'post_id' => $id, 'date' => $date, 'channel' => $ch, 'hook' => $hook, 'url' => $url]);
+    out(['ok' => true, 'id' => $id]);
+
+  case 'metrics': // numbers Anton reads off LinkedIn for one published post (the API cannot read them until LinkedIn grants the analytics scope)
+    $id = preg_replace('/[^\w-]/', '', (string)($body['post_id'] ?? '')); if ($id === '') out(['error' => 'bad request']);
+    $patch = []; foreach (['impressions', 'reactions', 'comments'] as $k) if (isset($body[$k]) && $body[$k] !== '') $patch[$k] = (string)(int)preg_replace('/\D/', '', (string)$body[$k]);
+    if (!$patch) out(['error' => 'no numbers']);
+    set_overlay('metrics', $id, $patch); decide(['type' => 'metrics', 'post_id' => $id] + $patch); out(['ok' => true]);
 
   case 'settings':
     $s = settings(); foreach (['expiry','review'] as $k) if (isset($body[$k])) $s[$k] = (string)$body[$k];

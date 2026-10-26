@@ -7,7 +7,7 @@
 - photo / upload / memo decisions -> library/log/board-events.csv (processed by photo_index / transcribe)
 Idempotent: remembers the last processed line per decisions file in library/log/.applied.json
 """
-import csv, glob, json, os, shutil
+import csv, glob, json, os, re, shutil
 from datetime import datetime
 from common import CFG, BOARD_LOCAL, LIB, read_csv, write_csv, jload, jdump, log, resolve
 
@@ -110,6 +110,20 @@ def main():
                 append(os.path.join(LOGDIR, "post-decisions.csv"), ["ts", "card_id", "decision", "option", "note", "reason", "url", "edited", "when"], d)
             elif t == "comment":
                 append(os.path.join(LOGDIR, "comment-log.csv"), ["ts", "card_id", "decision", "reason"], d)
+            elif t == "external":   # a post Anton published in LinkedIn himself, logged on the board: Published is complete only with it
+                pid = d.get("post_id") or f"li-ext-{d['ts'][:10].replace('-', '')}"
+                if not any(r["post_id"] == pid for r in plog):
+                    plog.append({"date": d.get("date") or d["ts"][:10], "channel": "linkedin-company" if d.get("channel") == "company" else "linkedin", "post_id": pid,
+                                 "hook": (d.get("hook") or "")[:120], "link": d.get("url", ""), "note": f"POSTED by Anton in LinkedIn, logged on the board {d['ts'][:16].replace('T', ' ')}"}); changed_log = True
+                append(os.path.join(LOGDIR, "board-events.csv"), ["ts", "type", "id", "decision", "files", "file", "note", "answer", "expiry", "review", "card_id"], {**d, "id": pid, "note": d.get("hook", "")})
+            elif t == "metrics":   # numbers Anton typed on the board for one published post
+                for r in plog:
+                    if r["post_id"] == d.get("post_id"):
+                        for k in ("impressions", "reactions", "comments"):
+                            if d.get(k) not in (None, ""): r[k] = str(d[k])
+                        r["note"] = f"metrics board {d['ts'][:16].replace('T', ' ')}. " + (r.get("note") or ""); changed_log = True
+                append(os.path.join(LOGDIR, "board-events.csv"), ["ts", "type", "id", "decision", "files", "file", "note", "answer", "expiry", "review", "card_id"],
+                       {**d, "id": d.get("post_id", ""), "note": " ".join(f"{k}={d[k]}" for k in ("impressions", "reactions", "comments") if d.get(k) not in (None, ""))})
             elif t in ("photo", "upload", "memo", "settings", "answer"):
                 append(os.path.join(LOGDIR, "board-events.csv"), ["ts", "type", "id", "decision", "files", "file", "note", "answer", "expiry", "review", "card_id"],
                        {**d, "files": ",".join(d.get("files", []) or [])})

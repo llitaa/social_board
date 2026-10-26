@@ -67,7 +67,7 @@ def main():
         if (date.today() - date.fromisoformat(m["ts"][:10])).days <= 14:
             issues.append({"what": "LinkedIn mail", "since": m["ts"][:10], "times": 1, "log": f"{m['ts'][:10]} {m['subject']} — {m['preview'][:140]}", "fix": "read it in anton@alpitype.com; if the Community Management API is granted: python3 pipeline/linkedin_auth.py --org"})
     pipe = jload(os.path.join(BOARD_LOCAL, "pipeline.json"), {})
-    if pipe.get("metrics_missing", 0) >= 3: ok.append(f"numbers missing for {pipe['metrics_missing']} published posts: export from LinkedIn (post > View analytics > Export, page: Analytics > Content > Export) into library/metrics/inbox; the API fills them itself once the Community Management API is granted")
+    if pipe.get("metrics_missing", 0) >= 3: ok.append(f"numbers missing for {pipe['metrics_missing']} published posts: tap the post under Published on the board and type them, or download LinkedIn's export (Analytics > Post impressions > Export; page: Analytics > Content > Export) into ~/Downloads; the API fills them itself once LinkedIn grants the Community Management API")
     memos, _ = read_csv(os.path.join(LIB, "memos", "index.csv")); fb = sum(1 for m in memos if m.get("status") == "feedback")
     if fb: ok.append(f"{fb} note{'s' if fb > 1 else ''} for the builder in library/feedback.md")
     if not li["connected"]: issues.append({"what": "LinkedIn token", "since": today.isoformat(), "times": 1, "log": "no valid token for the profile: nothing can be published", "fix": "run: python3 pipeline/linkedin_auth.py (then the full run pushes it to the host)"})

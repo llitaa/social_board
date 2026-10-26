@@ -99,7 +99,7 @@ def main():
                       "pillar": pm.group(1) if pm else PILLAR.get(r["format"], r["format"]), "text": text, "image": image, "status": st, "plan_row": r["id"],
                       "note": board_note(r.get("notes", "")), "updated": r.get("notes", "").startswith("[redraft ") and "applied" in r.get("notes", "")[:40],
                       "failed": r.get("notes", "").startswith("[redraft failed"), "versions": len(meta.get("versions", [])),
-                      "photo_scene": meta.get("photo", "") and next((p.get("scene", "") for p in photos if p["id"] == meta.get("photo")), "")})
+                      "photo": meta.get("photo", ""), "photo_scene": meta.get("photo", "") and next((p.get("scene", "") for p in photos if p["id"] == meta.get("photo")), "")})
     upcoming.sort(key=lambda u: u["when"])   # only slots that have a draft; empty slots are filled by draft.py, never listed
     # published: posts-log rows that really went out (plan says posted, or the log note says so, or numbers exist)
     plog, _ = read_csv(CFG["posts_log"]); posted_ids = {card_id(r) for r in rows if r["status"] == "posted"}
@@ -108,8 +108,10 @@ def main():
         note = (r.get("note") or "").upper()
         if r["post_id"] not in posted_ids and not note.startswith("POSTED") and not (r.get("impressions") or r.get("reactions")): continue
         if r["date"] > today.isoformat(): continue
+        nm = re.search(r"metrics (?:api |board )?(\d{4}-\d{2}-\d{2}(?: \d{2}:\d{2})?)", r.get("note") or "")   # newest numbers note is prepended, so the first match is the latest
         published.append({"id": r["post_id"], "date": r["date"], "channel": "company" if "company" in r["channel"] else "personal",
-                          "hook": (r.get("hook") or "")[:110], "impressions": r.get("impressions", ""), "reactions": r.get("reactions", ""), "comments": r.get("comments", "")})
+                          "hook": (r.get("hook") or "")[:110], "impressions": r.get("impressions", ""), "reactions": r.get("reactions", ""), "comments": r.get("comments", ""),
+                          "link": r.get("link", "") if (r.get("link") or "").startswith("http") else "", "numbers_at": nm.group(1) if nm else ""})
     published.sort(key=lambda p: p["date"], reverse=True)
     # Featured section candidates: the personal posts with the most impressions in the last 90 days (Anton pins them on his profile by hand)
     recent = [p for p in published if p["channel"] == "personal" and p["date"] >= (today - timedelta(days=90)).isoformat() and str(p["impressions"]).isdigit()]
@@ -120,10 +122,18 @@ def main():
     inv, _ = read_csv(os.path.join(LIB, "inventory.csv")); material = {}
     for r in inv:
         if r.get("status") == "unused": material[r["pillar"]] = material.get(r["pillar"], 0) + 1
-    memos, _ = read_csv(os.path.join(LIB, "memos", "index.csv"))
+    # voice memos of the last 14 days (at least the last three) with what became of them: topic -> draft -> slot, or note / feedback / noise
+    memos, _ = read_csv(os.path.join(LIB, "memos", "index.csv")); topic_post = {r["id"]: r.get("used_in", "") for r in inv}
+    when_of = {card_id(r): (when(r).isoformat(timespec="minutes") if when(r) else "") for r in rows if r.get("caption_ref")}
+    status_of = {card_id(r): STATUS.get(r["status"], r["status"]) for r in rows if r.get("caption_ref")}
+    recent = [m for m in memos if (m.get("recorded") or "") >= (today - timedelta(days=14)).isoformat()] or memos[-3:]
+    mv = []
+    for m in reversed(recent[-8:]):
+        u = m.get("used_in", ""); topic = u if u.startswith("t") else ""; post = topic_post.get(u, "") if topic else (u if u.startswith("li-") else "")
+        mv.append({"id": m["id"], "recorded": m["recorded"], "words": m["words"], "status": m["status"], "topic": topic, "post": post,
+                   "when": when_of.get(post, ""), "post_status": status_of.get(post, ""), "note": m.get("note", "")})
     jdump(os.path.join(BOARD_LOCAL, "pipeline.json"), {"upcoming": upcoming, "published": published[:12], "featured": featured, "metrics_missing": missing, "material": material,
-          "memos": [{"id": m["id"], "recorded": m["recorded"], "words": m["words"], "status": m["status"], "used_in": m["used_in"]} for m in memos[-5:] if m["status"] in ("new", "drafted")],
-          "generated": now.isoformat(timespec="seconds")})
+          "memos": mv, "generated": now.isoformat(timespec="seconds")})
     log(f"{len(cards)} cards: " + ", ".join(f"{c['id']}@{c['slot'][:16]}[{c['status']}]" for c in cards) + f"; {len(upcoming)} upcoming, {len(published)} published; images {total // 1024} KB, pruned {pruned}")
 
 if __name__ == "__main__": main()

@@ -3,7 +3,7 @@
 (company page: Analytics > Content > Export; personal: post > View analytics > Export) into library/metrics/inbox/.
 Each row is matched to a posts-log row by date (+/- 1 day) and the first 30 characters of the hook; impressions,
 reactions, comments, reposts are written; matched files move to library/metrics/done/. Zero tokens."""
-import csv, os, re, shutil, unicodedata
+import csv, json, os, re, shutil, time, unicodedata
 from datetime import datetime, timedelta
 from common import CFG, LIB, read_csv, write_csv, log
 
@@ -42,7 +42,27 @@ def parse_date(s):
 def num(s):
     s = re.sub(r"[^\d]", "", s or ""); return s or ""
 
+DOWNLOADS, SEEN = os.path.expanduser("~/Downloads"), os.path.join(LIB, "metrics", ".seen.json")
+
+def scan_downloads():
+    """LinkedIn exports land in ~/Downloads: a spreadsheet from the last 30 days with an impressions header is copied into
+    the inbox once (name + mtime remembered); the original stays. Saves the step of moving the file by hand."""
+    if not os.path.isdir(DOWNLOADS): return
+    try: seen = json.load(open(SEEN))
+    except (FileNotFoundError, json.JSONDecodeError): seen = {}
+    for f in os.listdir(DOWNLOADS):
+        p = os.path.join(DOWNLOADS, f)
+        if f.startswith(".") or not f.lower().endswith((".xlsx", ".xlsm", ".csv")) or not os.path.isfile(p): continue
+        key = f"{f}:{int(os.path.getmtime(p))}"
+        if key in seen or time.time() - os.path.getmtime(p) > 30 * 86400 or os.path.getsize(p) > 20 * 1024 * 1024: continue
+        seen[key] = 1
+        try:
+            if any(header_map(rows)[0] is not None for _, rows in tables(p)): shutil.copy2(p, os.path.join(INBOX, f)); log(f"Downloads: {f} looks like a LinkedIn export, taken into the inbox")
+        except Exception as e: log(f"Downloads: {f} not readable: {str(e)[:80]}")
+    json.dump(seen, open(SEEN, "w"))
+
 def main():
+    os.makedirs(INBOX, exist_ok=True); os.makedirs(DONE, exist_ok=True); scan_downloads()
     plog, lf = read_csv(CFG["posts_log"]); changed = 0
     for f in sorted(os.listdir(INBOX)):
         p = os.path.join(INBOX, f)
