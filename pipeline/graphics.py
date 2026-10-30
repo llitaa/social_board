@@ -41,7 +41,7 @@ svg .c{{fill:{CYAN}}} svg .w{{fill:#fff}}
 
 def curves(s):
     """s.a / s.b: {label, points:[y0..yn in 0..1]}; s.gap: label of the shaded area; s.x: [first, last] axis labels."""
-    x0, x1, y0, y1 = 150, 1110, 1000, 360
+    x0, x1, y0, y1 = 150, 1110, 1000, 430
     def pts(p): n = len(p) - 1; return [(x0 + (x1 - x0) * i / n, y0 - (y0 - y1) * v) for i, v in enumerate(p)]
     A, B = pts(s["a"]["points"]), pts(s["b"]["points"])
     path = lambda P: "M" + " L".join(f"{x:.0f},{y:.0f}" for x, y in P)
@@ -52,11 +52,11 @@ def curves(s):
 <line x1="{x0}" y1="{y0}" x2="{x1}" y2="{y0}" stroke="{MUTED}" stroke-width="3"/><line x1="{x0}" y1="{y0}" x2="{x0}" y2="{y1 - 30}" stroke="{MUTED}" stroke-width="3"/>
 <path d="{path(B)}" fill="none" stroke="{INK}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="{path(A)}" fill="none" stroke="{CYAN}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="{A[-1][0] - 10:.0f}" y="{A[-1][1] + (56 if A[-1][1] > B[-1][1] else -28):.0f}" font-size="34" text-anchor="end" class="c">{esc(s["a"]["label"])}</text>
-<text x="{B[-1][0] - 10:.0f}" y="{B[-1][1] + (56 if B[-1][1] >= A[-1][1] else -28):.0f}" font-size="34" text-anchor="end">{esc(s["b"]["label"])}</text>
-<text x="{(x0 + x1) / 2 + 120:.0f}" y="{(A[-2][1] + B[-2][1]) / 2 + 12:.0f}" font-size="40" text-anchor="middle" font-weight="800">{esc(s.get("gap", ""))}</text>
+<rect x="{x0 - 50}" y="{y1 - 120}" width="46" height="12" rx="6" fill="{CYAN}"/><text x="{x0 + 12}" y="{y1 - 108}" font-size="28" class="m">{esc(s["a"]["label"])}</text>
+<rect x="{x0 + 420}" y="{y1 - 120}" width="46" height="12" rx="6" fill="{INK}"/><text x="{x0 + 482}" y="{y1 - 108}" font-size="28" class="m">{esc(s["b"]["label"])}</text>
+<text x="{(x0 + x1) / 2 + 120:.0f}" y="{(A[-2][1] + B[-2][1]) / 2 + 12:.0f}" font-size="40" text-anchor="middle" font-weight="800" style="paint-order:stroke;stroke:#fff;stroke-width:12px;stroke-linejoin:round">{esc(s.get("gap", ""))}</text>
 <text x="{x0}" y="{y0 + 48}" font-size="26" class="m">{esc(xl[0])}</text><text x="{x1}" y="{y0 + 48}" font-size="26" text-anchor="end" class="m">{esc(xl[1])}</text>
-<text x="{x0 - 20}" y="{y1 - 50}" font-size="26" class="m">{esc(s.get("y", ""))}</text>{"".join(f'<circle cx="{A[m["at"]][0]:.0f}" cy="{A[m["at"]][1]:.0f}" r="16" fill="{CYAN}" stroke="#fff" stroke-width="5"/><text x="{A[m["at"]][0]:.0f}" y="{A[m["at"]][1] + (64 if m.get("below", True) else -34):.0f}" font-size="30" text-anchor="middle" font-weight="800">{esc(m["label"])}</text>' for m in s.get("marks", []))}</svg>"""
+<text x="{x0 - 20}" y="{y1 - 30}" font-size="26" class="m">{esc(s.get("y", ""))}</text>{"".join(f'<circle cx="{A[m["at"]][0]:.0f}" cy="{A[m["at"]][1]:.0f}" r="16" fill="{CYAN}" stroke="#fff" stroke-width="5"/><text x="{A[m["at"]][0]:.0f}" y="{A[m["at"]][1] + (64 if m.get("below", True) else -34):.0f}" font-size="30" text-anchor="middle" font-weight="800" style="paint-order:stroke;stroke:#fff;stroke-width:10px;stroke-linejoin:round">{esc(m["label"])}</text>' for m in s.get("marks", []))}</svg>"""
 
 def shift(s):
     """s.bars: [{label, values:[...]}, {label, values:[...]}] (same length, sum ~100); s.segments: [labels]; dark to light from the bottom."""
