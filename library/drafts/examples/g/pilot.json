@@ -1,0 +1,30 @@
+{
+ "kind": "flow",
+ "eyebrow": "KI-Projekte",
+ "title": "Wo Piloten sterben",
+ "steps": [
+  {
+   "label": "PoC",
+   "sub": "Demo läuft"
+  },
+  {
+   "label": "Pilot",
+   "sub": "echte Daten"
+  },
+  {
+   "label": "Wer trägt\\ndie Ausnahmen?",
+   "kind": "gate"
+  },
+  {
+   "label": "Betrieb",
+   "sub": "jemand nimmt ab",
+   "kind": "end"
+  }
+ ],
+ "dead": {
+  "from": 2,
+  "label": "Friedhof der Piloten",
+  "sub": "keine benannte Person, kein Mandat"
+ },
+ "note": "Die meisten KI-Projekte, die laufen, stecken vor der Aktivierung fest. Das Tor ist keine Technik, sondern ein Name."
+}

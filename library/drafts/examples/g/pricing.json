@@ -1,0 +1,68 @@
+{
+ "kind": "beforeafter",
+ "eyebrow": "Software und Geld",
+ "title": "Dieselben Maschinen,\\nein anderer Vertrag",
+ "panels": [
+  {
+   "label": "Vorher: Lizenz",
+   "lines": [
+    {
+     "label": "Produktion",
+     "points": [
+      0.5,
+      0.7,
+      0.4,
+      0.8,
+      0.55,
+      0.9,
+      0.6
+     ],
+     "color": "cyan"
+    },
+    {
+     "label": "Rechnung",
+     "points": [
+      0.45,
+      0.45,
+      0.45,
+      0.45,
+      0.45,
+      0.45,
+      0.45
+     ]
+    }
+   ]
+  },
+  {
+   "label": "Nachher: nach Produktion",
+   "lines": [
+    {
+     "label": "Produktion",
+     "points": [
+      0.5,
+      0.7,
+      0.4,
+      0.8,
+      0.55,
+      0.9,
+      0.6
+     ],
+     "color": "cyan"
+    },
+    {
+     "label": "Rechnung",
+     "points": [
+      0.42,
+      0.6,
+      0.33,
+      0.7,
+      0.47,
+      0.8,
+      0.52
+     ]
+    }
+   ]
+  }
+ ],
+ "note": "Textilmaschinen: die Maschinendaten liefern die Tagesproduktion, die Abrechnung folgt ihr. Die Software hat kein Feature verkauft, sondern den Vertrag geändert."
+}

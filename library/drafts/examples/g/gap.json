@@ -1,0 +1,34 @@
+{
+ "kind": "curves",
+ "eyebrow": "KI in der Entwicklung",
+ "title": "Die Lücke wächst.\\nNicht das Modell.",
+ "x": [
+  "2022",
+  "2027"
+ ],
+ "y": "Tempo",
+ "a": {
+  "label": "Erzeugen (Agent)",
+  "points": [
+   0.12,
+   0.2,
+   0.34,
+   0.55,
+   0.78,
+   0.95
+  ]
+ },
+ "b": {
+  "label": "Prüfen (Mensch)",
+  "points": [
+   0.12,
+   0.14,
+   0.16,
+   0.18,
+   0.2,
+   0.22
+  ]
+ },
+ "gap": "Verifikationslücke",
+ "note": "Was der Agent in Minuten schreibt, prüft ein Mensch in Stunden. Wer heute Entwickler einstellt, kauft Prüfkapazität."
+}

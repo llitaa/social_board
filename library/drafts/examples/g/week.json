@@ -1,0 +1,32 @@
+{
+ "kind": "shift",
+ "eyebrow": "Vom Code zum Produkt",
+ "title": "Wo meine Woche hingeht",
+ "segments": [
+  "Code schreiben",
+  "Anforderungen\\nklären",
+  "Entscheiden,\\nwas wegbleibt",
+  "Betrieb\\nverantworten"
+ ],
+ "bars": [
+  {
+   "label": "2014",
+   "values": [
+    80,
+    10,
+    5,
+    5
+   ]
+  },
+  {
+   "label": "2026",
+   "values": [
+    25,
+    30,
+    25,
+    20
+   ]
+  }
+ ],
+ "note": "Eigene Schätzung. Der Agent hat den Code-Anteil nicht erhöht, sondern den Rest sichtbar gemacht."
+}

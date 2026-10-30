@@ -1,0 +1,29 @@
+<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>graphic</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;600&display=block" rel="stylesheet">
+<style>*{box-sizing:border-box;margin:0}html,body{background:#fff}
+body{font-family:"Montserrat","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;color:#0f3a50}
+.canvas{width:1200px;height:1200px;position:relative;overflow:hidden;background:#fff}
+.stripe{position:absolute;left:0;top:0;width:24px;height:100%;background:linear-gradient(180deg,#42F45D 0%,#01BC56 30%,#00BEE6 65%,#08E3FB 100%)}
+.who{position:absolute;right:72px;top:64px;text-align:right;font-family:"Open Sans",sans-serif;font-size:22px;color:#5a6e7c}
+.who b{display:block;font-weight:600;color:#0f3a50;font-size:25px}
+.eyebrow{position:absolute;left:96px;top:72px;font-family:"Open Sans",sans-serif;font-size:22px;letter-spacing:.22em;text-transform:uppercase;color:#20B8D0;font-weight:600}
+h1{position:absolute;left:96px;top:124px;width:760px;font-size:58px;line-height:1.1;font-weight:800;letter-spacing:-1.5px}
+svg{position:absolute;left:0;top:0}
+.note{position:absolute;left:96px;bottom:60px;right:72px;font-family:"Open Sans",sans-serif;font-size:22px;color:#5a6e7c;line-height:1.35}
+svg text{font-family:"Montserrat","Helvetica Neue",Arial,sans-serif;font-weight:600;fill:#0f3a50}
+svg .m{fill:#5a6e7c;font-family:"Open Sans",sans-serif;font-weight:400}
+svg .c{fill:#20B8D0} svg .w{fill:#fff}
+</style></head><body><div class="canvas"><div class="stripe"></div>
+<div class="who"><b>Anton Lytvynenko</b>Software Architect · Technical Lead</div>
+<div class="eyebrow">KI in der Entwicklung</div><h1>Die Lücke wächst.<br>Nicht das Modell.</h1>
+<svg width="1200" height="1200" viewBox="0 0 1200 1200">
+<path d="M150,923 L342,872 L534,782 L726,648 L918,501 L1110,392 L1110,859 L918,872 L726,885 L534,898 L342,910 L150,923 Z" fill="#e6f6f9"/>
+<line x1="150" y1="1000" x2="1110" y2="1000" stroke="#5a6e7c" stroke-width="3"/><line x1="150" y1="1000" x2="150" y2="330" stroke="#5a6e7c" stroke-width="3"/>
+<path d="M150,923 L342,910 L534,898 L726,885 L918,872 L1110,859" fill="none" stroke="#0f3a50" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M150,923 L342,872 L534,782 L726,648 L918,501 L1110,392" fill="none" stroke="#20B8D0" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1100" y="364" font-size="34" text-anchor="end" class="c">Erzeugen (Agent)</text>
+<text x="1100" y="915" font-size="34" text-anchor="end">Prüfen (Mensch)</text>
+<text x="750" y="698" font-size="40" text-anchor="middle" font-weight="800">Verifikationslücke</text>
+<text x="150" y="1048" font-size="26" class="m">2022</text><text x="1110" y="1048" font-size="26" text-anchor="end" class="m">2027</text>
+<text x="130" y="310" font-size="26" class="m">Tempo</text></svg>
+<div class="note">Was der Agent in Minuten schreibt, prüft ein Mensch in Stunden. Wer heute Entwickler einstellt, kauft Prüfkapazität.</div></div></body></html>
