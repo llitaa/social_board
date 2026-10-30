@@ -11,7 +11,8 @@ import html, json, os, subprocess, sys
 from common import CFG, LIB
 
 DRAFTS = os.path.join(LIB, "drafts")
-INK, CYAN, MUTED, SOFT = "#1f4a63", "#20B8D0", "#6b7f8c", "#eaf7fa"
+INK, CYAN, MUTED, SOFT = "#0f3a50", "#20B8D0", "#6b7f8c", "#e9fbfe"   # AlpiType: dark blue, cyan, tint; grey only for axes and captions
+GREEN, BLUE, SKY, TINT = "#01BC56", "#00BEE6", "#08E3FB", "#BEF7FF"
 GRAD = "linear-gradient(180deg,#42F45D 0%,#01BC56 30%,#00BEE6 65%,#08E3FB 100%)"
 
 def esc(s): return html.escape(str(s or ""))
@@ -44,7 +45,7 @@ def curves(s):
     """s.a / s.b: {label, points:[y0..yn in 0..1]}; s.gap: label of the shaded area; s.x: [first, last] axis labels."""
     x0, x1, y0, y1 = 150, 1110, 1000, 430
     def pts(p): n = len(p) - 1; return [(x0 + (x1 - x0) * i / n, y0 - (y0 - y1) * v) for i, v in enumerate(p)]
-    A, B = pts(s["a"]["points"]), pts(s["b"]["points"])
+    A, B = pts(s["a"]["points"]), pts(s["b"]["points"]); gi = max(range(len(A)), key=lambda i: abs(A[i][1] - B[i][1]) if i < len(A) - 1 else 0)   # widest gap, not the last point
     path = lambda P: "M" + " L".join(f"{x:.0f},{y:.0f}" for x, y in P)
     area = path(A) + " L" + " L".join(f"{x:.0f},{y:.0f}" for x, y in reversed(B)) + " Z"
     xl = s.get("x", ["", ""])
@@ -55,20 +56,26 @@ def curves(s):
 <path d="{path(A)}" fill="none" stroke="{CYAN}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
 <rect x="{x0 - 50}" y="{y1 - 120}" width="46" height="12" rx="6" fill="{CYAN}"/><text x="{x0 + 12}" y="{y1 - 108}" font-size="28" class="m">{esc(s["a"]["label"])}</text>
 <rect x="{x0 + 420}" y="{y1 - 120}" width="46" height="12" rx="6" fill="{INK}"/><text x="{x0 + 482}" y="{y1 - 108}" font-size="28" class="m">{esc(s["b"]["label"])}</text>
-<text x="{(x0 + x1) / 2 + 120:.0f}" y="{(A[-2][1] + B[-2][1]) / 2 + 12:.0f}" font-size="40" text-anchor="middle" font-weight="800" style="paint-order:stroke;stroke:#fff;stroke-width:12px;stroke-linejoin:round">{esc(s.get("gap", ""))}</text>
+<text x="{A[gi][0]:.0f}" y="{(A[gi][1] + B[gi][1]) / 2 + 14:.0f}" font-size="40" text-anchor="middle" font-weight="800" style="paint-order:stroke;stroke:#fff;stroke-width:12px;stroke-linejoin:round">{esc(s.get("gap", ""))}</text>
 <text x="{x0}" y="{y0 + 48}" font-size="26" class="m">{esc(xl[0])}</text><text x="{x1}" y="{y0 + 48}" font-size="26" text-anchor="end" class="m">{esc(xl[1])}</text>
-<text x="{x0 - 20}" y="{y1 - 30}" font-size="26" class="m">{esc(s.get("y", ""))}</text>{"".join(f'<circle cx="{A[m["at"]][0]:.0f}" cy="{A[m["at"]][1]:.0f}" r="16" fill="{CYAN}" stroke="#fff" stroke-width="5"/><text x="{A[m["at"]][0]:.0f}" y="{A[m["at"]][1] + (64 if (m.get("below", True) and A[m["at"]][1] < y0 - 110) else -34):.0f}" font-size="30" text-anchor="middle" font-weight="800" style="paint-order:stroke;stroke:#fff;stroke-width:10px;stroke-linejoin:round">{esc(m["label"])}</text>' for m in s.get("marks", []))}</svg>"""
+<text x="{x0 + 16}" y="{y1 - 34}" font-size="26" class="m">{esc(s.get("y", ""))}</text>{"".join(mark(A[m["at"]], m, y0) for m in s.get("marks", []))}</svg>"""
+
+def mark(p, m, y0):
+    """A point on line a with its label; pos = above | below | left | right (render() tries them in that order until the checker is clean)."""
+    pos = m.get("pos") or ("above" if p[1] > y0 - 110 else "below")
+    x, y, anchor = {"above": (p[0], p[1] - 74, "middle"), "below": (p[0], p[1] + 96, "middle"), "left": (p[0] - 44, p[1] + 12, "end"), "right": (p[0] + 44, p[1] + 12, "start"), "downleft": (p[0] - 40, p[1] + 72, "end"), "upright": (p[0] + 40, p[1] - 48, "start"), "upleft": (p[0] - 40, p[1] - 48, "end"), "downright": (p[0] + 40, p[1] + 72, "start")}[pos]
+    return f'<circle cx="{p[0]:.0f}" cy="{p[1]:.0f}" r="16" fill="{CYAN}" stroke="#fff" stroke-width="5"/><text x="{x:.0f}" y="{y:.0f}" font-size="30" text-anchor="{anchor}" font-weight="800">{esc(m["label"])}</text>'
 
 def shift(s):
     """s.bars: [{label, values:[...]}, {label, values:[...]}] (same length, sum ~100); s.segments: [labels]; dark to light from the bottom."""
-    seg = s["segments"]; cols = [INK, "#2d6a8a", CYAN, "#9fdde8", "#d7eef3"][:len(seg)]
+    seg = s["segments"]; cols = [INK, BLUE, SKY, TINT, SOFT][:len(seg)]
     out = []; xs = [470, 860]; bw = 240; top, bottom = 380, 1000
     for (bar, x) in zip(s["bars"], xs):
         y = bottom; tot = sum(bar["values"]) or 1
         for v, c, lab in zip(bar["values"], cols, seg):
             h = (bottom - top) * v / tot; y -= h
             out.append(f'<rect x="{x}" y="{y:.0f}" width="{bw}" height="{h:.0f}" fill="{c}"/>')
-            if h > 44: out.append(f'<text x="{x + bw / 2}" y="{y + h / 2 + 12:.0f}" font-size="30" text-anchor="middle" class="{"w" if c in (INK, "#2d6a8a", CYAN) else ""}">{v:.0f}%</text>')
+            if h > 44: out.append(f'<text x="{x + bw / 2}" y="{y + h / 2 + 12:.0f}" font-size="30" text-anchor="middle" class="{"w" if c in (INK, BLUE) else ""}">{v:.0f}%</text>')
         out.append(f'<text x="{x + bw / 2}" y="{bottom + 54}" font-size="34" text-anchor="middle" font-weight="800">{esc(bar["label"])}</text>')
     ly = top + 10
     for c, lab in zip(cols, seg):   # legend on the left; a label wraps at "\n"
@@ -104,7 +111,7 @@ def flow(s):
     for i, (x, step) in enumerate(zip(xs, st)):
         k = step.get("kind", "box")
         if k == "gate": out.append(f'<path d="M{x + w / 2},{y - 40} L{x + w + 50},{y + h / 2} L{x + w / 2},{y + h + 40} L{x - 50},{y + h / 2} Z" fill="{CYAN}"/>')
-        else: out.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="22" fill="{INK if k == "box" else "#1a9c4a"}"/>')
+        else: out.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="22" fill="{INK if k == "box" else GREEN}"/>')
         parts = str(step["label"]).split("\\n"); fs = 30 if max(len(t) for t in parts) < 12 else 24; y0 = y + h / 2 + (0 if step.get("sub") else 12) - (len(parts) - 1) * fs * 0.6
         out.append("".join(f'<text x="{x + w / 2}" y="{y0 + j * fs * 1.2:.0f}" font-size="{fs}" text-anchor="middle" class="w">{esc(t)}</text>' for j, t in enumerate(parts)))
         if step.get("sub"): out.append(f'<text x="{x + w / 2}" y="{y + h / 2 + 40}" font-size="20" text-anchor="middle" class="w" style="font-family:Open Sans;font-weight:400">{esc(step["sub"])}</text>')
@@ -122,7 +129,7 @@ def matrix(s):
     out = []; x0, y0, size = 210, 320, 335; names = {"tl": (0, 0), "tr": (1, 0), "bl": (0, 1), "br": (1, 1)}
     for k, (cx, cy) in names.items():
         q = s["quads"].get(k, {}); x = x0 + cx * size; y = y0 + cy * size; hot = k == s.get("hot"); dead = k == s.get("dead")
-        fill = CYAN if hot else ("#f3f5f6" if dead else SOFT); col = "w" if hot else ""
+        fill = CYAN if hot else ("#f2f4f5" if dead else SOFT); col = "w" if hot else ""
         out.append(f'<rect x="{x + 6}" y="{y + 6}" width="{size - 12}" height="{size - 12}" rx="24" fill="{fill}"/>')
         parts = str(q.get("label", "")).split("\\n"); fs = 36 if max(len(t) for t in parts) < 14 else 29
         out.append("".join(f'<text x="{x + size / 2}" y="{y + size / 2 - 10 + (j - (len(parts) - 1) / 2) * fs * 1.2:.0f}" font-size="{fs}" text-anchor="middle" font-weight="800" class="{col}">{esc(t)}</text>' for j, t in enumerate(parts)))
@@ -140,23 +147,67 @@ def phases(s):
         out.append(f'<text x="{x0}" y="{y - 22}" font-size="26" class="m">{esc(row["label"])}</text>')
         for i, (v, lab) in enumerate(zip(row["values"], s["phases"])):
             bw = w * v / tot
-            out.append(f'<rect x="{x + 3}" y="{y}" width="{max(bw - 6, 4):.0f}" height="{h}" rx="14" fill="{CYAN if i == hot else SOFT}" stroke="{CYAN if i == hot else "#cfe3ea"}" stroke-width="2"/>')
+            out.append(f'<rect x="{x + 3}" y="{y}" width="{max(bw - 6, 4):.0f}" height="{h}" rx="14" fill="{CYAN if i == hot else SOFT}" stroke="{CYAN if i == hot else TINT}" stroke-width="2"/>')
             fits = bw > 34 + 15 * len(lab)   # label inside when it fits, otherwise under the block
             if fits: out.append(f'<text x="{x + bw / 2:.0f}" y="{y + h / 2 + 10}" font-size="26" text-anchor="middle" class="{"w" if i == hot else ""}">{esc(lab)}</text>')
-            else: out.append(f'<text x="{x + bw / 2:.0f}" y="{y + h + (62 if under_prev else 34)}" font-size="20" text-anchor="middle" class="m">{esc(lab)}</text>')   # two narrow neighbours: second label one line lower
+            else: out.append(f'<text x="{x + bw / 2:.0f}" y="{y + h + (68 if under_prev else 34)}" font-size="20" text-anchor="middle" class="m">{esc(lab)}</text>')   # two narrow neighbours: second label one line lower
             under_prev = not fits and not under_prev; x += bw
     out.append(f'<path d="M{x0 + w / 2},{ys[0] + h + 60} L{x0 + w / 2},{ys[1] - 56}" stroke="{MUTED}" stroke-width="4" marker-end="url(#ar)"/>')
     return f'<svg width="1200" height="1200" viewBox="0 0 1200 1200"><defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="{MUTED}"/></marker></defs>' + "".join(out) + "</svg>"
 
 KINDS = {"phases": phases, "curves": curves, "shift": shift, "beforeafter": beforeafter, "flow": flow, "matrix": matrix}
 
-def render(spec, out_base, out_dir=None):
+CHECK_JS = """<script>
+window.addEventListener('load',()=>{setTimeout(()=>{
+  const R=[];const els=[...document.querySelectorAll('svg text, h1, .eyebrow, .who, .note')].filter(e=>(e.textContent||'').trim());
+  const box=e=>{const b=e.getBoundingClientRect();return {l:b.left,t:b.top,r:b.right,b:b.bottom,s:(e.textContent||'').trim().slice(0,30)}};
+  const T=els.map(box);
+  const hit=(a,b,pad)=>a.l<b.r+pad&&b.l<a.r+pad&&a.t<b.b+pad&&b.t<a.b+pad;
+  const stacked=(a,b)=>(Math.abs((a.l+a.r)/2-(b.l+b.r)/2)<3||Math.abs(a.l-b.l)<3)&&(Math.abs(a.b-b.t)<14||Math.abs(b.b-a.t)<14);
+  for(let i=0;i<T.length;i++)for(let j=i+1;j<T.length;j++)if(hit(T[i],T[j],4)&&!stacked(T[i],T[j]))R.push('text/text: "'+T[i].s+'" × "'+T[j].s+'"');
+  for(const t of T){if(t.l<60||t.r>1180||t.b>1180||t.t<40)R.push('margin: "'+t.s+'"')}
+  for(const p of document.querySelectorAll('svg path, svg line')){
+    const st=getComputedStyle(p);if(st.fill!=='none'&&st.fill!=='rgba(0, 0, 0, 0)'&&p.tagName==='path'&&!p.getAttribute('stroke'))continue;
+    if(p.getAttribute('fill')&&p.getAttribute('fill')!=='none'&&!p.getAttribute('stroke'))continue;
+    if(p.closest('marker'))continue;
+    let L=0;try{L=p.getTotalLength()}catch(e){continue}
+    const svg=p.ownerSVGElement.getBoundingClientRect();
+    for(let d=0;d<=L;d+=6){const q=p.getPointAtLength(d);const x=q.x+svg.left,y=q.y+svg.top;
+      const t=T.find(t=>x>t.l-2&&x<t.r+2&&y>t.t-2&&y<t.b+2);if(t){R.push('text/line: "'+t.s+'"');break}}
+  }
+  const words=els.map(e=>e.textContent.trim().split(/\\s+/).length).reduce((a,b)=>a+b,0);
+  if(words>40)R.push('too much text: '+words+' words (max 40)');
+  const pre=document.createElement('pre');pre.id='__check';pre.textContent=JSON.stringify([...new Set(R)]);document.body.appendChild(pre);
+},300)});
+</script>"""
+
+def check(html_path):
+    """Geometry check of a rendered page: text over text, text over a line, text outside the margins, too many words. Returns a list of findings."""
+    import re
+    r = subprocess.run([CFG["chrome"], "--headless=new", "--disable-gpu", "--window-size=1200,1200", "--virtual-time-budget=6000", "--dump-dom", "file://" + html_path], capture_output=True, text=True, timeout=60)
+    m = re.search(r'<pre id="__check">(.*?)</pre>', r.stdout, re.S)
+    if not m: return ["check did not run"]
+    return json.loads(html.unescape(m.group(1)))
+
+def render(spec, out_base, out_dir=None, verbose=True):
+    """Renders the PNG and runs the checker; findings are printed and returned via render.last_check."""
     out_dir = out_dir or DRAFTS; os.makedirs(out_dir, exist_ok=True)
-    doc = frame(spec, KINDS[spec["kind"]](spec))
+    doc = frame(spec, KINDS[spec["kind"]](spec)).replace("</body>", CHECK_JS + "</body>")
     hp = os.path.abspath(os.path.join(out_dir, out_base + ".html")); png = os.path.abspath(os.path.join(out_dir, out_base + ".png"))
     open(hp, "w", encoding="utf-8").write(doc)
     subprocess.run([CFG["chrome"], "--headless=new", "--disable-gpu", "--hide-scrollbars", "--window-size=1200,1200", "--virtual-time-budget=5000", f"--screenshot={png}", "file://" + hp], capture_output=True, timeout=60)
+    render.last_check = check(hp)
+    for _ in range(8):   # a mark label on the line: try the next position
+        bad = [m for m in spec.get("marks", []) if any(f.startswith('text/') and m["label"][:30] in f for f in render.last_check)]
+        if not bad: break
+        order = ["above", "below", "left", "right", "downleft", "upright", "upleft", "downright"]
+        for m in bad: m["pos"] = order[(order.index(m.get("pos", "above")) + 1) % len(order)] if m.get("pos") in order else "below"
+        doc = frame(spec, KINDS[spec["kind"]](spec)).replace("</body>", CHECK_JS + "</body>"); open(hp, "w", encoding="utf-8").write(doc)
+        subprocess.run([CFG["chrome"], "--headless=new", "--disable-gpu", "--hide-scrollbars", "--window-size=1200,1200", "--virtual-time-budget=5000", f"--screenshot={png}", "file://" + hp], capture_output=True, timeout=60)
+        render.last_check = check(hp)
+    if verbose: print(f"  check {out_base}: " + ("ok" if not render.last_check else "; ".join(render.last_check)), file=sys.stderr)
     return png if os.path.isfile(png) else None
+render.last_check = []
 
 if __name__ == "__main__":
     spec = json.load(open(sys.argv[1], encoding="utf-8")); print(render(spec, sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else None))
