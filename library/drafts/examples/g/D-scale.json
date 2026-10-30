@@ -38,7 +38,8 @@
   {
    "at": 5,
    "label": "erste zahlende Last",
-   "below": false
+   "below": false,
+   "pos": "upleft"
   }
  ],
  "area": false

@@ -43,28 +43,45 @@ svg .c{{fill:{CYAN}}} svg .w{{fill:#fff}}
 
 def curves(s):
     """s.a / s.b: {label, points:[y0..yn in 0..1]}; s.gap: label of the shaded area; s.x: [first, last] axis labels."""
-    x0, x1, y0, y1 = 150, 1110, 1000, 430
-    def pts(p): n = len(p) - 1; return [(x0 + (x1 - x0) * i / n, y0 - (y0 - y1) * v) for i, v in enumerate(p)]
-    A, B = pts(s["a"]["points"]), pts(s["b"]["points"]); gi = max(range(len(A)), key=lambda i: abs(A[i][1] - B[i][1]) if i < len(A) - 1 else 0)   # widest gap, not the last point
-    path = lambda P: "M" + " L".join(f"{x:.0f},{y:.0f}" for x, y in P)
+    x0, x1, y0, y1 = 150, 1110, 1040, 440; ix0, ix1, iy0 = x0 + 40, x1 - 40, y0 - 30   # lines keep 40 px from the axes and the edge
+    def pts(p): n = len(p) - 1; return [(ix0 + (ix1 - ix0) * i / n, iy0 - (iy0 - y1) * v) for i, v in enumerate(p)]
+    A, B = pts(s["a"]["points"]), pts(s["b"]["points"]); gi = len(A) - 3   # the bracket near the end, where the gap is wide; the label stands to its right, between the lines
+    path = smooth
     area = path(A) + " L" + " L".join(f"{x:.0f},{y:.0f}" for x, y in reversed(B)) + " Z"
     xl = s.get("x", ["", ""])
     return f"""<svg width="1200" height="1200" viewBox="0 0 1200 1200">
-{f'<path d="{area}" fill="{SOFT}"/>' if s.get("area", True) else ""}
+{f'<path d="{area}" fill="{SOFT}"/>' if s.get("area", False) else ""}
 <line x1="{x0}" y1="{y0}" x2="{x1}" y2="{y0}" stroke="{MUTED}" stroke-width="3"/><line x1="{x0}" y1="{y0}" x2="{x0}" y2="{y1 - 30}" stroke="{MUTED}" stroke-width="3"/>
 <path d="{path(B)}" fill="none" stroke="{INK}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="{path(A)}" fill="none" stroke="{CYAN}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-<rect x="{x0 - 50}" y="{y1 - 120}" width="46" height="12" rx="6" fill="{CYAN}"/><text x="{x0 + 12}" y="{y1 - 108}" font-size="28" class="m">{esc(s["a"]["label"])}</text>
-<rect x="{x0 + 420}" y="{y1 - 120}" width="46" height="12" rx="6" fill="{INK}"/><text x="{x0 + 482}" y="{y1 - 108}" font-size="28" class="m">{esc(s["b"]["label"])}</text>
-<text x="{A[gi][0]:.0f}" y="{(A[gi][1] + B[gi][1]) / 2 + 14:.0f}" font-size="40" text-anchor="middle" font-weight="800" style="paint-order:stroke;stroke:#fff;stroke-width:12px;stroke-linejoin:round">{esc(s.get("gap", ""))}</text>
+{legend([(CYAN, s["a"]["label"]), (INK, s["b"]["label"])], 96, y1 - 110)}
+{f'<line x1="{A[gi][0]:.0f}" y1="{A[gi][1] + 14:.0f}" x2="{A[gi][0]:.0f}" y2="{B[gi][1] - 14:.0f}" stroke="{INK}" stroke-width="3"/><line x1="{A[gi][0] - 12:.0f}" y1="{A[gi][1] + 14:.0f}" x2="{A[gi][0] + 12:.0f}" y2="{A[gi][1] + 14:.0f}" stroke="{INK}" stroke-width="3"/><line x1="{A[gi][0] - 12:.0f}" y1="{B[gi][1] - 14:.0f}" x2="{A[gi][0] + 12:.0f}" y2="{B[gi][1] - 14:.0f}" stroke="{INK}" stroke-width="3"/><text x="{A[gi][0] + 28:.0f}" y="{(A[gi][1] + B[gi][1]) / 2 + 12:.0f}" font-size="30" text-anchor="start" font-weight="700">{esc(s["gap"])}</text>' if s.get("gap") else ""}
 <text x="{x0}" y="{y0 + 48}" font-size="26" class="m">{esc(xl[0])}</text><text x="{x1}" y="{y0 + 48}" font-size="26" text-anchor="end" class="m">{esc(xl[1])}</text>
-<text x="{x0 + 16}" y="{y1 - 34}" font-size="26" class="m">{esc(s.get("y", ""))}</text>{"".join(mark(A[m["at"]], m, y0) for m in s.get("marks", []))}</svg>"""
+<text x="{x0 + 28}" y="{y1 - 34}" font-size="26" class="m">{esc(s.get("y", ""))}</text>{"".join(mark(A[m["at"]], m, y0) for m in s.get("marks", []))}</svg>"""
+
+def smooth(P):
+    """Catmull-Rom through the points as cubic beziers: a drawn curve, not a polyline."""
+    if len(P) < 3: return "M" + " L".join(f"{x:.0f},{y:.0f}" for x, y in P)
+    d = f"M{P[0][0]:.0f},{P[0][1]:.0f}"
+    for i in range(len(P) - 1):
+        p0 = P[i - 1] if i > 0 else P[i]; p1 = P[i]; p2 = P[i + 1]; p3 = P[i + 2] if i + 2 < len(P) else p2
+        c1 = (p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6); c2 = (p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6)
+        d += f" C{c1[0]:.0f},{c1[1]:.0f} {c2[0]:.0f},{c2[1]:.0f} {p2[0]:.0f},{p2[1]:.0f}"
+    return d
+
+def legend(items, x, y):
+    """Swatches and labels on one row; the gap after a label is measured from its length, not a fixed column."""
+    out = []
+    for col, lab in items:
+        out.append(f'<rect x="{x}" y="{y}" width="46" height="12" rx="6" fill="{col}"/><text x="{x + 62}" y="{y + 12}" font-size="28" class="m">{esc(lab)}</text>'); x += 62 + int(len(lab) * 15.5) + 60
+    return "".join(out)
 
 def mark(p, m, y0):
     """A point on line a with its label; pos = above | below | left | right (render() tries them in that order until the checker is clean)."""
-    pos = m.get("pos") or ("above" if p[1] > y0 - 110 else "below")
-    x, y, anchor = {"above": (p[0], p[1] - 74, "middle"), "below": (p[0], p[1] + 96, "middle"), "left": (p[0] - 44, p[1] + 12, "end"), "right": (p[0] + 44, p[1] + 12, "start"), "downleft": (p[0] - 40, p[1] + 72, "end"), "upright": (p[0] + 40, p[1] - 48, "start"), "upleft": (p[0] - 40, p[1] - 48, "end"), "downright": (p[0] + 40, p[1] + 72, "start")}[pos]
-    return f'<circle cx="{p[0]:.0f}" cy="{p[1]:.0f}" r="16" fill="{CYAN}" stroke="#fff" stroke-width="5"/><text x="{x:.0f}" y="{y:.0f}" font-size="30" text-anchor="{anchor}" font-weight="800">{esc(m["label"])}</text>'
+    pos = m.get("pos") or ("above" if p[1] > y0 - 140 else "below")
+    x, y, anchor = {"above": (p[0], p[1] - 84, "middle"), "below": (p[0], p[1] + 106, "middle"), "left": (p[0] - 70, p[1] + 12, "end"), "right": (p[0] + 70, p[1] + 12, "start"), "downleft": (p[0] - 60, p[1] + 86, "end"), "upright": (p[0] + 60, p[1] - 62, "start"), "upleft": (p[0] - 60, p[1] - 62, "end"), "downright": (p[0] + 60, p[1] + 86, "start")}[pos]
+    lx = x if anchor == "middle" else (x + 10 if anchor == "end" else x - 10); ly = y - 12 if y < p[1] else y - 30   # a thin leader from the label towards the point
+    return f'<line x1="{p[0]:.0f}" y1="{p[1]:.0f}" x2="{lx:.0f}" y2="{ly + (14 if y < p[1] else -2):.0f}" stroke="{MUTED}" stroke-width="2"/><text x="{x:.0f}" y="{y:.0f}" font-size="30" text-anchor="{anchor}" font-weight="700">{esc(m["label"])}</text>'
 
 def shift(s):
     """s.bars: [{label, values:[...]}, {label, values:[...]}] (same length, sum ~100); s.segments: [labels]; dark to light from the bottom."""
@@ -75,85 +92,93 @@ def shift(s):
         for v, c, lab in zip(bar["values"], cols, seg):
             h = (bottom - top) * v / tot; y -= h
             out.append(f'<rect x="{x}" y="{y:.0f}" width="{bw}" height="{h:.0f}" fill="{c}"/>')
-            if h > 44: out.append(f'<text x="{x + bw / 2}" y="{y + h / 2 + 12:.0f}" font-size="30" text-anchor="middle" class="{"w" if c in (INK, BLUE) else ""}">{v:.0f}%</text>')
+            if h > 70: out.append(f'<text x="{x + bw / 2}" y="{y + h / 2 + 12:.0f}" font-size="30" text-anchor="middle" class="{"w" if c in (INK, BLUE) else ""}">{v:.0f}%</text>')
         out.append(f'<text x="{x + bw / 2}" y="{bottom + 54}" font-size="34" text-anchor="middle" font-weight="800">{esc(bar["label"])}</text>')
     ly = top + 10
     for c, lab in zip(cols, seg):   # legend on the left; a label wraps at "\n"
         parts = str(lab).split("\\n")
-        out.append(f'<rect x="96" y="{ly}" width="34" height="34" rx="8" fill="{c}"/>' + "".join(f'<text x="144" y="{ly + 26 + 30 * j}" font-size="24" class="m">{esc(t)}</text>' for j, t in enumerate(parts))); ly += 44 + 30 * len(parts)
+        out.append(f'<rect x="96" y="{ly}" width="34" height="34" rx="8" fill="{c}"/>' + "".join(f'<text x="144" y="{ly + 27 + 34 * j}" font-size="26" class="m">{esc(t)}</text>' for j, t in enumerate(parts))); ly += 48 + 34 * len(parts)
     out.append(f'<path d="M{xs[0] + bw + 30},{(top + bottom) / 2} L{xs[1] - 30},{(top + bottom) / 2}" stroke="{MUTED}" stroke-width="6" marker-end="url(#ar)"/>')
-    return f'<svg width="1200" height="1200" viewBox="0 0 1200 1200"><defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="{MUTED}"/></marker></defs>' + "".join(out) + "</svg>"
+    return f'<svg width="1200" height="1200" viewBox="0 0 1200 1200"><defs><marker id="ar" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L5,2.5 L0,5 z" fill="{MUTED}"/></marker></defs>' + "".join(out) + "</svg>"
 
 def beforeafter(s):
     """s.panels: [{label, lines:[{label, points, color:'ink'|'cyan'}]}] x2; a small line chart each, no axes numbers."""
-    out = []; px = [96, 640]; pw = 470; top, bottom = 420, 900
+    out = []; px = [96, 640]; pw = 470; top, bottom = 560, 900
     for p, x in zip(s["panels"], px):
-        out.append(f'<rect x="{x}" y="{top - 70}" width="{pw}" height="{bottom - top + 130}" rx="18" fill="{SOFT}"/>')
-        out.append(f'<text x="{x + 30}" y="{top - 20}" font-size="32" font-weight="800">{esc(p["label"])}</text>')
-        out.append(f'<line x1="{x + 30}" y1="{bottom}" x2="{x + pw - 30}" y2="{bottom}" stroke="{MUTED}" stroke-width="3"/>')
+        low = bottom - (bottom - top) * min(v for ln in p["lines"] for v in ln["points"])   # the panel ends 50 px under the lowest point, no empty tint
+        out.append(f'<rect x="{x}" y="{top - 100}" width="{pw}" height="{low + 50 - (top - 100):.0f}" rx="18" fill="{SOFT}"/>')
+        out.append(f'<text x="{x + 30}" y="{top - 46}" font-size="30" font-weight="700">{esc(p["label"])}</text>')
         for ln in p["lines"]:
             P = ln["points"]; n = len(P) - 1
-            d = "M" + " L".join(f"{x + 30 + (pw - 60) * i / n:.0f},{bottom - (bottom - top) * v:.0f}" for i, v in enumerate(P))
+            d = smooth([(x + 30 + (pw - 60) * i / n, bottom - (bottom - top) * v) for i, v in enumerate(P)])
             col = CYAN if ln.get("color") == "cyan" else INK
             out.append(f'<path d="{d}" fill="none" stroke="{col}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"{" stroke-dasharray=\"2 22\"" if ln.get("dotted") else ""}/>')
         pass
     seen = []
     for ln in s["panels"][0]["lines"]:   # one legend for both panels, under the title
-        col = CYAN if ln.get("color") == "cyan" else INK; lx = 96 + 260 * len(seen)
-        out.append(f'<rect x="{lx}" y="{top - 130}" width="46" height="10" rx="5" fill="{col}"/><text x="{lx + 60}" y="{top - 118}" font-size="26" class="m">{esc(ln["label"])}</text>'); seen.append(ln)
-    out.append(f'<path d="M{px[0] + pw + 14},{(top + bottom) / 2} L{px[1] - 14},{(top + bottom) / 2}" stroke="{MUTED}" stroke-width="6" marker-end="url(#ar)"/>')
-    return f'<svg width="1200" height="1200" viewBox="0 0 1200 1200"><defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="{MUTED}"/></marker></defs>' + "".join(out) + "</svg>"
+        col = CYAN if ln.get("color") == "cyan" else INK
+        seen.append((col, ln["label"]))
+    out.append(legend(seen, 96, top - 190))
+    return f'<svg width="1200" height="1200" viewBox="0 0 1200 1200"><defs><marker id="ar" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L5,2.5 L0,5 z" fill="{MUTED}"/></marker></defs>' + "".join(out) + "</svg>"
 
 def flow(s):
     """s.steps: [{label, sub, kind:'box'|'gate'|'end'}] left to right on one row (max 5); s.dead: {from: index, label, sub} drawn below as the dead end."""
-    st = s["steps"]; n = len(st); out = []; y = 480; w = 190; gap = (1030 - 96 - n * w) / (n - 1); h = 150
-    xs = [96 + i * (w + gap) for i in range(n)]
+    st = s["steps"]; n = len(st); out = []; y = 430; w = 200; h = 160; ext = 36   # a gate is a diamond w+2*ext wide
+    widths = [w + 2 * ext if x.get("kind") == "gate" else w for x in st]; gap = (1110 - 96 - sum(widths)) / (n - 1)
+    xs = []; cx = 96
+    for i, x in enumerate(st): xs.append(cx + (ext if x.get("kind") == "gate" else 0)); cx += widths[i] + gap
     for i, (x, step) in enumerate(zip(xs, st)):
         k = step.get("kind", "box")
         if k == "gate": out.append(f'<path d="M{x + w / 2},{y - 40} L{x + w + 50},{y + h / 2} L{x + w / 2},{y + h + 40} L{x - 50},{y + h / 2} Z" fill="{CYAN}"/>')
         else: out.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="22" fill="{INK if k == "box" else GREEN}"/>')
-        parts = str(step["label"]).split("\\n"); fs = 30 if max(len(t) for t in parts) < 12 else 24; y0 = y + h / 2 + (0 if step.get("sub") else 12) - (len(parts) - 1) * fs * 0.6
+        parts = str(step["label"]).split("\\n"); fs = 30 if max(len(t) for t in parts) < 12 else 26; y0 = y + h / 2 + (0 if step.get("sub") else 12) - (len(parts) - 1) * fs * 0.6
         out.append("".join(f'<text x="{x + w / 2}" y="{y0 + j * fs * 1.2:.0f}" font-size="{fs}" text-anchor="middle" class="w">{esc(t)}</text>' for j, t in enumerate(parts)))
-        if step.get("sub"): out.append(f'<text x="{x + w / 2}" y="{y + h / 2 + 40}" font-size="20" text-anchor="middle" class="w" style="font-family:Open Sans;font-weight:400">{esc(step["sub"])}</text>')
-        if i < n - 1: out.append(f'<line x1="{x + w + (52 if k == "gate" else 4)}" y1="{y + h / 2}" x2="{xs[i + 1] - (56 if st[i + 1].get("kind") == "gate" else 8)}" y2="{y + h / 2}" stroke="{MUTED}" stroke-width="6" marker-end="url(#ar)"/>')
+        if step.get("sub"): out.append(f'<text x="{x + w / 2}" y="{y + h / 2 + 44}" font-size="26" text-anchor="middle" class="w" style="font-family:Open Sans;font-weight:400">{esc(step["sub"])}</text>')
+        if i < n - 1:
+            x1_, x2_ = x + w + (ext + 8 if k == "gate" else 10), xs[i + 1] - (ext + 14 if st[i + 1].get("kind") == "gate" else 16)
+            out.append(f'<line x1="{x1_}" y1="{y + h / 2}" x2="{x2_}" y2="{y + h / 2}" stroke="{MUTED}" stroke-width="4" marker-end="url(#ar)"/>')
+            if k == "gate": out.append(f'<text x="{(x1_ + x2_) / 2:.0f}" y="{y + h / 2 - 16}" font-size="26" text-anchor="middle" class="m">{esc(s.get("yes", "ja"))}</text>')
     d = s.get("dead")
     if d:
-        x = xs[d["from"]] + w / 2; dy = y + h + 150
-        out.append(f'<path d="M{x},{y + h + 44} L{x},{dy - 10}" stroke="{MUTED}" stroke-width="6" stroke-dasharray="14 12" marker-end="url(#ar)"/>')
-        out.append(f'<rect x="{x - 220}" y="{dy}" width="440" height="130" rx="22" fill="none" stroke="{MUTED}" stroke-width="5" stroke-dasharray="14 12"/>')
-        out.append(f'<text x="{x}" y="{dy + 58}" font-size="30" text-anchor="middle">{esc(d["label"])}</text><text x="{x}" y="{dy + 98}" font-size="22" text-anchor="middle" class="m">{esc(d.get("sub", ""))}</text>')
-    return f'<svg width="1200" height="1200" viewBox="0 0 1200 1200"><defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="{MUTED}"/></marker></defs>' + "".join(out) + "</svg>"
+        x = xs[d["from"]] + w / 2; dy = y + h + 190
+        out.append(f'<path d="M{x},{y + h + 54} L{x},{dy - 14}" stroke="{MUTED}" stroke-width="4" marker-end="url(#ar)"/><text x="{x + 18}" y="{(y + h + 54 + dy) / 2 + 8:.0f}" font-size="26" class="m">{esc(s.get("no", "nein"))}</text>')
+        out.append(f'<rect x="{x - 250}" y="{dy}" width="500" height="136" rx="22" fill="none" stroke="{MUTED}" stroke-width="3" stroke-dasharray="8 8"/>')
+        out.append(f'<text x="{x}" y="{dy + 58}" font-size="30" text-anchor="middle">{esc(d["label"])}</text><text x="{x}" y="{dy + 100}" font-size="26" text-anchor="middle" class="m">{esc(d.get("sub", ""))}</text>')
+        if d.get("loop", True):   # the circle: from the dead end back to the first step
+            bx0 = xs[0] + w / 2
+            out.append(f'<path d="M{x - 250},{dy + 68} L{bx0},{dy + 68} L{bx0},{y + h + 18}" fill="none" stroke="{MUTED}" stroke-width="4" marker-end="url(#ar)"/>')
+    return f'<svg width="1200" height="1200" viewBox="0 0 1200 1200"><defs><marker id="ar" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L5,2.5 L0,5 z" fill="{MUTED}"/></marker></defs>' + "".join(out) + "</svg>"
 
 def matrix(s):
     """2x2: s.x = [left label, right label], s.y = [bottom label, top label]; s.quads = {tl, tr, bl, br: {label, sub}}; s.hot = the quadrant key drawn in cyan."""
-    out = []; x0, y0, size = 210, 320, 335; names = {"tl": (0, 0), "tr": (1, 0), "bl": (0, 1), "br": (1, 1)}
+    out = []; x0, y0, size = 330, 330, 370; names = {"tl": (0, 0), "tr": (1, 0), "bl": (0, 1), "br": (1, 1)}
     for k, (cx, cy) in names.items():
         q = s["quads"].get(k, {}); x = x0 + cx * size; y = y0 + cy * size; hot = k == s.get("hot"); dead = k == s.get("dead")
         fill = CYAN if hot else ("#f2f4f5" if dead else SOFT); col = "w" if hot else ""
-        out.append(f'<rect x="{x + 6}" y="{y + 6}" width="{size - 12}" height="{size - 12}" rx="24" fill="{fill}"/>')
+        out.append(f'<rect x="{x + 13}" y="{y + 13}" width="{size - 26}" height="{size - 26}" rx="24" fill="{fill}"/>')
         parts = str(q.get("label", "")).split("\\n"); fs = 36 if max(len(t) for t in parts) < 14 else 29
         out.append("".join(f'<text x="{x + size / 2}" y="{y + size / 2 - 10 + (j - (len(parts) - 1) / 2) * fs * 1.2:.0f}" font-size="{fs}" text-anchor="middle" font-weight="800" class="{col}">{esc(t)}</text>' for j, t in enumerate(parts)))
-        if q.get("sub"): out.append(f'<text x="{x + size / 2}" y="{y + size / 2 + 50 + (len(parts) - 1) * fs * 0.6:.0f}" font-size="21" text-anchor="middle" class="{"w" if hot else "m"}" style="font-family:Open Sans;font-weight:400">{esc(q["sub"])}</text>')
+        if q.get("sub"): out.append(f'<text x="{x + size / 2}" y="{y + size / 2 + 50 + (len(parts) - 1) * fs * 0.6:.0f}" font-size="26" text-anchor="middle" class="{"w" if hot else "m"}" style="font-family:Open Sans;font-weight:400">{esc(q["sub"])}</text>')
     xl, yl = s.get("x", ["", ""]), s.get("y", ["", ""])
-    out.append(f'<text x="{x0 + size / 2}" y="{y0 + 2 * size + 50}" font-size="26" text-anchor="middle" class="m">{esc(xl[0])}</text><text x="{x0 + size * 1.5}" y="{y0 + 2 * size + 50}" font-size="26" text-anchor="middle" class="m">{esc(xl[1])}</text>')
-    out.append(f'<text transform="translate({x0 - 44},{y0 + size * 1.5}) rotate(-90)" font-size="26" text-anchor="middle" class="m">{esc(yl[0])}</text><text transform="translate({x0 - 44},{y0 + size / 2}) rotate(-90)" font-size="26" text-anchor="middle" class="m">{esc(yl[1])}</text>')
+    out.append(f'<text x="{x0 + size / 2}" y="{y0 + 2 * size + 56}" font-size="28" text-anchor="middle">{esc(xl[0])}</text><text x="{x0 + size * 1.5}" y="{y0 + 2 * size + 56}" font-size="28" text-anchor="middle">{esc(xl[1])}</text>')
+    out.append(f'<text x="{x0 - 24}" y="{y0 + size * 1.5 + 10}" font-size="28" text-anchor="end">{esc(yl[0])}</text><text x="{x0 - 24}" y="{y0 + size / 2 + 10}" font-size="28" text-anchor="end">{esc(yl[1])}</text>')
     return '<svg width="1200" height="1200" viewBox="0 0 1200 1200">' + "".join(out) + "</svg>"
 
 def phases(s):
-    """Two rows of phase blocks, block width = share of effort. s.phases: [labels]; s.rows: [{label, values}] x2; s.hot: index of the phase to colour."""
-    out = []; x0, w = 96, 1010; ys = [440, 760]; h = 150; hot = s.get("hot", -1)
-    for row, y in zip(s["rows"], ys):
-        tot = sum(row["values"]) or 1; x = x0; under_prev = False
-        out.append(f'<text x="{x0}" y="{y - 22}" font-size="26" class="m">{esc(row["label"])}</text>')
-        for i, (v, lab) in enumerate(zip(row["values"], s["phases"])):
-            bw = w * v / tot
-            out.append(f'<rect x="{x + 3}" y="{y}" width="{max(bw - 6, 4):.0f}" height="{h}" rx="14" fill="{CYAN if i == hot else SOFT}" stroke="{CYAN if i == hot else TINT}" stroke-width="2"/>')
-            fits = bw > 34 + 15 * len(lab)   # label inside when it fits, otherwise under the block
-            if fits: out.append(f'<text x="{x + bw / 2:.0f}" y="{y + h / 2 + 10}" font-size="26" text-anchor="middle" class="{"w" if i == hot else ""}">{esc(lab)}</text>')
-            else: out.append(f'<text x="{x + bw / 2:.0f}" y="{y + h + (68 if under_prev else 34)}" font-size="20" text-anchor="middle" class="m">{esc(lab)}</text>')   # two narrow neighbours: second label one line lower
-            under_prev = not fits and not under_prev; x += bw
-    out.append(f'<path d="M{x0 + w / 2},{ys[0] + h + 60} L{x0 + w / 2},{ys[1] - 56}" stroke="{MUTED}" stroke-width="4" marker-end="url(#ar)"/>')
-    return f'<svg width="1200" height="1200" viewBox="0 0 1200 1200"><defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="{MUTED}"/></marker></defs>' + "".join(out) + "</svg>"
+    """Grouped horizontal bars: one row per phase (label 30 px at the left), two bars per row (first row = INK, second = CYAN), legend under the title."""
+    out = []; ph = s["phases"]; rows = s["rows"]; n = len(ph)
+    top, bottom = 460, 1080; lx, bx, bw_max = 96, 420, 600; rh = (bottom - top) / n; bh = min(40, rh / 3)
+    mx = max(max(r["values"]) for r in rows) or 1
+    out.append(legend([(INK, rows[0]["label"]), (CYAN, rows[1]["label"])], lx, top - 120))
+    hot = s.get("hot", -1)
+    for i, lab in enumerate(ph):
+        y = top + i * rh
+        out.append(f'<text x="{lx}" y="{y + rh / 2 + 10:.0f}" font-size="30" font-weight="{800 if i == hot else 600}" class="{"" if i == hot else "m"}">{esc(lab)}</text>')
+        for j, (r, col) in enumerate(zip(rows, ((INK, CYAN) if i == hot else ("#9fb3c0", TINT)))):
+            w = bw_max * r["values"][i] / mx; yy = y + rh / 2 - bh - 4 + j * (bh + 8)
+            out.append(f'<rect x="{bx}" y="{yy:.0f}" width="{w:.0f}" height="{bh:.0f}" rx="6" fill="{col}"/><text x="{bx + w + 16:.0f}" y="{yy + bh - 10:.0f}" font-size="26" class="m">{r["values"][i]:.0f}%</text>')
+    return '<svg width="1200" height="1200" viewBox="0 0 1200 1200">' + "".join(out) + "</svg>"
+
 
 KINDS = {"phases": phases, "curves": curves, "shift": shift, "beforeafter": beforeafter, "flow": flow, "matrix": matrix}
 
@@ -163,9 +188,18 @@ window.addEventListener('load',()=>{setTimeout(()=>{
   const box=e=>{const b=e.getBoundingClientRect();return {l:b.left,t:b.top,r:b.right,b:b.bottom,s:(e.textContent||'').trim().slice(0,30)}};
   const T=els.map(box);
   const hit=(a,b,pad)=>a.l<b.r+pad&&b.l<a.r+pad&&a.t<b.b+pad&&b.t<a.b+pad;
+  const cnt=document.querySelectorAll('svg text').length;if(cnt>20)R.push('too many labels: '+cnt);
   const stacked=(a,b)=>(Math.abs((a.l+a.r)/2-(b.l+b.r)/2)<3||Math.abs(a.l-b.l)<3)&&(Math.abs(a.b-b.t)<14||Math.abs(b.b-a.t)<14);
   for(let i=0;i<T.length;i++)for(let j=i+1;j<T.length;j++)if(hit(T[i],T[j],4)&&!stacked(T[i],T[j]))R.push('text/text: "'+T[i].s+'" × "'+T[j].s+'"');
   for(const t of T){if(t.l<60||t.r>1180||t.b>1180||t.t<40)R.push('margin: "'+t.s+'"')}
+  for(const e of els){const fs=parseFloat(getComputedStyle(e).fontSize);if(fs<26&&!e.classList.contains('eyebrow'))R.push('small text '+Math.round(fs)+'px: "'+(e.textContent||'').trim().slice(0,30)+'"')}
+  if(document.querySelector('svg circle, svg ellipse'))R.push('dots: circle markers present');
+  const F=[...document.querySelectorAll('svg rect, svg path[fill]:not([fill="none"])')].filter(e=>!e.closest('marker')).map(e=>e.getBoundingClientRect());
+  for(const t of T){const cx=(t.l+t.r)/2,cy=(t.t+t.b)/2;const host=F.find(f=>f.width>60&&f.height>60&&cx>f.left&&cx<f.right&&cy>f.top&&cy<f.bottom);
+    if(host&&(t.l<host.left+6||t.r>host.right-6))R.push('text wider than its box: "'+t.s+'"')}
+  const S=[...document.querySelectorAll('svg rect, svg path[fill]:not([fill="none"])')].filter(e=>!e.closest('marker')&&e.getBoundingClientRect().width>60&&e.getBoundingClientRect().height>60).map(e=>e.getBoundingClientRect());
+  for(let i=0;i<S.length;i++)for(let j=i+1;j<S.length;j++){const a=S[i],b=S[j];const inside=(a.left>=b.left&&a.right<=b.right&&a.top>=b.top&&a.bottom<=b.bottom)||(b.left>=a.left&&b.right<=a.right&&b.top>=a.top&&b.bottom<=a.bottom)||(Math.abs(a.left-b.left)<2&&Math.abs(a.width-b.width)<2);
+    if(!inside&&a.left<b.right+20&&b.left<a.right+20&&a.top<b.bottom+20&&b.top<a.bottom+20)R.push('shapes closer than 20px: '+Math.round(a.width)+'x'+Math.round(a.height)+' / '+Math.round(b.width)+'x'+Math.round(b.height))}
   for(const p of document.querySelectorAll('svg path, svg line')){
     const st=getComputedStyle(p);if(st.fill!=='none'&&st.fill!=='rgba(0, 0, 0, 0)'&&p.tagName==='path'&&!p.getAttribute('stroke'))continue;
     if(p.getAttribute('fill')&&p.getAttribute('fill')!=='none'&&!p.getAttribute('stroke'))continue;

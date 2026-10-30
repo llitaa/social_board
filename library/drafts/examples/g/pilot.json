@@ -1,6 +1,6 @@
 {
  "kind": "flow",
- "eyebrow": "KI-Projekte",
+ "eyebrow": "Nach dem Go-live · 6",
  "title": "Wo Piloten sterben",
  "steps": [
   {
@@ -17,7 +17,7 @@
   },
   {
    "label": "Betrieb",
-   "sub": "jemand nimmt ab",
+   "sub": "jemand haftet",
    "kind": "end"
   }
  ],

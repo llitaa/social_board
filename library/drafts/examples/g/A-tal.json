@@ -1,6 +1,6 @@
 {
  "kind": "curves",
- "eyebrow": "Nach dem Go-live · Folge 1",
+ "eyebrow": "Nach dem Go-live · 1",
  "title": "Die Kurve, die im Pitch\\nnicht vorkommt",
  "x": [
   "Vertrag",
@@ -37,12 +37,14 @@
  "marks": [
   {
    "at": 3,
-   "label": "Tal der Ausnahmen"
+   "label": "Tal der Ausnahmen",
+   "pos": "left"
   },
   {
    "at": 5,
    "label": "jemand übernimmt",
-   "below": false
+   "below": false,
+   "pos": "left"
   }
  ],
  "note": ""

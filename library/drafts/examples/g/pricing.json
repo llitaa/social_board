@@ -1,6 +1,6 @@
 {
  "kind": "beforeafter",
- "eyebrow": "Software und Geld",
+ "eyebrow": "Nach dem Go-live · 5",
  "title": "Dieselben Maschinen,\\nein anderer Vertrag",
  "panels": [
   {
@@ -10,11 +10,11 @@
      "label": "Produktion",
      "points": [
       0.5,
-      0.7,
-      0.4,
+      0.72,
+      0.42,
       0.8,
       0.55,
-      0.9,
+      0.88,
       0.6
      ],
      "color": "cyan"
@@ -34,17 +34,17 @@
    ]
   },
   {
-   "label": "Nachher: nach Produktion",
+   "label": "Nachher: Produktion",
    "lines": [
     {
      "label": "Produktion",
      "points": [
       0.5,
-      0.7,
-      0.4,
+      0.72,
+      0.42,
       0.8,
       0.55,
-      0.9,
+      0.88,
       0.6
      ],
      "color": "cyan"
@@ -53,12 +53,12 @@
      "label": "Rechnung",
      "points": [
       0.42,
+      0.5,
       0.6,
-      0.33,
-      0.7,
-      0.47,
-      0.8,
-      0.52
+      0.5,
+      0.66,
+      0.6,
+      0.74
      ]
     }
    ]

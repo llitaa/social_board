@@ -18,23 +18,31 @@ svg .c{fill:#20B8D0} svg .w{fill:#fff}
 <div class="eyebrow">Nach dem Go-live · 2</div><h1>Skalierung: am Anfang<br>oder beim Wachsen?</h1>
 <svg width="1200" height="1200" viewBox="0 0 1200 1200">
 
-<line x1="150" y1="1000" x2="1110" y2="1000" stroke="#6b7f8c" stroke-width="3"/><line x1="150" y1="1000" x2="150" y2="400" stroke="#6b7f8c" stroke-width="3"/>
-<path d="M150,972 L287,960 L424,943 L561,909 L699,852 L836,761 L973,624 L1110,458" fill="none" stroke="#0f3a50" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M150,686 L287,715 L424,738 L561,749 L699,755 L836,761 L973,761 L1110,761" fill="none" stroke="#20B8D0" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-<rect x="100" y="310" width="46" height="12" rx="6" fill="#20B8D0"/><text x="162" y="322" font-size="28" class="m">zu früh gebaut</text>
-<rect x="570" y="310" width="46" height="12" rx="6" fill="#0f3a50"/><text x="632" y="322" font-size="28" class="m">nachgerüstet</text>
-<text x="150" y="843" font-size="40" text-anchor="middle" font-weight="800" style="paint-order:stroke;stroke:#fff;stroke-width:12px;stroke-linejoin:round"></text>
-<text x="150" y="1048" font-size="26" class="m">Start</text><text x="1110" y="1048" font-size="26" text-anchor="end" class="m">3 Jahre</text>
-<text x="166" y="396" font-size="26" class="m">Kosten</text><circle cx="836" cy="761" r="16" fill="#20B8D0" stroke="#fff" stroke-width="5"/><text x="796" y="713" font-size="30" text-anchor="end" font-weight="800">erste zahlende Last</text></svg>
+<line x1="150" y1="1040" x2="1110" y2="1040" stroke="#6b7f8c" stroke-width="3"/><line x1="150" y1="1040" x2="150" y2="410" stroke="#6b7f8c" stroke-width="3"/>
+<path d="M190,982 C211,980 274,975 316,970 C358,965 400,962 441,953 C483,944 525,934 567,919 C609,904 651,886 693,862 C735,837 777,809 819,771 C860,733 902,684 944,634 C986,583 1049,496 1070,468" fill="none" stroke="#0f3a50" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M190,696 C211,701 274,716 316,725 C358,734 400,742 441,748 C483,754 525,756 567,759 C609,762 651,763 693,765 C735,767 777,770 819,771 C860,772 902,771 944,771 C986,771 1049,771 1070,771" fill="none" stroke="#20B8D0" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="96" y="330" width="46" height="12" rx="6" fill="#20B8D0"/><text x="158" y="342" font-size="28" class="m">zu früh gebaut</text><rect x="435" y="330" width="46" height="12" rx="6" fill="#0f3a50"/><text x="497" y="342" font-size="28" class="m">nachgerüstet</text>
+
+<text x="150" y="1088" font-size="26" class="m">Start</text><text x="1110" y="1088" font-size="26" text-anchor="end" class="m">3 Jahre</text>
+<text x="178" y="406" font-size="26" class="m">Kosten</text><line x1="819" y1="771" x2="769" y2="711" stroke="#6b7f8c" stroke-width="2"/><text x="759" y="709" font-size="30" text-anchor="end" font-weight="700">erste zahlende Last</text></svg>
 <div class="note"></div></div><script>
 window.addEventListener('load',()=>{setTimeout(()=>{
   const R=[];const els=[...document.querySelectorAll('svg text, h1, .eyebrow, .who, .note')].filter(e=>(e.textContent||'').trim());
   const box=e=>{const b=e.getBoundingClientRect();return {l:b.left,t:b.top,r:b.right,b:b.bottom,s:(e.textContent||'').trim().slice(0,30)}};
   const T=els.map(box);
   const hit=(a,b,pad)=>a.l<b.r+pad&&b.l<a.r+pad&&a.t<b.b+pad&&b.t<a.b+pad;
+  const cnt=document.querySelectorAll('svg text').length;if(cnt>20)R.push('too many labels: '+cnt);
   const stacked=(a,b)=>(Math.abs((a.l+a.r)/2-(b.l+b.r)/2)<3||Math.abs(a.l-b.l)<3)&&(Math.abs(a.b-b.t)<14||Math.abs(b.b-a.t)<14);
   for(let i=0;i<T.length;i++)for(let j=i+1;j<T.length;j++)if(hit(T[i],T[j],4)&&!stacked(T[i],T[j]))R.push('text/text: "'+T[i].s+'" × "'+T[j].s+'"');
   for(const t of T){if(t.l<60||t.r>1180||t.b>1180||t.t<40)R.push('margin: "'+t.s+'"')}
+  for(const e of els){const fs=parseFloat(getComputedStyle(e).fontSize);if(fs<26&&!e.classList.contains('eyebrow'))R.push('small text '+Math.round(fs)+'px: "'+(e.textContent||'').trim().slice(0,30)+'"')}
+  if(document.querySelector('svg circle, svg ellipse'))R.push('dots: circle markers present');
+  const F=[...document.querySelectorAll('svg rect, svg path[fill]:not([fill="none"])')].filter(e=>!e.closest('marker')).map(e=>e.getBoundingClientRect());
+  for(const t of T){const cx=(t.l+t.r)/2,cy=(t.t+t.b)/2;const host=F.find(f=>f.width>60&&f.height>60&&cx>f.left&&cx<f.right&&cy>f.top&&cy<f.bottom);
+    if(host&&(t.l<host.left+6||t.r>host.right-6))R.push('text wider than its box: "'+t.s+'"')}
+  const S=[...document.querySelectorAll('svg rect, svg path[fill]:not([fill="none"])')].filter(e=>!e.closest('marker')&&e.getBoundingClientRect().width>60&&e.getBoundingClientRect().height>60).map(e=>e.getBoundingClientRect());
+  for(let i=0;i<S.length;i++)for(let j=i+1;j<S.length;j++){const a=S[i],b=S[j];const inside=(a.left>=b.left&&a.right<=b.right&&a.top>=b.top&&a.bottom<=b.bottom)||(b.left>=a.left&&b.right<=a.right&&b.top>=a.top&&b.bottom<=a.bottom)||(Math.abs(a.left-b.left)<2&&Math.abs(a.width-b.width)<2);
+    if(!inside&&a.left<b.right+20&&b.left<a.right+20&&a.top<b.bottom+20&&b.top<a.bottom+20)R.push('shapes closer than 20px: '+Math.round(a.width)+'x'+Math.round(a.height)+' / '+Math.round(b.width)+'x'+Math.round(b.height))}
   for(const p of document.querySelectorAll('svg path, svg line')){
     const st=getComputedStyle(p);if(st.fill!=='none'&&st.fill!=='rgba(0, 0, 0, 0)'&&p.tagName==='path'&&!p.getAttribute('stroke'))continue;
     if(p.getAttribute('fill')&&p.getAttribute('fill')!=='none'&&!p.getAttribute('stroke'))continue;
