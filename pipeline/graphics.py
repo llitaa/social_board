@@ -136,15 +136,15 @@ def phases(s):
     """Two rows of phase blocks, block width = share of effort. s.phases: [labels]; s.rows: [{label, values}] x2; s.hot: index of the phase to colour."""
     out = []; x0, w = 96, 1010; ys = [440, 760]; h = 150; hot = s.get("hot", -1)
     for row, y in zip(s["rows"], ys):
-        tot = sum(row["values"]) or 1; x = x0
+        tot = sum(row["values"]) or 1; x = x0; under_prev = False
         out.append(f'<text x="{x0}" y="{y - 22}" font-size="26" class="m">{esc(row["label"])}</text>')
         for i, (v, lab) in enumerate(zip(row["values"], s["phases"])):
             bw = w * v / tot
             out.append(f'<rect x="{x + 3}" y="{y}" width="{max(bw - 6, 4):.0f}" height="{h}" rx="14" fill="{CYAN if i == hot else SOFT}" stroke="{CYAN if i == hot else "#cfe3ea"}" stroke-width="2"/>')
             fits = bw > 34 + 15 * len(lab)   # label inside when it fits, otherwise under the block
             if fits: out.append(f'<text x="{x + bw / 2:.0f}" y="{y + h / 2 + 10}" font-size="26" text-anchor="middle" class="{"w" if i == hot else ""}">{esc(lab)}</text>')
-            else: out.append(f'<text x="{x + bw / 2:.0f}" y="{y + h + 34}" font-size="20" text-anchor="middle" class="m">{esc(lab)}</text>')
-            x += bw
+            else: out.append(f'<text x="{x + bw / 2:.0f}" y="{y + h + (62 if under_prev else 34)}" font-size="20" text-anchor="middle" class="m">{esc(lab)}</text>')   # two narrow neighbours: second label one line lower
+            under_prev = not fits and not under_prev; x += bw
     out.append(f'<path d="M{x0 + w / 2},{ys[0] + h + 60} L{x0 + w / 2},{ys[1] - 56}" stroke="{MUTED}" stroke-width="4" marker-end="url(#ar)"/>')
     return f'<svg width="1200" height="1200" viewBox="0 0 1200 1200"><defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="{MUTED}"/></marker></defs>' + "".join(out) + "</svg>"
 
