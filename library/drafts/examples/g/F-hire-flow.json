@@ -1,0 +1,29 @@
+{
+ "kind": "flow",
+ "eyebrow": "Nach dem Go-live · 3",
+ "title": "Der Kreis, der eine\\nStelle wird",
+ "steps": [
+  {
+   "label": "Problem",
+   "sub": "taucht auf"
+  },
+  {
+   "label": "extern",
+   "sub": "Agentur, Agent"
+  },
+  {
+   "label": "Zum dritten\\nMal?",
+   "kind": "gate"
+  },
+  {
+   "label": "Stelle",
+   "sub": "jemand bleibt",
+   "kind": "end"
+  }
+ ],
+ "dead": {
+  "from": 2,
+  "label": "im Kreis",
+  "sub": "jedes Mal neu erklärt"
+ }
+}
