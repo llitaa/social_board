@@ -1,0 +1,35 @@
+{
+ "kind": "phases",
+ "eyebrow": "Nach dem Go-live · 1",
+ "title": "Vibe Coding löst\\ndie kleinste Phase",
+ "phases": [
+  "Anforderungen",
+  "Architektur",
+  "Bauen",
+  "Prüfen",
+  "Betrieb"
+ ],
+ "rows": [
+  {
+   "label": "2016, ein Team",
+   "values": [
+    12,
+    10,
+    48,
+    15,
+    15
+   ]
+  },
+  {
+   "label": "2026, ein Team mit Agents",
+   "values": [
+    24,
+    20,
+    8,
+    26,
+    22
+   ]
+  }
+ ],
+ "hot": 2
+}

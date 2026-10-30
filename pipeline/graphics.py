@@ -11,30 +11,31 @@ import html, json, os, subprocess, sys
 from common import CFG, LIB
 
 DRAFTS = os.path.join(LIB, "drafts")
-INK, CYAN, MUTED, SOFT = "#0f3a50", "#20B8D0", "#5a6e7c", "#e6f6f9"
+INK, CYAN, MUTED, SOFT = "#1f4a63", "#20B8D0", "#6b7f8c", "#eaf7fa"
 GRAD = "linear-gradient(180deg,#42F45D 0%,#01BC56 30%,#00BEE6 65%,#08E3FB 100%)"
 
 def esc(s): return html.escape(str(s or ""))
 
 def frame(spec, body):
-    title = esc(spec.get("title", "")).replace("\\n", "<br>")
+    title = esc(spec.get("title", "")).replace("\\n", "<br>"); light = spec.get("light", True)
+    who = "" if light else '<div class="who"><b>Anton Lytvynenko</b>Software Architect · Technical Lead</div>'
     return f"""<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>graphic</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;600&display=block" rel="stylesheet">
 <style>*{{box-sizing:border-box;margin:0}}html,body{{background:#fff}}
 body{{font-family:"Montserrat","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;color:{INK}}}
 .canvas{{width:1200px;height:1200px;position:relative;overflow:hidden;background:#fff}}
-.stripe{{position:absolute;left:0;top:0;width:24px;height:100%;background:{GRAD}}}
+.stripe{{position:absolute;left:0;top:0;width:{12 if light else 24}px;height:100%;background:{GRAD}}}
 .who{{position:absolute;right:72px;top:64px;text-align:right;font-family:"Open Sans",sans-serif;font-size:22px;color:{MUTED}}}
 .who b{{display:block;font-weight:600;color:{INK};font-size:25px}}
 .eyebrow{{position:absolute;left:96px;top:72px;font-family:"Open Sans",sans-serif;font-size:22px;letter-spacing:.22em;text-transform:uppercase;color:{CYAN};font-weight:600}}
-h1{{position:absolute;left:96px;top:124px;width:760px;font-size:58px;line-height:1.1;font-weight:800;letter-spacing:-1.5px}}
+h1{{position:absolute;left:96px;top:{118 if light else 124}px;width:900px;font-size:{50 if light else 58}px;line-height:1.12;font-weight:{700 if light else 800};letter-spacing:-1px}}
 svg{{position:absolute;left:0;top:0}}
 .note{{position:absolute;left:96px;bottom:60px;right:72px;font-family:"Open Sans",sans-serif;font-size:22px;color:{MUTED};line-height:1.35}}
 svg text{{font-family:"Montserrat","Helvetica Neue",Arial,sans-serif;font-weight:600;fill:{INK}}}
 svg .m{{fill:{MUTED};font-family:"Open Sans",sans-serif;font-weight:400}}
 svg .c{{fill:{CYAN}}} svg .w{{fill:#fff}}
 </style></head><body><div class="canvas"><div class="stripe"></div>
-<div class="who"><b>Anton Lytvynenko</b>Software Architect · Technical Lead</div>
+{who}
 <div class="eyebrow">{esc(spec.get("eyebrow", ""))}</div><h1>{title}</h1>
 {body}
 <div class="note">{esc(spec.get("note", ""))}</div></div></body></html>"""
@@ -48,10 +49,10 @@ def curves(s):
     area = path(A) + " L" + " L".join(f"{x:.0f},{y:.0f}" for x, y in reversed(B)) + " Z"
     xl = s.get("x", ["", ""])
     return f"""<svg width="1200" height="1200" viewBox="0 0 1200 1200">
-<path d="{area}" fill="{SOFT}"/>
+{f'<path d="{area}" fill="{SOFT}"/>' if s.get("area", True) else ""}
 <line x1="{x0}" y1="{y0}" x2="{x1}" y2="{y0}" stroke="{MUTED}" stroke-width="3"/><line x1="{x0}" y1="{y0}" x2="{x0}" y2="{y1 - 30}" stroke="{MUTED}" stroke-width="3"/>
-<path d="{path(B)}" fill="none" stroke="{INK}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="{path(A)}" fill="none" stroke="{CYAN}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="{path(B)}" fill="none" stroke="{INK}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="{path(A)}" fill="none" stroke="{CYAN}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
 <rect x="{x0 - 50}" y="{y1 - 120}" width="46" height="12" rx="6" fill="{CYAN}"/><text x="{x0 + 12}" y="{y1 - 108}" font-size="28" class="m">{esc(s["a"]["label"])}</text>
 <rect x="{x0 + 420}" y="{y1 - 120}" width="46" height="12" rx="6" fill="{INK}"/><text x="{x0 + 482}" y="{y1 - 108}" font-size="28" class="m">{esc(s["b"]["label"])}</text>
 <text x="{(x0 + x1) / 2 + 120:.0f}" y="{(A[-2][1] + B[-2][1]) / 2 + 12:.0f}" font-size="40" text-anchor="middle" font-weight="800" style="paint-order:stroke;stroke:#fff;stroke-width:12px;stroke-linejoin:round">{esc(s.get("gap", ""))}</text>
@@ -131,7 +132,23 @@ def matrix(s):
     out.append(f'<text transform="translate({x0 - 44},{y0 + size * 1.5}) rotate(-90)" font-size="26" text-anchor="middle" class="m">{esc(yl[0])}</text><text transform="translate({x0 - 44},{y0 + size / 2}) rotate(-90)" font-size="26" text-anchor="middle" class="m">{esc(yl[1])}</text>')
     return '<svg width="1200" height="1200" viewBox="0 0 1200 1200">' + "".join(out) + "</svg>"
 
-KINDS = {"curves": curves, "shift": shift, "beforeafter": beforeafter, "flow": flow, "matrix": matrix}
+def phases(s):
+    """Two rows of phase blocks, block width = share of effort. s.phases: [labels]; s.rows: [{label, values}] x2; s.hot: index of the phase to colour."""
+    out = []; x0, w = 96, 1010; ys = [440, 760]; h = 150; hot = s.get("hot", -1)
+    for row, y in zip(s["rows"], ys):
+        tot = sum(row["values"]) or 1; x = x0
+        out.append(f'<text x="{x0}" y="{y - 22}" font-size="26" class="m">{esc(row["label"])}</text>')
+        for i, (v, lab) in enumerate(zip(row["values"], s["phases"])):
+            bw = w * v / tot
+            out.append(f'<rect x="{x + 3}" y="{y}" width="{max(bw - 6, 4):.0f}" height="{h}" rx="14" fill="{CYAN if i == hot else SOFT}" stroke="{CYAN if i == hot else "#cfe3ea"}" stroke-width="2"/>')
+            fits = bw > 34 + 15 * len(lab)   # label inside when it fits, otherwise under the block
+            if fits: out.append(f'<text x="{x + bw / 2:.0f}" y="{y + h / 2 + 10}" font-size="26" text-anchor="middle" class="{"w" if i == hot else ""}">{esc(lab)}</text>')
+            else: out.append(f'<text x="{x + bw / 2:.0f}" y="{y + h + 34}" font-size="20" text-anchor="middle" class="m">{esc(lab)}</text>')
+            x += bw
+    out.append(f'<path d="M{x0 + w / 2},{ys[0] + h + 60} L{x0 + w / 2},{ys[1] - 56}" stroke="{MUTED}" stroke-width="4" marker-end="url(#ar)"/>')
+    return f'<svg width="1200" height="1200" viewBox="0 0 1200 1200"><defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="{MUTED}"/></marker></defs>' + "".join(out) + "</svg>"
+
+KINDS = {"phases": phases, "curves": curves, "shift": shift, "beforeafter": beforeafter, "flow": flow, "matrix": matrix}
 
 def render(spec, out_base, out_dir=None):
     out_dir = out_dir or DRAFTS; os.makedirs(out_dir, exist_ok=True)
