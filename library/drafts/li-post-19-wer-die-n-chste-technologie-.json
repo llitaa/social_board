@@ -4,7 +4,7 @@
  "pillar": "thought",
  "topic": "t041",
  "memo": "",
- "photo": "img4373",
+ "photo": "10211214358a20",
  "neighbour_shoots": [
   "2026-02-06_shoot",
   "2025-12-09_shoot"
@@ -20,5 +20,8 @@
  "signals": {
   "lead": "In der Medizintechnik habe ich ein Test-Framework auf Basis von Google Test und gmock eingeführt, um Legacy-Komponenten testbar zu machen.",
   "ai": "Ich arbeite täglich mit Coding-Agents in Legacy-C++, und das Werkzeug ist dabei selten das Problem."
- }
+ },
+ "photo_history": [
+  "img4373"
+ ]
 }

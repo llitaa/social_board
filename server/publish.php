@@ -53,7 +53,9 @@ function run(): array {
       if ($pend && time() - $pend < 600) { L("$id: image or note still pending, wait"); continue; }
       $fails = (int)($o['publish_fails'] ?? 0); if ($fails >= 5) continue;   // after five failures the card says "needs you"; no retry storm
       $creds = $c['channel'] === 'company' ? $org : $me; $author = $c['channel'] === 'company' ? ($org['org_urn'] ?? '') : ($me['person_urn'] ?? '');
-      if (empty($creds['access_token']) || !$author) { L("$id: no token for {$c['channel']} on the server"); continue; }
+      if (empty($creds['access_token']) || !$author) {   // company page without the Community Management API: the card waits for Anton by hand; say so once a day, not every minute
+        $k = "$id.notoken"; if (empty($done[$k]) || time() - (int)$done[$k] > 86400) { L("$id: no token for {$c['channel']} on the server; the card waits for a by-hand post (logged once a day)"); $done[$k] = time(); jw("$W/published.json", $done); }
+        continue; }
       if (!empty($creds['expires']) && $creds['expires'] < date('c')) { L("$id: token expired"); ov_patch($id, ['publish_error' => 'LinkedIn token expired: run pipeline/linkedin_auth.py on the Mac']); continue; }
       if (!empty($done[$id . '.attempt']) && time() - (int)$done[$id . '.attempt'] < 600) { L("$id: an attempt is still open, wait"); continue; }   // a lost answer must not post twice
       $done[$id . '.attempt'] = time(); jw("$W/published.json", $done);
