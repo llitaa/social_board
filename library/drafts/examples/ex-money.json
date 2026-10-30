@@ -1,0 +1,19 @@
+{
+ "pillar": "money",
+ "topic": "t061",
+ "graphic": {
+  "eyebrow": "Software und Geld",
+  "title": "Software verdient Geld\\nauf drei Arten",
+  "lines": [
+   "Ein neuer Markt",
+   "Ein neues Preismodell",
+   "Weniger Stillstand"
+  ],
+  "footer": "Aus Projekten"
+ },
+ "signals": {
+  "lead": "Für eine Trainingsplattform in der Luftfahrt habe ich als erster Entwickler das Server-Backend gelegt und das Team auf sieben Leute aufgebaut.",
+  "ai": "Coding-Agents machen den Code billiger, die Antwort auf diese Frage nicht."
+ },
+ "text": "Keines der Projekte, die Geld verdient haben, hat das über Features getan. Drei Mechanismen, die ich gesehen habe:\n\n1. Ein neuer Markt. CAD/CAM-Software für CNC-Anlagen, mit Simulation des Schneidprozesses. Der Hersteller verkaufte vorher an Maschinenbauer. Mit der Software kauften Werkstätten direkt. Nicht das Feature war der Umsatz, sondern der neue Kunde.\n\n2. Ein neues Preismodell. Bei einem Textilmaschinenhersteller lieferten die Maschinendaten die Tagesproduktion in Garn. Daraus wurde eine Abrechnung nach Produktion statt nach Lizenz. Dieselben Maschinen, ein anderer Vertrag.\n\n3. Weniger Stillstand. Für eine Trainingsplattform in der Luftfahrt habe ich als erster Entwickler das Server-Backend gelegt und das Team auf sieben Leute aufgebaut. 10% weniger Ausfallzeit, Launch auf der Messe termingerecht. Die neuen Kunden kamen über die Messe, nicht über die Roadmap.\n\nDie Frage, die ich heute vor jeder Zeile Code stelle: Wer zahlt danach anders als vorher? Fehlt die Antwort, ist es kein Produkt, sondern ein Kostenblock. Coding-Agents machen den Code billiger, die Antwort auf diese Frage nicht.\n\nWelche Ihrer Software-Ausgaben hat den Vertrag mit dem Kunden verändert?\n\n#Geschäftsmodell #Software #Produkt"
+}

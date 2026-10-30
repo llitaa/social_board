@@ -1,0 +1,22 @@
+<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>graphic</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;600&display=block" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}html,body{background:#fff}
+body{font-family:"Montserrat","Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.canvas{width:1200px;height:1200px;position:relative;overflow:hidden;color:#0f3a50;background:#fff}
+.stripe{position:absolute;left:0;top:0;width:24px;height:100%;background:linear-gradient(180deg,#42F45D 0%,#01BC56 30%,#00BEE6 65%,#08E3FB 100%)}
+.who{position:absolute;right:72px;top:64px;text-align:right;font-family:"Open Sans",sans-serif;font-size:24px;color:#5a6e7c;letter-spacing:.02em}
+.who b{display:block;font-weight:600;color:#0f3a50;font-size:26px}
+.eyebrow{position:absolute;left:96px;top:72px;font-family:"Open Sans",sans-serif;font-size:24px;letter-spacing:.22em;text-transform:uppercase;color:#20B8D0;font-weight:600}
+h1{position:absolute;left:96px;top:150px;width:900px;font-size:70px;line-height:1.1;font-weight:800;letter-spacing:-1.8px}
+.lines{position:absolute;left:96px;right:72px;top:460px;bottom:150px;display:flex;flex-direction:column;justify-content:space-evenly}
+.line{display:flex;gap:30px;align-items:center;font-size:48px;line-height:1.18;font-weight:600}
+.canvas[data-n="4"] .line{font-size:44px}
+.canvas[data-n="5"] .line{font-size:40px}
+.line .n{flex:0 0 80px;height:80px;border-radius:20px;background:#0f3a50;color:#fff;font-size:38px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.line.last .n{background:#20B8D0}
+.foot{position:absolute;right:72px;bottom:64px;font-family:"Open Sans",sans-serif;font-size:24px;color:#20B8D0;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+</style></head><body><div class="canvas" data-n="4"><div class="stripe"></div>
+<div class="who"><b>Anton Lytvynenko</b>Software Architect · Technical Lead</div>
+<div class="eyebrow">Softwareentwicklung</div><h1>Vom Code zum Produkt:<br>vier Verschiebungen</h1><div class="lines"><div class="line"><div class="n">1</div><div>Vom Feature zur Frage</div></div><div class="line"><div class="n">2</div><div>Zur Architektur, die andere weiterbauen</div></div><div class="line"><div class="n">3</div><div>Zur Entscheidung, was wegbleibt</div></div><div class="line last"><div class="n">4</div><div>Zur Verantwortung nach dem Go-live</div></div></div>
+<div class="foot">2026</div></div></body></html>

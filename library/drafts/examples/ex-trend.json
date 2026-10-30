@@ -1,0 +1,19 @@
+{
+ "pillar": "trend",
+ "topic": "t067",
+ "graphic": {
+  "eyebrow": "Ausblick",
+  "title": "Drei Trends, die 2027 zählen.\\nKein Modellname.",
+  "lines": [
+   "Prüfen wird der Engpass, nicht Erzeugen",
+   "Der Senior wird Schiedsrichter",
+   "Betrieb schlägt Demo"
+  ],
+  "footer": "2027"
+ },
+ "signals": {
+  "lead": "Im Rheinmetall-Projekt habe ich sechs Entwickler koordiniert; die gleiche Rolle brauchen Teams jetzt gegenüber ihren Werkzeugen.",
+  "ai": "In meinem aktuellen Projekt schreibt der Agent einen Patch in Minuten."
+ },
+ "text": "Jede Woche ein neues Modell, jede Woche ein neuer Chip. Für meine Arbeit ändert das wenig. Drei Verschiebungen, die 2027 wirklich zählen:\n\n1. Prüfen wird der Engpass, nicht Erzeugen. Die Maschine generiert schneller, als der Mensch prüfen kann. In meinem aktuellen Projekt schreibt der Agent einen Patch in Minuten. Was den Tag kostet, ist zu belegen, dass er stimmt. Wer heute Entwickler einstellt, kauft Prüfkapazität.\n\n2. Der Senior wird Schiedsrichter. Ich schreibe weniger Code und entscheide öfter: Welche Stelle wird gemessen, welche bleibt unangetastet, welches Ergebnis des Agenten geht in den Betrieb. Im Rheinmetall-Projekt habe ich sechs Entwickler koordiniert; die gleiche Rolle brauchen Teams jetzt gegenüber ihren Werkzeugen.\n\n3. Betrieb schlägt Demo. Die meisten KI-Projekte, die laufen, stecken vor der Aktivierung fest. Ein Pilot ohne benannten Verantwortlichen für die Ausnahmen bleibt ein Pilot. Wer 2027 Budget freigibt, sollte fragen, wer nach dem Go-live das Telefon abnimmt.\n\nKeiner dieser drei Punkte hängt an einem Modellnamen. Alle drei hängen an Rollen, die jemand besetzen muss.\n\nWelche dieser drei Rollen ist bei Ihnen heute besetzt?\n\n#KI #Softwareentwicklung #Führung"
+}

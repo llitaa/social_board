@@ -1,0 +1,20 @@
+{
+ "pillar": "transformation",
+ "topic": "t058",
+ "graphic": {
+  "eyebrow": "Softwareentwicklung",
+  "title": "Vom Code zum Produkt:\\nvier Verschiebungen",
+  "lines": [
+   "Vom Feature zur Frage",
+   "Zur Architektur, die andere weiterbauen",
+   "Zur Entscheidung, was wegbleibt",
+   "Zur Verantwortung nach dem Go-live"
+  ],
+  "footer": "2026"
+ },
+ "signals": {
+  "lead": "Im Rheinmetall-Projekt habe ich sechs Entwickler koordiniert.",
+  "ai": "Coding-Agents beschleunigen heute die Schritte eins bis drei."
+ },
+ "text": "Vor zehn Jahren war mein Tag voll mit C++. Heute gibt es Tage ohne eine Zeile Code, und das Produkt kommt trotzdem schneller voran.\n\nWas sich verschoben hat, in vier Schritten:\n\n1. Vom Feature zur Frage. Für einen Halbleiterhersteller habe ich zwei Werkzeuge zur Chipdesign-Prüfung gebaut. Der grösste Teil der Arbeit war nicht Code, sondern mit einem Fachexperten klären, welche Daten er wirklich braucht und was er damit entscheidet.\n\n2. Zur Architektur, die andere weiterbauen. Die Fachexperten konnten das Werkzeug danach selbst weiterentwickeln. Das war die eigentliche Lieferung, nicht die erste Version.\n\n3. Zur Entscheidung, was wegbleibt. Im Rheinmetall-Projekt habe ich sechs Entwickler koordiniert. Mein wichtigster Beitrag war die Frage: Was lassen wir weg, damit das System in fünf Monaten technisch steht?\n\n4. Zur Verantwortung nach dem Go-live. Software zählt erst, wenn sie im Betrieb läuft und jemand für die Ausnahmen geradesteht.\n\nCoding-Agents beschleunigen heute die Schritte eins bis drei. Was sie nicht übernehmen, ist die Entscheidung, was gebaut wird und wer dafür haftet. Genau dieser Teil unterscheidet ein Produkt von einem Repository.\n\nWer entscheidet bei Ihnen, was nicht gebaut wird?\n\n#Produktentwicklung #TechnicalLeadership #KI"
+}

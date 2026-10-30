@@ -1,0 +1,13 @@
+Keines der Projekte, die Geld verdient haben, hat das über Features getan. Drei Mechanismen, die ich gesehen habe:
+
+1. Ein neuer Markt. CAD/CAM-Software für CNC-Anlagen, mit Simulation des Schneidprozesses. Der Hersteller verkaufte vorher an Maschinenbauer. Mit der Software kauften Werkstätten direkt. Nicht das Feature war der Umsatz, sondern der neue Kunde.
+
+2. Ein neues Preismodell. Bei einem Textilmaschinenhersteller lieferten die Maschinendaten die Tagesproduktion in Garn. Daraus wurde eine Abrechnung nach Produktion statt nach Lizenz. Dieselben Maschinen, ein anderer Vertrag.
+
+3. Weniger Stillstand. Für eine Trainingsplattform in der Luftfahrt habe ich als erster Entwickler das Server-Backend gelegt und das Team auf sieben Leute aufgebaut. 10% weniger Ausfallzeit, Launch auf der Messe termingerecht. Die neuen Kunden kamen über die Messe, nicht über die Roadmap.
+
+Die Frage, die ich heute vor jeder Zeile Code stelle: Wer zahlt danach anders als vorher? Fehlt die Antwort, ist es kein Produkt, sondern ein Kostenblock. Coding-Agents machen den Code billiger, die Antwort auf diese Frage nicht.
+
+Welche Ihrer Software-Ausgaben hat den Vertrag mit dem Kunden verändert?
+
+#Geschäftsmodell #Software #Produkt

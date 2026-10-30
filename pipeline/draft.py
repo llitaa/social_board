@@ -177,15 +177,19 @@ def neighbour_shoots(plan, slot_day, idx):
     if after: out.append(min((d, s) for d, s in by_date if d > slot_day.isoformat())[1])
     return out
 
-def render_graphic(g, cid):
-    tpl = open(os.path.join(ROOT, "pipeline", "templates", "company-card.html"), encoding="utf-8").read()
-    logo = base64.b64encode(open(os.path.expanduser(CFG["logo"]), "rb").read()).decode()
-    lines = g.get("lines", [])[:4]
+ENG = CFG.get("engagement", {}); ENG_DAYS = set(ENG.get("days", [])); ENG_PILLARS = [p for p in ENG.get("pillars", []) if p in inv.PILLARS]
+
+def render_graphic(g, cid, brand="company", out_dir=None):
+    """1200x1200 graphic from the template: company (AlpiType logo, alpitype.de) or personal (Anton's name, no logo). 3-5 numbered lines."""
+    out_dir = out_dir or DRAFTS
+    tpl = open(os.path.join(ROOT, "pipeline", "templates", "company-card.html" if brand == "company" else "personal-graphic.html"), encoding="utf-8").read()
+    logo = base64.b64encode(open(os.path.expanduser(CFG["logo"]), "rb").read()).decode() if brand == "company" else ""
+    lines = g.get("lines", [])[:5]
     lh = "".join(f'<div class="line{" last" if i == len(lines) - 1 else ""}"><div class="n">{i + 1}</div><div>{html.escape(l)}</div></div>' for i, l in enumerate(lines))
     doc = tpl.replace("{{LOGO}}", logo).replace("{{EYEBROW}}", html.escape(g.get("eyebrow", ""))).replace("{{TITLE}}", html.escape(g.get("title", "")).replace("\\n", "<br>")) \
-             .replace("{{LINES}}", lh).replace("{{FOOTER}}", html.escape(g.get("footer", "70 / 30")))
-    hp = os.path.join(DRAFTS, cid + ".html"); png = os.path.join(DRAFTS, cid + ".png"); open(hp, "w", encoding="utf-8").write(doc)
-    subprocess.run([CFG["chrome"], "--headless=new", "--disable-gpu", "--hide-scrollbars", "--window-size=1200,1200", f"--screenshot={png}", "file://" + hp],
+             .replace("{{LINES}}", lh).replace("{{FOOTER}}", html.escape(g.get("footer", "70 / 30" if brand == "company" else ""))).replace("{{N}}", str(len(lines)))
+    hp = os.path.abspath(os.path.join(out_dir, cid + ".html")); png = os.path.abspath(os.path.join(out_dir, cid + ".png")); open(hp, "w", encoding="utf-8").write(doc)
+    subprocess.run([CFG["chrome"], "--headless=new", "--disable-gpu", "--hide-scrollbars", "--window-size=1200,1200", "--virtual-time-budget=5000", f"--screenshot={png}", "file://" + hp],
                    capture_output=True, timeout=60)
     return png if os.path.isfile(png) else None
 
@@ -217,13 +221,15 @@ def draft_one(dt, channel, plan, idx, memo=None, topic=None):
     elif topic: pillar = topic["pillar"]
     else:
         cnt = pillar_counts(plan, slot_day); order = ["case", "decision", "trend", "model-test"] if channel == "personal" else ["company"]
-        if channel == "personal" and not week_thoughts(plan, slot_day) and inv.take("thought"): pillar, topic = "thought", inv.take("thought")
+        eng = [(cnt.get(p, 0), i, p) for i, p in enumerate(ENG_PILLARS) if inv.take(p)] if channel == "personal" and slot_day.strftime("%a") in ENG_DAYS else []
+        if eng: pillar = min(eng)[2]; topic = inv.take(pillar)   # Mon/Fri: an engagement post with a graphic (Anton 30.10.), least-used pillar first
+        elif channel == "personal" and not week_thoughts(plan, slot_day) and inv.take("thought"): pillar, topic = "thought", inv.take("thought")
         else:
             cands = [(cnt.get(p, 0), i, p) for i, p in enumerate(order) if inv.take(p)]
             if not cands: log("no unused topic for", channel); return None
             pillar = min(cands)[2]; topic = inv.take(pillar)
-    photo = None; nb = []
-    if channel == "personal":
+    photo = None; nb = []; graphic_post = channel == "personal" and pillar in ENG_PILLARS   # engagement pillars get a graphic, not a pool photo
+    if channel == "personal" and not graphic_post:
         nb = neighbour_shoots(plan, slot_day, idx)
         taken = set(re.findall(r"photo=(\w+)", " ".join(r.get("notes", "") for r in plan if r["status"] not in ("dropped", "skipped")))) | \
                 set(re.findall(r"square/(\w+)_sq\.png|photo (\w+) \+", " ".join(r.get("asset", "") for r in plan if r["status"] not in ("dropped", "skipped"))) and
@@ -239,7 +245,8 @@ def draft_one(dt, channel, plan, idx, memo=None, topic=None):
                 f"Topic: {topic['topic']}\nAngle: {topic['angle']}\nSource: {topic['source']}\nPillar: {pillar} = {inv.PILLARS[pillar]}")
     facts = inv.cv_text() if channel == "personal" else open(os.path.expanduser(CFG["company_context"]), encoding="utf-8").read()
     img = f"\nPhoto that will be posted with the text: {photo['scene'] or photo['note'] or 'Anton, ' + photo['tags']}\n" if photo else \
-          "\nThe post gets a 1200x1200 graphic: give eyebrow (2-3 words), title (max 8 words, may contain one \\n), 3-4 numbered lines (max 9 words each) and a 1-3 word footer.\n"
+          ("\nDer Post bekommt eine 1200x1200-Grafik (kein Foto): gib eyebrow (2-3 Wörter, das Thema), title (max. 8 Wörter, die Kernaussage des Posts, darf ein \\n enthalten), lines = die 3-5 nummerierten Punkte des Posts in Kurzform (max. 8 Wörter je Punkt, dieselben Punkte wie im Text, dieselbe Reihenfolge) und footer (1-3 Wörter, z.B. das Jahr oder leer).\n" if graphic_post else
+           "\nThe post gets a 1200x1200 graphic: give eyebrow (2-3 words), title (max 8 words, may contain one \\n), 3-4 numbered lines (max 9 words each) and a 1-3 word footer.\n")
     prompt = f"""{STYLE[channel]}
 {positioning() + book_phrases() if channel == 'personal' else ''}{style_rules()}
 Slot: {dt.strftime('%A %d.%m.%Y %H:%M')}
@@ -255,7 +262,7 @@ Three of Anton's recent posts on this channel, for voice and length only (do not
 Facts you may use (nothing else):
 {facts[:9000]}
 
-Answer with one JSON object only: {{"text": "the full post incl. hashtags, newlines as \\n"{', "graphic": {"eyebrow": "", "title": "", "lines": [""], "footer": ""}' if channel == 'company' else ', "card": {"kicker": "2-3 words, the field (e.g. Legacy C++)", "headline": "the one sentence of the post that should stand under the photo, max 70 characters"}, "signals": {"lead": "the sentence of the post that shows him leading or deciding, copied verbatim", "ai": "the sentence that shows his own AI practice or position, copied verbatim"}'}}}"""
+Answer with one JSON object only: {{"text": "the full post incl. hashtags, newlines as \\n"{', "graphic": {"eyebrow": "", "title": "", "lines": [""], "footer": ""}' if channel == 'company' else (', "graphic": {"eyebrow": "", "title": "", "lines": [""], "footer": ""}' if graphic_post else ', "card": {"kicker": "2-3 words, the field (e.g. Legacy C++)", "headline": "the one sentence of the post that should stand under the photo, max 70 characters"}') + ', "signals": {"lead": "the sentence of the post that shows him leading or deciding, copied verbatim", "ai": "the sentence that shows his own AI practice or position, copied verbatim"}'}}}"""
     d = llm_json("draft", prompt); text = rules_check.fix_orthography(d.get("text", "").strip(), channel)
     v = rules_check.check(text, channel, d.get("signals"))
     if v:
@@ -278,7 +285,7 @@ Answer with one JSON object only: {{"text": "the full post incl. hashtags, newli
             png = personal_card.render(ph.square_of(photo), d["card"], base)
             if png: asset = f"library/drafts/{base}.png (card: photo {photo['id']} + headline, style {CFG['personal_card']['style']}; source library/drafts/{base}.html)"
     else:
-        png = render_graphic(d.get("graphic", {}), base)
+        png = render_graphic(d.get("graphic", {}), base, brand="personal" if channel == "personal" else "company")
         asset = f"library/drafts/{base}.png (1200x1200 graphic; source library/drafts/{base}.html)" if png else ""
     meta = {"id": cid, "channel": channel, "pillar": pillar, "topic": topic["id"] if topic else "", "memo": memo[0]["id"] if memo else "", "photo": photo["id"] if photo else "",
             "neighbour_shoots": nb, "model": MODELS["draft"], "created": datetime.now().isoformat(timespec="seconds"), "versions": [], "graphic": d.get("graphic"), "card": d.get("card"), "signals": d.get("signals")}

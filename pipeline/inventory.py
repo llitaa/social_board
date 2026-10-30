@@ -13,7 +13,10 @@ PILLARS = {"thought": "a phrase Anton recorded or wrote himself (memo or chat): 
            "case": "a case from Anton's own practice (CV): situation, what he did, what it cost or saved, one lesson",
            "decision": "a decision helper for a CIO / Entwicklungsleiter: a choice they face this year, the two or three options, what tips it",
            "model-test": "a model or tool test from Anton's daily work with coding agents on legacy C++: setup, result, verdict",
-           "trend": "a trend in AI-in-engineering / software products with Anton's own position, no news summary",
+           "trend": "a trend in AI-in-engineering / software products with Anton's own position, no news summary, no model or hardware names",
+           "transformation": "engagement post with graphic: what shifts in software development, from code to product (roles, work, responsibility), told from Anton's own projects",
+           "money": "engagement post with graphic: how software earns or saves money, a real mechanism from a project (new market, new pricing, less downtime)",
+           "learning": "engagement post with graphic: a reading or learning list for people who are responsible for software without writing it; only real books and sources, one sentence why each",
            "company": "AlpiType company post (EN): industrial or office automation built as code in the client's own environment, 70/30, who approves"}
 
 def cv_text():

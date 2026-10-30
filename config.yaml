@@ -28,6 +28,9 @@ slots:                    # weekday -> channel and time; the pipeline keeps ever
   personal: {days: [Mon, Wed, Fri], time: "07:30", lang: de}
   company:  {days: [Thu], time: "09:00", lang: en}
 horizon_days: 14
+engagement:               # Anton 30.10.: 1-2 posts a week for founders without a tech background and AI-leadership hirers, with a graphic instead of a photo
+  days: [Mon, Fri]        # personal slots on these weekdays take an engagement pillar first (when one has unused topics)
+  pillars: [transformation, money, learning, trend]
 publish:
   where: server           # server = the host posts approved cards at their slot (server/publish.php, hPanel cron + ticks); mac = pipeline/publish.py posts from here
 orthography: ch           # personal posts: Swiss standard German, ss instead of ß (target market since 20.10.2026; de = keep ß)

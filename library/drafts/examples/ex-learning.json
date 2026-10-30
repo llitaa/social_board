@@ -1,0 +1,21 @@
+{
+ "pillar": "learning",
+ "topic": "t064",
+ "graphic": {
+  "eyebrow": "Leseliste",
+  "title": "Fünf Bücher für Gründer\\nohne Technik-Hintergrund",
+  "lines": [
+   "Inspired · Marty Cagan",
+   "Accelerate · Forsgren, Humble, Kim",
+   "Team Topologies · Skelton, Pais",
+   "The Mythical Man-Month · Fred Brooks",
+   "Working Effectively with Legacy Code · Feathers"
+  ],
+  "footer": ""
+ },
+ "signals": {
+  "lead": "Beim Aufbau eines Backend-Teams von eins auf sieben war das meine wichtigste Entscheidung.",
+  "ai": "Ich arbeite nach diesem Buch, auch wenn heute ein Agent die Tests schreibt und ich sie lese."
+ },
+ "text": "Was liest jemand, der Software verantwortet, ohne sie zu schreiben? Meine Liste, fünf Bücher, in dieser Reihenfolge:\n\n1. Inspired, Marty Cagan. Warum das Produkt vor dem Code kommt und was ein Product Owner tatsächlich entscheidet.\n\n2. Accelerate, Forsgren, Humble, Kim. Vier Kennzahlen, an denen Sie Lieferfähigkeit messen, ohne eine Zeile Code zu lesen.\n\n3. Team Topologies, Skelton und Pais. Wie man Teams schneidet, damit sie nicht aufeinander warten. Beim Aufbau eines Backend-Teams von eins auf sieben war das meine wichtigste Entscheidung.\n\n4. The Mythical Man-Month, Fred Brooks. Von 1975 und jedes Jahr wieder wahr: Mehr Leute auf ein spätes Projekt machen es später.\n\n5. Working Effectively with Legacy Code, Michael Feathers. Der Code, den Sie kaufen oder erben, ist alt. Hier steht, wie man ihn anfasst, ohne ihn zu brechen. Ich arbeite nach diesem Buch, auch wenn heute ein Agent die Tests schreibt und ich sie lese.\n\nMein eigenes Buch lasse ich aus der Liste. Fünf reichen für ein Quartal.\n\nWelches Buch hat Ihr Bild von Softwareentwicklung verändert?\n\n#Leseliste #Gründer #Softwareentwicklung"
+}
