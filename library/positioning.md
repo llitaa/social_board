@@ -30,3 +30,11 @@ Schreibweise: Schweizer Standarddeutsch, "ss" statt "ß". Sie-Form. Prozent ohne
 Verboten: Jobsuche oder Wechselabsicht, Verfügbarkeit, Gehalt, "Freelance", Firmen oder Recruiter, mit denen er spricht.
 AlpiType darf als Firma vorkommen, in der eine Erfahrung gemacht wurde, nie als Angebot oder Werbung. Kunden nur, wenn nennbar
 (Rheinmetall-Projekt, Brainlab); sonst "ein Halbleiterhersteller", "ein Hersteller von Vermessungstechnik", "ein Textilmaschinenhersteller".
+
+## Verkaufslogik (30.10.2026, siehe openspec/changes/engagement-posts/proposal.md)
+Serie "Nach dem Go-live", nummerierte Folgen, Montag und Freitag. Die Grafik ist der Post; der Text hat drei Sätze und eine Frage,
+die den Leser auf der Grafik verorten lässt ("Wo stehen Sie?"). Unterhaltung kommt aus Benennung: Tal der Ausnahmen, Friedhof der
+Piloten, Teure PowerPoint. Wiederkehrende Figuren: der Pitch, die Demo, die Person, die nach dem Go-live ans Telefon geht.
+Was die Serie verkauft, steht nie im Post: Antons Urteilskraft aus Produktion in Medtech, Defence, Halbleiter, plus tägliche eigene
+Agent-Praxis, plus die 70/30-Methode (wer trainiert, kontrolliert, haftet). Der Weg: Kommentar oder DM, 30 Minuten mit einem
+Ingenieur, dann der Betriebs-Check zum Festpreis. Gemessen werden Kommentare und DMs je Folge, nicht Impressionen.

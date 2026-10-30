@@ -1,0 +1,49 @@
+{
+ "kind": "curves",
+ "eyebrow": "Nach dem Go-live · Folge 1",
+ "title": "Die Kurve, die im Pitch\\nnicht vorkommt",
+ "x": [
+  "Vertrag",
+  "12 Monate"
+ ],
+ "y": "Nutzen",
+ "a": {
+  "label": "So läuft es wirklich",
+  "points": [
+   0.3,
+   0.55,
+   0.25,
+   0.12,
+   0.15,
+   0.35,
+   0.7,
+   0.85
+  ]
+ },
+ "b": {
+  "label": "So steht es im Angebot",
+  "points": [
+   0.3,
+   0.4,
+   0.5,
+   0.6,
+   0.7,
+   0.8,
+   0.9,
+   1.0
+  ]
+ },
+ "gap": "",
+ "marks": [
+  {
+   "at": 3,
+   "label": "Tal der Ausnahmen"
+  },
+  {
+   "at": 5,
+   "label": "jemand übernimmt",
+   "below": false
+  }
+ ],
+ "note": "Die Demo ist der Gipfel links. Das Tal beginnt, wenn echte Daten kommen und niemand die Ausnahmen trägt. Raus kommt man mit einem Namen, nicht mit einem Modell."
+}

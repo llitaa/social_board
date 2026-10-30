@@ -1,0 +1,34 @@
+{
+ "kind": "matrix",
+ "eyebrow": "Nach dem Go-live · Folge 2",
+ "title": "Wo steht Ihr KI-Projekt?",
+ "x": [
+  "Demo läuft",
+  "Betrieb läuft"
+ ],
+ "y": [
+  "niemand haftet",
+  "jemand haftet"
+ ],
+ "quads": {
+  "tl": {
+   "label": "Teure\\nPowerPoint",
+   "sub": "Verantwortung ohne Produkt"
+  },
+  "tr": {
+   "label": "Produkt",
+   "sub": "verdient Geld, überlebt Urlaube"
+  },
+  "bl": {
+   "label": "Friedhof\\nder Piloten",
+   "sub": "hier liegen die meisten"
+  },
+  "br": {
+   "label": "Glück",
+   "sub": "läuft, bis es nicht mehr läuft"
+  }
+ },
+ "hot": "tr",
+ "dead": "bl",
+ "note": "Rechts oben kommt man nur über eine Frage: Wer trägt die Ausnahmen? Das ist eine Personalentscheidung, keine Modellwahl."
+}

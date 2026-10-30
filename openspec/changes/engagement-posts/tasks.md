@@ -1,0 +1,6 @@
+- [x] 1.1 graphics.py with five diagram kinds in the house style, JSON spec in, PNG out
+- [x] 1.2 four examples and two candidates in library/drafts/examples/g
+- [ ] 1.3 pipeline/episode.py: topic in -> two candidate specs (model call, from the terminal only) -> render -> Anton picks -> import_draft
+- [ ] 1.4 rules_check: series name + episode number required for pillar engagement; caption length 3 sentences + question
+- [ ] 2.1 Betriebs-Check offer page on alpitype.de and the one-page checklist PDF for DMs (Anton's yes needed)
+- [ ] 2.2 posts-log: comments and DMs per episode, board line "no comment yet" after 48 h

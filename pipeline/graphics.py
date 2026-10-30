@@ -52,11 +52,11 @@ def curves(s):
 <line x1="{x0}" y1="{y0}" x2="{x1}" y2="{y0}" stroke="{MUTED}" stroke-width="3"/><line x1="{x0}" y1="{y0}" x2="{x0}" y2="{y1 - 30}" stroke="{MUTED}" stroke-width="3"/>
 <path d="{path(B)}" fill="none" stroke="{INK}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="{path(A)}" fill="none" stroke="{CYAN}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="{A[-1][0] - 10:.0f}" y="{A[-1][1] - 28:.0f}" font-size="34" text-anchor="end" class="c">{esc(s["a"]["label"])}</text>
-<text x="{B[-1][0] - 10:.0f}" y="{B[-1][1] + 56:.0f}" font-size="34" text-anchor="end">{esc(s["b"]["label"])}</text>
+<text x="{A[-1][0] - 10:.0f}" y="{A[-1][1] + (56 if A[-1][1] > B[-1][1] else -28):.0f}" font-size="34" text-anchor="end" class="c">{esc(s["a"]["label"])}</text>
+<text x="{B[-1][0] - 10:.0f}" y="{B[-1][1] + (56 if B[-1][1] >= A[-1][1] else -28):.0f}" font-size="34" text-anchor="end">{esc(s["b"]["label"])}</text>
 <text x="{(x0 + x1) / 2 + 120:.0f}" y="{(A[-2][1] + B[-2][1]) / 2 + 12:.0f}" font-size="40" text-anchor="middle" font-weight="800">{esc(s.get("gap", ""))}</text>
 <text x="{x0}" y="{y0 + 48}" font-size="26" class="m">{esc(xl[0])}</text><text x="{x1}" y="{y0 + 48}" font-size="26" text-anchor="end" class="m">{esc(xl[1])}</text>
-<text x="{x0 - 20}" y="{y1 - 50}" font-size="26" class="m">{esc(s.get("y", ""))}</text></svg>"""
+<text x="{x0 - 20}" y="{y1 - 50}" font-size="26" class="m">{esc(s.get("y", ""))}</text>{"".join(f'<circle cx="{A[m["at"]][0]:.0f}" cy="{A[m["at"]][1]:.0f}" r="16" fill="{CYAN}" stroke="#fff" stroke-width="5"/><text x="{A[m["at"]][0]:.0f}" y="{A[m["at"]][1] + (64 if m.get("below", True) else -34):.0f}" font-size="30" text-anchor="middle" font-weight="800">{esc(m["label"])}</text>' for m in s.get("marks", []))}</svg>"""
 
 def shift(s):
     """s.bars: [{label, values:[...]}, {label, values:[...]}] (same length, sum ~100); s.segments: [labels]; dark to light from the bottom."""
@@ -116,7 +116,22 @@ def flow(s):
         out.append(f'<text x="{x}" y="{dy + 58}" font-size="30" text-anchor="middle">{esc(d["label"])}</text><text x="{x}" y="{dy + 98}" font-size="22" text-anchor="middle" class="m">{esc(d.get("sub", ""))}</text>')
     return f'<svg width="1200" height="1200" viewBox="0 0 1200 1200"><defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="{MUTED}"/></marker></defs>' + "".join(out) + "</svg>"
 
-KINDS = {"curves": curves, "shift": shift, "beforeafter": beforeafter, "flow": flow}
+def matrix(s):
+    """2x2: s.x = [left label, right label], s.y = [bottom label, top label]; s.quads = {tl, tr, bl, br: {label, sub}}; s.hot = the quadrant key drawn in cyan."""
+    out = []; x0, y0, size = 210, 320, 335; names = {"tl": (0, 0), "tr": (1, 0), "bl": (0, 1), "br": (1, 1)}
+    for k, (cx, cy) in names.items():
+        q = s["quads"].get(k, {}); x = x0 + cx * size; y = y0 + cy * size; hot = k == s.get("hot"); dead = k == s.get("dead")
+        fill = CYAN if hot else ("#f3f5f6" if dead else SOFT); col = "w" if hot else ""
+        out.append(f'<rect x="{x + 6}" y="{y + 6}" width="{size - 12}" height="{size - 12}" rx="24" fill="{fill}"/>')
+        parts = str(q.get("label", "")).split("\\n"); fs = 36 if max(len(t) for t in parts) < 14 else 29
+        out.append("".join(f'<text x="{x + size / 2}" y="{y + size / 2 - 10 + (j - (len(parts) - 1) / 2) * fs * 1.2:.0f}" font-size="{fs}" text-anchor="middle" font-weight="800" class="{col}">{esc(t)}</text>' for j, t in enumerate(parts)))
+        if q.get("sub"): out.append(f'<text x="{x + size / 2}" y="{y + size / 2 + 50 + (len(parts) - 1) * fs * 0.6:.0f}" font-size="21" text-anchor="middle" class="{"w" if hot else "m"}" style="font-family:Open Sans;font-weight:400">{esc(q["sub"])}</text>')
+    xl, yl = s.get("x", ["", ""]), s.get("y", ["", ""])
+    out.append(f'<text x="{x0 + size / 2}" y="{y0 + 2 * size + 50}" font-size="26" text-anchor="middle" class="m">{esc(xl[0])}</text><text x="{x0 + size * 1.5}" y="{y0 + 2 * size + 50}" font-size="26" text-anchor="middle" class="m">{esc(xl[1])}</text>')
+    out.append(f'<text transform="translate({x0 - 44},{y0 + size * 1.5}) rotate(-90)" font-size="26" text-anchor="middle" class="m">{esc(yl[0])}</text><text transform="translate({x0 - 44},{y0 + size / 2}) rotate(-90)" font-size="26" text-anchor="middle" class="m">{esc(yl[1])}</text>')
+    return '<svg width="1200" height="1200" viewBox="0 0 1200 1200">' + "".join(out) + "</svg>"
+
+KINDS = {"curves": curves, "shift": shift, "beforeafter": beforeafter, "flow": flow, "matrix": matrix}
 
 def render(spec, out_base, out_dir=None):
     out_dir = out_dir or DRAFTS; os.makedirs(out_dir, exist_ok=True)
