@@ -10,6 +10,7 @@ from common import CFG, LIB, read_csv, write_csv, resolve, log
 from llm import llm_json
 import photo_index as ph, rules_check, inventory as inv
 from draft import STYLE, render_graphic, style_rules, positioning, book_phrases
+from editorial import EDITORIAL_PROMPT, EDITORIAL_JSON
 
 PHOTO_WORDS = re.compile(r"foto|photo|bild|picture|image|anderes bild|other pic", re.I)
 GRAPHIC_WORDS = re.compile(r"grafik|graphic|karte|card|visual", re.I)
@@ -49,7 +50,8 @@ Current post:
 {text}
 {('Facts you may use for anything new (nothing else):' + chr(10) + inv.cv_text()[:9000]) if channel == 'personal' else ''}
 {'The post also carries a 1200x1200 graphic with eyebrow/title/lines/footer; return a new "graphic" object only if the note concerns the graphic.' if channel == 'company' else ''}
-Answer with one JSON object only: {{"text": "the full post incl. hashtags, newlines as \\n"{', "graphic": {...} (optional)' if channel == 'company' else ', "card": {"kicker": "2-3 words", "headline": "the one sentence for under the photo, max 70 characters"}, "signals": {"lead": "sentence showing him leading or deciding, verbatim", "ai": "sentence showing his AI practice or position, verbatim"}'}}}"""
+{EDITORIAL_PROMPT}
+Answer with one JSON object only: {{"text": "the full post incl. hashtags, newlines as \\n"{', "graphic": {...} (optional)' if channel == 'company' else ', "card": {"kicker": "2-3 words", "headline": "the one sentence for under the photo, max 70 characters"}, "signals": {"lead": "sentence showing him leading or deciding, verbatim", "ai": "sentence showing his AI practice or position, verbatim"}'}{EDITORIAL_JSON}}}"""
             d = llm_json("redraft", prompt); new = rules_check.fix_orthography(d.get("text", "").strip(), channel); v = rules_check.check(new, channel, d.get("signals"))
             if v: raise RuntimeError(f"rules: {v}")
             ver = len(meta.get("versions", [])) + 1; shutil.copy2(tp, f"{base}.v{ver}.txt")
@@ -60,6 +62,7 @@ Answer with one JSON object only: {{"text": "the full post incl. hashtags, newli
             if channel == "personal":
                 if d.get("card"): meta["card"] = d["card"]
                 if d.get("signals"): meta["signals"] = d["signals"]
+                if d.get("editorial"): meta["editorial"] = d["editorial"]
                 if CFG.get("personal_card", {}).get("style", "off") != "off" and meta.get("card") and meta.get("photo"):
                     import personal_card
                     png = personal_card.render(os.path.join(LIB, "photos", "square", meta["photo"] + "_sq.png"), meta["card"], os.path.basename(base))

@@ -1,9 +1,16 @@
 # Positioning of Anton's personal posts (read by draft.py and redraft.py; edit freely, one idea per line)
 
-Ziel seit 30.10.2026: Zwei Leser. Erstens Gründerinnen und Gründer sowie Geschäftsführer ohne Technik-Hintergrund (DACH, Schweiz
-bevorzugt), die Software bauen lassen oder gekauft haben und jemanden brauchen, der die Technik verantwortet: Interim-CTO,
-technischer Partner, Product-Owner auf Zeit. Zweitens Entscheider, die eine Leitung für KI oder Engineering besetzen (AI Director,
-Head of Engineering). Beide sollen nach einem Post denken: "Mit dem will ich reden." Nicht: "Der sucht etwas."
+Leser, Käufer, Auslöser (31.10.2026; Arbeitshypothese, kein Befund):
+- Leser der Posts: Ingenieurinnen, Architekten, CTOs, technische Gründer. Das ist, wer heute folgt und kommentiert. Für sie wird geschrieben;
+  Rolle und Situation des Lesers stehen je Post in den Redaktionsnotizen (reader, insight, discussion_reason).
+- Käufer: Inhaber und Gründer, die Software bauen lassen oder gekauft haben, mit oder ohne eigenes Team, und jemanden brauchen, der die
+  Technik verantwortet (Interim-CTO, technischer Partner, Product-Owner auf Zeit); dazu Entscheider, die eine Leitung für KI oder Engineering
+  besetzen (AI Director, Head of Engineering). Bisher kam jeder Käufer über Empfehlung von Leuten wie den Lesern, nie über einen Post.
+- Auslöser für eine Empfehlung: ein KI-Prototyp, der seinen Bauer überfordert hat; Software-Abläufe, die niemand integriert und betreibt.
+- Der Satz hinter allem, nie im Post: AlpiType macht aus KI-Experimenten und zerstückelten Software-Abläufen verlässliche, integrierte
+  Systeme und trägt Architektur und Umsetzung, mit oder ohne internes Entwicklungsteam beim Kunden.
+Leser und Käufer sollen nach einem Post denken: "Mit dem will ich reden." Nicht: "Der sucht etwas." Keine Lesergruppe wird im Post
+angesprochen oder genannt.
 
 Was hängen bleiben soll, ohne dass es gesagt wird:
 1. "Er denkt in Produkt und Geld, nicht in Code": was eine Software verdient, wer dafür zahlt, was weggelassen wird, was nach dem

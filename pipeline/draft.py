@@ -11,6 +11,7 @@ from datetime import date, datetime, timedelta
 from common import CFG, LIB, ROOT, CAMP, read_csv, write_csv, resolve, log
 from llm import llm_json, MODELS
 import photo_index as ph, inventory as inv, rules_check
+from editorial import EDITORIAL_PROMPT, EDITORIAL_JSON
 
 DRAFTS = os.path.join(LIB, "drafts"); os.makedirs(DRAFTS, exist_ok=True)
 WD = {"Mon": 0, "Tue": 1, "Wed": 2, "Thu": 3, "Fri": 4, "Sat": 5, "Sun": 6}
@@ -262,7 +263,9 @@ Three of Anton's recent posts on this channel, for voice and length only (do not
 Facts you may use (nothing else):
 {facts[:9000]}
 
-Answer with one JSON object only: {{"text": "the full post incl. hashtags, newlines as \\n"{', "graphic": {"eyebrow": "", "title": "", "lines": [""], "footer": ""}' if channel == 'company' else (', "graphic": {"eyebrow": "", "title": "", "lines": [""], "footer": ""}' if graphic_post else ', "card": {"kicker": "2-3 words, the field (e.g. Legacy C++)", "headline": "the one sentence of the post that should stand under the photo, max 70 characters"}') + ', "signals": {"lead": "the sentence of the post that shows him leading or deciding, copied verbatim", "ai": "the sentence that shows his own AI practice or position, copied verbatim"}'}}}"""
+{EDITORIAL_PROMPT}
+
+Answer with one JSON object only: {{"text": "the full post incl. hashtags, newlines as \\n"{', "graphic": {"eyebrow": "", "title": "", "lines": [""], "footer": ""}' if channel == 'company' else (', "graphic": {"eyebrow": "", "title": "", "lines": [""], "footer": ""}' if graphic_post else ', "card": {"kicker": "2-3 words, the field (e.g. Legacy C++)", "headline": "the one sentence of the post that should stand under the photo, max 70 characters"}') + ', "signals": {"lead": "the sentence of the post that shows him leading or deciding, copied verbatim", "ai": "the sentence that shows his own AI practice or position, copied verbatim"}'}{EDITORIAL_JSON}}}"""
     d = llm_json("draft", prompt); text = rules_check.fix_orthography(d.get("text", "").strip(), channel)
     v = rules_check.check(text, channel, d.get("signals"))
     if v:
@@ -288,7 +291,7 @@ Answer with one JSON object only: {{"text": "the full post incl. hashtags, newli
         png = render_graphic(d.get("graphic", {}), base, brand="personal" if channel == "personal" else "company")
         asset = f"library/drafts/{base}.png (1200x1200 graphic; source library/drafts/{base}.html)" if png else ""
     meta = {"id": cid, "channel": channel, "pillar": pillar, "topic": topic["id"] if topic else "", "memo": memo[0]["id"] if memo else "", "photo": photo["id"] if photo else "",
-            "neighbour_shoots": nb, "model": MODELS["draft"], "created": datetime.now().isoformat(timespec="seconds"), "versions": [], "graphic": d.get("graphic"), "card": d.get("card"), "signals": d.get("signals")}
+            "neighbour_shoots": nb, "model": MODELS["draft"], "created": datetime.now().isoformat(timespec="seconds"), "versions": [], "graphic": d.get("graphic"), "card": d.get("card"), "signals": d.get("signals"), "editorial": d.get("editorial")}
     json.dump(meta, open(os.path.join(DRAFTS, base + ".json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     row = {"id": str(max(int(r["id"]) for r in plan if r["id"].isdigit()) + 1), "campaign": "linkedin-anton" if channel == "personal" else "linkedin-alpitype",
            "channel": CHAN[channel], "slot": slug, "asset": asset, "format": "foto-post" if photo else "grafik-post", "language": SLOTS[channel]["lang"],

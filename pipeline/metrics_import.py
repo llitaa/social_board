@@ -61,9 +61,45 @@ def scan_downloads():
         except Exception as e: log(f"Downloads: {f} not readable: {str(e)[:80]}")
     json.dump(seen, open(SEEN, "w"))
 
+def channel_of(l): return "company" if "company" in (l.get("channel") or "") else "personal"
+
+def channel_hint(fname, sheet):
+    """Which profile an export belongs to, from the file or sheet name. Empty when unknown: then only unambiguous matches count."""
+    s = norm(fname + " " + sheet)
+    if any(k in s for k in ("company", "unternehmen", "organization", "organisation", "page", "alpitype")): return "company"
+    if any(k in s for k in ("anton", "member", "personal", "creator", "lytvynenko")): return "personal"
+    return ""
+
+def pick(plog, d, title, link, hint=""):
+    """The posts-log row for one export row, or (None, reason). Order: link, title, exact date, date +/- 1 day; same channel when the
+    channel is known; a level with several candidates is ambiguous and is reported, never guessed (31.10.2026, F4)."""
+    pool = [l for l in plog if not hint or channel_of(l) == hint]
+    lk = (link or "").strip().rstrip("/")
+    levels = []
+    if lk: levels.append(("link", [l for l in pool if (l.get("link") or "").strip().rstrip("/") == lk]))
+    if title: levels.append(("title", [l for l in pool if norm(l.get("hook", ""))[:30] == title[:30]]))
+    if d:
+        levels.append(("date", [l for l in pool if parse_date(l["date"]) == d]))
+        levels.append(("date+-1", [l for l in pool if parse_date(l["date"]) and abs((parse_date(l["date"]) - d).days) <= 1]))
+    for name, c in levels:
+        if len(c) == 1: return c[0], name
+        if len(c) > 1:
+            if title:
+                c2 = [l for l in c if norm(l.get("hook", ""))[:15] == title[:15]]
+                if len(c2) == 1: return c2[0], name + "+hook"
+            if not hint:   # several posts around that date: a channel would decide, but we do not know it
+                return None, f"ambiguous ({name}): " + ", ".join(f"{l['post_id']}/{channel_of(l)}" for l in c) + "; name the file ...-company or ...-personal"
+            return None, f"ambiguous ({name}): " + ", ".join(l["post_id"] for l in c)
+    return None, "no post with that link, title or date"
+
+UNMATCHED = os.path.join(LIB, "metrics", "unmatched.csv")
+
 def main():
     os.makedirs(INBOX, exist_ok=True); os.makedirs(DONE, exist_ok=True); scan_downloads()
     plog, lf = read_csv(CFG["posts_log"]); changed = 0
+    for k in ("reposts", "numbers_at"):
+        if k not in lf: lf.append(k)
+    unmatched = []
     for f in sorted(os.listdir(INBOX)):
         p = os.path.join(INBOX, f)
         if not os.path.isfile(p) or f.startswith("."): continue
@@ -71,20 +107,24 @@ def main():
         for sheet, rows in tables(p):
             hi, m = header_map(rows)
             if hi is None or "impressions" not in m: continue
+            hint = channel_hint(f, sheet)
             for row in rows[hi + 1:]:
                 if len(row) <= m["impressions"] or not num(row[m["impressions"]]): continue
                 d = parse_date(row[m["date"]]) if "date" in m and m["date"] < len(row) else None
                 title = norm(row[m["title"]])[:30] if "title" in m and m["title"] < len(row) else ""
                 link = row[m["link"]] if "link" in m and m["link"] < len(row) else ""
-                for l in plog:
-                    ld = parse_date(l["date"]); near = d and ld and abs((d - ld).days) <= 1
-                    same = title and norm(l["hook"])[:30] == title or (link and l.get("link") and link.strip() == l["link"].strip())
-                    if same or (near and title and norm(l["hook"])[:15] == title[:15]):
-                        for k in ("impressions", "reactions", "comments", "reposts"):
-                            if k in m and m[k] < len(row) and num(row[m[k]]) and k in lf: l[k] = num(row[m[k]])
-                        if link and not l.get("link"): l["link"] = link.strip()
-                        l["note"] = f"metrics {datetime.now():%Y-%m-%d} from {f}. " + l.get("note", ""); hits += 1; changed += 1; break
-        log(f"{f}: {hits} rows matched"); shutil.move(p, os.path.join(DONE, f))
+                l, how = pick(plog, d, title, link, hint)
+                if not l:
+                    unmatched.append({"file": f, "sheet": sheet, "date": d.isoformat() if d else "", "title": title, "link": link, "impressions": num(row[m["impressions"]]), "reason": how}); continue
+                for k in ("impressions", "reactions", "comments", "reposts"):
+                    if k in m and m[k] < len(row) and num(row[m[k]]): l[k] = num(row[m[k]])   # empty stays empty, never zero-filled
+                if link and not (l.get("link") or "").startswith("http"): l["link"] = link.strip()
+                l["numbers_at"] = datetime.now().strftime("%Y-%m-%d")
+                l["note"] = f"metrics {datetime.now():%Y-%m-%d} from {f} ({how}). " + (l.get("note") or ""); hits += 1; changed += 1
+        log(f"{f}: {hits} rows matched, {sum(1 for u in unmatched if u['file'] == f)} unmatched"); shutil.move(p, os.path.join(DONE, f))
+    if unmatched:
+        old, uf = read_csv(UNMATCHED) if os.path.isfile(UNMATCHED) else ([], [])
+        write_csv(UNMATCHED, old + unmatched, uf or list(unmatched[0].keys())); log(f"{len(unmatched)} export rows not matched -> {UNMATCHED}")
     if changed: write_csv(CFG["posts_log"], plog, lf); log("posts-log.csv updated")
 
 if __name__ == "__main__": main()

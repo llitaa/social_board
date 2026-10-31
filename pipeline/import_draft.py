@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Put a post Anton wrote or approved outside the pipeline (e.g. library/drafts/examples/ex-money.json) on the board as a draft.
-No model call. The JSON holds text, graphic (eyebrow, title, lines, footer), pillar, optional topic id and signals.
+No model call. The JSON holds text, graphic (eyebrow, title, lines, footer), pillar, optional topic id, signals and editorial (reader, insight, discussion_reason).
   python3 pipeline/import_draft.py library/drafts/examples/ex-money.json                 -> next free personal slot
   python3 pipeline/import_draft.py library/drafts/examples/ex-money.json --slot "2026-11-02 07:30"
 A --slot that already holds an undecided draft moves that draft to the next free personal slot after the last planned one."""
@@ -36,7 +36,7 @@ def main():
     open(os.path.join(draft.DRAFTS, base + ".txt"), "w", encoding="utf-8").write(text + "\n")
     png = draft.render_graphic(e["graphic"], base, brand="personal")
     meta = {"id": cid, "channel": "personal", "pillar": e["pillar"], "topic": e.get("topic", ""), "memo": "", "photo": "", "neighbour_shoots": [], "model": "anton",
-            "created": datetime.now().isoformat(timespec="seconds"), "versions": [], "graphic": e["graphic"], "card": None, "signals": e.get("signals")}
+            "created": datetime.now().isoformat(timespec="seconds"), "versions": [], "graphic": e["graphic"], "card": None, "signals": e.get("signals"), "editorial": e.get("editorial")}
     json.dump(meta, open(os.path.join(draft.DRAFTS, base + ".json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     plan.append({"id": str(max(int(r["id"]) for r in plan if r["id"].isdigit()) + 1), "campaign": "linkedin-anton", "channel": "linkedin", "slot": slug,
                  "asset": f"library/drafts/{base}.png (1200x1200 graphic; source library/drafts/{base}.html)" if png else "", "format": "grafik-post", "language": "de",

@@ -99,7 +99,8 @@ def main():
                       "pillar": pm.group(1) if pm else PILLAR.get(r["format"], r["format"]), "text": text, "image": image, "status": st, "plan_row": r["id"],
                       "note": board_note(r.get("notes", "")), "updated": r.get("notes", "").startswith("[redraft ") and "applied" in r.get("notes", "")[:40],
                       "failed": r.get("notes", "").startswith("[redraft failed"), "versions": len(meta.get("versions", [])),
-                      "photo": meta.get("photo", ""), "photo_scene": meta.get("photo", "") and next((p.get("scene", "") for p in photos if p["id"] == meta.get("photo")), "")})
+                      "photo": meta.get("photo", ""), "photo_scene": meta.get("photo", "") and next((p.get("scene", "") for p in photos if p["id"] == meta.get("photo")), ""),
+                      "editorial": meta.get("editorial") or {}})
     upcoming.sort(key=lambda u: u["when"])   # only slots that have a draft; empty slots are filled by draft.py, never listed
     # published: posts-log rows that really went out (plan says posted, or the log note says so, or numbers exist)
     plog, _ = read_csv(CFG["posts_log"]); posted_ids = {card_id(r) for r in rows if r["status"] == "posted"}
@@ -132,8 +133,11 @@ def main():
         u = m.get("used_in", ""); topic = u if u.startswith("t") else ""; post = topic_post.get(u, "") if topic else (u if u.startswith("li-") else "")
         mv.append({"id": m["id"], "recorded": m["recorded"], "words": m["words"], "status": m["status"], "topic": topic, "post": post,
                    "when": when_of.get(post, ""), "post_status": status_of.get(post, ""), "note": m.get("note", "")})
+    # qualified business conversations (F5): ~/dev/campaign/inbound-log.csv, written by Anton in the weekly review; the board shows the last five, read-only
+    ib_path = os.path.expanduser(CFG.get("inbound_log", "~/dev/campaign/inbound-log.csv"))
+    inbound = read_csv(ib_path)[0][-5:][::-1] if os.path.isfile(ib_path) else []
     jdump(os.path.join(BOARD_LOCAL, "pipeline.json"), {"upcoming": upcoming, "published": published[:12], "featured": featured, "metrics_missing": missing, "material": material,
-          "memos": mv, "generated": now.isoformat(timespec="seconds")})
+          "memos": mv, "inbound": inbound, "generated": now.isoformat(timespec="seconds")})
     log(f"{len(cards)} cards: " + ", ".join(f"{c['id']}@{c['slot'][:16]}[{c['status']}]" for c in cards) + f"; {len(upcoming)} upcoming, {len(published)} published; images {total // 1024} KB, pruned {pruned}")
 
 if __name__ == "__main__": main()

@@ -14,7 +14,10 @@ def _in(text, sent):
     return bool(s) and len(s) > 12 and s in re.sub(r"\W+", " ", text.replace("ß", "ss")).lower()
 
 BANNED_ALL = [r"richtet sich an", r"für alle, die", r"for everyone who", r"#Freelance", r"\bInfineon\b", r"\bLeica\b", r"\bSiemens\b", r"\bReiser\b",
-              r"\bClaude\b", r"\bChatGPT\b", r"KI-generiert", r"AI-generated", r"\bMBit\b"]
+              r"\bClaude\b", r"\bChatGPT\b", r"KI-generiert", r"AI-generated", r"\bMBit\b",
+              # clients and tools of the automation cluster (F3, 31.10.2026): never in a post, not even as a hint
+              r"\bZAMM\b", r"Z\.A\.M\.M", r"\bZimmermann\b", r"\bBogner\b", r"\bFixmer\b", r"\bPromeda\b", r"\bHundt\b", r"\bKurzke\b", r"\bBlauth\b", r"\bPonholzer\b",
+              r"\bDebuxx\b", r"\bhaussoft\b", r"\bfacilioo\b", r"\bonOffice\b", r"Visionäre GmbH", r"Immobilienvisionäre", r"Versicherungsvisionäre"]
 BANNED_PERSONAL = [r"AlpiType", r"alpitype\.", r"\bFreelanc", r"freiberuflich", r"Festanstellung", r"Jobsuche"]
 
 def check(text, channel, signals=None):
