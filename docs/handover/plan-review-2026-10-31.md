@@ -2,6 +2,8 @@ title: LinkedIn-System: Verbesserungsplan, Review
 subtitle: Plan des zweiten Agenten vom 31.10.2026, geprüft gegen das Repository, mit Ergänzungen und offenen Entscheidungen
 footer: AlpiType · Intern · Review Verbesserungsplan · 31.10.2026
 
+<style>table{page-break-inside:auto} tr{page-break-inside:avoid}</style>
+
 ## 1. Verdict
 
 The plan is right in its core and I would implement it: keep the memo → board → publish chain, no lead funnel, no new architecture, sales follow-ups as a separate process. Four things need correcting before it becomes a work order: the cadence it assumes is wrong, the metadata it proposes half exists already, it drops the series decided on 30.10. without saying so, and it treats the missing metrics as a known unknown instead of the first task. Implementation of the "must now" part is about half a day and costs no model tokens.
