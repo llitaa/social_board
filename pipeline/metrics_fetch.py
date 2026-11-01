@@ -17,7 +17,10 @@ METRICS = {"impressions": "IMPRESSION", "reactions": "REACTION", "comments": "CO
 def creds():
     try: c = json.load(open(ORG_FILE))
     except (FileNotFoundError, json.JSONDecodeError): return None
-    return c if c.get("access_token") and "r_member_postAnalytics" in str(c.get("scopes", c.get("scope", ""))) else None
+    sc = str(c.get("scopes", c.get("scope", "")))
+    if not c.get("access_token") or not ("r_member_postAnalytics" in sc or "r_organization_social" in sc): return None
+    c["member_ok"] = "r_member_postAnalytics" in sc; c["org_ok"] = "r_organization_social" in sc and bool(c.get("org_urn"))   # 01.11.: company token has only the org scopes
+    return c
 
 def get(url, token):
     req = urllib.request.Request(url, headers={"Authorization": "Bearer " + token, "LinkedIn-Version": VERSION, "X-Restli-Protocol-Version": "2.0.0"})
@@ -46,16 +49,16 @@ def org_posts(urns, org_urn, token):
 
 def main():
     c = creds()
-    if not c: log("metrics: no analytics scope yet (Community Management API pending); export by hand -> library/metrics/inbox"); return
+    if not c: log("metrics: no analytics scope yet; export by hand -> library/metrics/inbox"); return
     plog, lf = read_csv(CFG["posts_log"]); now = datetime.now(); changed = 0
     due = [r for r in plog if urn_of(r.get("link")) and r["date"] >= (now - timedelta(days=90)).strftime("%Y-%m-%d")
            and not (r.get("note", "").startswith("metrics api ") and now - datetime.strptime(r["note"][12:28], "%Y-%m-%d %H:%M") < timedelta(hours=6))]
     org = [r for r in due if "company" in r["channel"]]; me = [r for r in due if "company" not in r["channel"]]
     try:
-        for r in me:
+        for r in (me if c.get("member_ok") else []):
             vals = member_post(urn_of(r["link"]), c["access_token"]); r.update({k: v for k, v in vals.items() if k in lf and v}); changed += 1
             r["note"] = re.sub(r"^metrics api \S+ \S+\. ", "", r.get("note", "")); r["note"] = f"metrics api {now:%Y-%m-%d %H:%M}. " + r["note"]
-        if org and c.get("org_urn"):
+        if org and c.get("org_ok"):
             vals = org_posts([urn_of(r["link"]) for r in org], c["org_urn"], c["access_token"])
             for r in org:
                 v = vals.get(urn_of(r["link"]))
