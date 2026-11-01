@@ -22,5 +22,12 @@
  },
  "photo_history": [
   "1020193652c22e"
- ]
+ ],
+ "editorial": {
+  "reader": "Entwicklungsleiter in regulierter Umgebung",
+  "insight": "Billige Fehler im Prototyp heissen nicht billige Fehler im Betrieb; die Grenze wird bewusst gezogen",
+  "discussion_reason": "Wer Prototyping-Geschwindigkeit feiert, widerspricht der Grenze",
+  "situation": "2",
+  "by": "claude 2026-11-01, text unchanged"
+ }
 }

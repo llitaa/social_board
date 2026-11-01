@@ -31,5 +31,12 @@
  "signals": {
   "lead": "Dafür habe ich Interprozess-Tests eingeführt.",
   "ai": "Auch bei Coding-Agents, die ich täglich in Legacy-Code einsetze, zeigen erst Messung und Tests, ob ein Vorschlag besser ist oder nur anders."
+ },
+ "editorial": {
+  "reader": "Technischer Geschäftsführer, der zwischen Optimieren, Kapseln und Neuschreiben entscheiden muss",
+  "insight": "Die Entscheidung hängt an drei Fragen zu Messung und Tests, nicht an der Lust auf Neues",
+  "discussion_reason": "Kapseln als Mittelweg wird oft überschätzt; manche werden widersprechen",
+  "situation": "2",
+  "by": "claude 2026-11-01, text unchanged"
  }
 }

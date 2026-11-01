@@ -30,5 +30,12 @@
  "signals": {
   "lead": "Als technischer Koordinator eines Teams von sechs Entwicklern habe ich gelernt: Eine Aufgabe in einem Satz zu übergeben reicht nicht.",
   "ai": "Ich arbeite täglich mit Coding-Agents in einer grossen Legacy-C++-Codebasis."
+ },
+ "editorial": {
+  "reader": "Teamlead, der Prompt-Sammlungen an sein Team verteilt",
+  "insight": "Ein Agent braucht dieselbe Einarbeitung wie ein neuer Kollege: Kontext, Grenzen, Abnahme",
+  "discussion_reason": "Prompt-Bibliotheken haben Fürsprecher; der Vergleich mit Onboarding provoziert",
+  "situation": "2",
+  "by": "claude 2026-11-01, text unchanged"
  }
 }

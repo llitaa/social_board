@@ -19,5 +19,12 @@
  "signals": {
   "lead": "Im Defence-Projekt habe ich sechs Entwickler technisch koordiniert: Aufgaben schneiden, übergeben, in Reviews prüfen, gemeinsam entscheiden, wann etwas fertig ist.",
   "ai": "Mit Coding-Agents arbeite ich täglich in einer grossen Legacy-C++-Codebasis, und es ist dasselbe Muster."
+ },
+ "editorial": {
+  "reader": "Hiring Manager, der einen Senior Agentic Architect sucht",
+  "insight": "Senior-Erfahrung für Agents kommt aus einem anderen Fach: Arbeiten mit Ergebnissen, die es noch nicht gibt",
+  "discussion_reason": "Ob Erfahrung übertragbar ist, darüber lässt sich streiten",
+  "situation": "2",
+  "by": "claude 2026-11-01, text unchanged"
  }
 }

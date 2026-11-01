@@ -22,5 +22,12 @@
  },
  "photo_history": [
   "1020193652c22e"
- ]
+ ],
+ "editorial": {
+  "reader": "Entwicklungsleiter mit einem Prototyp, der es nicht in die Produktion schafft",
+  "insight": "Entwicklung und Betrieb sollten sich nur in den Tokens unterscheiden; Weg-Abstrahieren ist die Ursache des Scheiterns",
+  "discussion_reason": "Ob ein Prototyp realistisch so gebaut werden kann, ist strittig",
+  "situation": "beide",
+  "by": "claude 2026-11-01, text unchanged"
+ }
 }

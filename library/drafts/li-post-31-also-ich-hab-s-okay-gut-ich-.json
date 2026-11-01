@@ -19,5 +19,12 @@
  "signals": {
   "lead": "Die Regeln dafür habe ich selbst festgelegt, bevor die erste Zeile generiert wurde: keine Kundennamen, keine Zahl, die nicht aus meinen eigenen Fakten stammt, kein Post ohne meine Freigabe.",
   "ai": "Die Maschine generiert schneller, als der Mensch prüfen kann."
+ },
+ "editorial": {
+  "reader": "Geschäftsführer, der sich fragt, wie viel er einem Agenten überlassen kann",
+  "insight": "Regeln vor der ersten generierten Zeile: keine Namen, keine Zahl ohne Quelle, keine Freigabe durch die Maschine",
+  "discussion_reason": "Ob so viel Kontrolle den Nutzen frisst, kann man bestreiten",
+  "situation": "1",
+  "by": "claude 2026-11-01, text unchanged"
  }
 }

@@ -22,5 +22,12 @@
  },
  "photo_history": [
   "1020193652c22e"
- ]
+ ],
+ "editorial": {
+  "reader": "Produktverantwortlicher, der ein KI-Modell im Produkt hat",
+  "insight": "Ein Modell kann sich unter gleichem Namen ändern; Pinning und eigener Regressionstest sind Pflicht wie im Maschinenbau",
+  "discussion_reason": "Pinning kostet Fortschritt; dagegen lässt sich argumentieren",
+  "situation": "2",
+  "by": "claude 2026-11-01, text unchanged"
+ }
 }

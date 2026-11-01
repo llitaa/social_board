@@ -26,5 +26,12 @@
  "signals": {
   "lead": "Dazu habe ich Tests über Prozessgrenzen hinweg eingeführt.",
   "ai": "Ihre Analysen sind ein guter Startpunkt, aber kein Befund: Ich prüfe jede gegen Messung und Tests."
+ },
+ "editorial": {
+  "reader": "Geschäftsführer oder Entwicklungsleiter, dem jemand gerade den Rewrite einer alten Codebasis vorschlägt",
+  "insight": "Langsam ist selten der ganze Code, sondern ein paar Pfade; messen und dort ansetzen schlägt Neuschreiben",
+  "discussion_reason": "Ob ein Rewrite wirklich nie die Antwort ist, darüber lässt sich streiten",
+  "situation": "2",
+  "by": "claude 2026-11-01, text unchanged"
  }
 }

@@ -23,5 +23,12 @@
  },
  "photo_history": [
   "img4373"
- ]
+ ],
+ "editorial": {
+  "reader": "Entwicklungsleiter, der KI im Team einführen soll",
+  "insight": "Die Einführung folgt dem Muster der Test-Welle: nicht Schulung, sondern eine Person mit Mandat und Beispiele im echten Code",
+  "discussion_reason": "Ob Schulungen wirklich nichts bringen, ist strittig",
+  "situation": "2",
+  "by": "claude 2026-11-01, text unchanged"
+ }
 }

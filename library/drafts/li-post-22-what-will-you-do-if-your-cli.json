@@ -23,5 +23,12 @@
  "photo_history": [
   "1020193652c22e",
   "img4515"
- ]
+ ],
+ "editorial": {
+  "reader": "Projektleiter, dessen Fachentscheider wochenlang nicht erreichbar ist",
+  "insight": "Ein Agent füllt offene Fachfragen mit plausiblen Annahmen; offene Fragen werden aufgeschrieben, nicht implementiert",
+  "discussion_reason": "Ob Stillstand besser ist als eine Annahme, darüber streiten Praktiker",
+  "situation": "beide",
+  "by": "claude 2026-11-01, text unchanged"
+ }
 }

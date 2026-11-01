@@ -19,5 +19,12 @@
  "signals": {
   "lead": "Als technischer Leiter eines Teams von sechs Entwicklern habe ich neue Software mit Legacy-Komponenten integriert.",
   "ai": "Jedes Ergebnis lese und prüfe ich, bevor es in den Build geht."
+ },
+ "editorial": {
+  "reader": "CTO, der ein grosses System per KI nachbauen lassen will",
+  "insight": "Fünf Jahre Entscheidungen in Tagen generiert hätte niemand prüfen können; der Prüfpunkt ist die Grenze",
+  "discussion_reason": "Manche halten den Prüfpunkt für überholt",
+  "situation": "2",
+  "by": "claude 2026-11-01, text unchanged"
  }
 }

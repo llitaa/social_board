@@ -19,5 +19,12 @@
  "signals": {
   "lead": "In der Medizintechnik habe ich ein automatisiertes Testframework mit Google Test und gmock eingeführt, mit dem auch Legacy-Komponenten testbar wurden.",
   "ai": "Ich arbeite täglich mit Coding-Agents in einer grossen Legacy-C++-Codebasis, und meine Bewegung geht in die Gegenrichtung: Ich muss nah genug an den Agent heran, um zu prüfen, ob er Schrott geschrieben hat."
+ },
+ "editorial": {
+  "reader": "Gründer oder Investor, der das nächste Agent-Produkt plant",
+  "insight": "Die Lücke zwischen Generieren und Prüfen ist das Feld für neue Firmen, nicht der nächste Agent",
+  "discussion_reason": "Wer Agents baut, sieht das anders",
+  "situation": "beide",
+  "by": "claude 2026-11-01, text unchanged"
  }
 }

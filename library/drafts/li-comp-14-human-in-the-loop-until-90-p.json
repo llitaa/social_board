@@ -21,5 +21,12 @@
   "footer": "Signed, not assumed"
  },
  "card": null,
- "signals": null
+ "signals": null,
+ "editorial": {
+  "reader": "Operations lead at a manufacturer running an automation pilot",
+  "insight": "A person stays in the loop until 90 percent reliability is shown, then someone signs; hand-over is a decision with a name",
+  "discussion_reason": "Some will argue 90 percent is arbitrary or too low",
+  "situation": "1",
+  "by": "claude 2026-11-01, text unchanged"
+ }
 }

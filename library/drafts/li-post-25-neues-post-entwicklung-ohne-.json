@@ -22,5 +22,12 @@
  },
  "photo_history": [
   "1020193652c22e"
- ]
+ ],
+ "editorial": {
+  "reader": "Geschäftsführer, der Software ohne Fachleute aus dem eigenen Haus bauen lässt",
+  "insight": "Technisch saubere Lösungen für das falsche Problem sind teurer als keine; Domänenwissen vor der ersten Zeile",
+  "discussion_reason": "Agents verschieben die Balance; wohin, darüber kann man streiten",
+  "situation": "1",
+  "by": "claude 2026-11-01, text unchanged"
+ }
 }

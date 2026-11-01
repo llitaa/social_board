@@ -22,5 +22,12 @@
  },
  "photo_history": [
   "1020193652c22e"
- ]
+ ],
+ "editorial": {
+  "reader": "Architekt, der spezifikationsgetrieben mit Agents arbeitet",
+  "insight": "Specs aus dem Agent sind horizontal geschnitten; Systemverständnis entsteht vertikal, vom Nutzer zum Datenfluss",
+  "discussion_reason": "Spec-driven-Befürworter werden widersprechen",
+  "situation": "2",
+  "by": "claude 2026-11-01, text unchanged"
+ }
 }

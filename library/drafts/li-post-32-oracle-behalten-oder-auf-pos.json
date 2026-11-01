@@ -20,5 +20,12 @@
  "signals": {
   "lead": "Meine Reihenfolge ist deshalb fest: erst messen, dann die Kommunikation bereinigen, dann über die Datenbank entscheiden.",
   "ai": "Ich nutze Agents deshalb zuerst für das Fleissige: alle Stellen finden, an denen der Code die Datenbank anspricht."
+ },
+ "editorial": {
+  "reader": "Geschäftsführer oder IT-Leiter vor der Entscheidung Oracle oder PostgreSQL",
+  "insight": "Die Laufzeit geht meist im Zugriffsmuster verloren, nicht im Produkt; wer migriert, nimmt die Muster mit",
+  "discussion_reason": "Lizenz- und Souveränitätsargumente wiegen für viele schwerer",
+  "situation": "beide",
+  "by": "claude 2026-11-01, text unchanged"
  }
 }
