@@ -20,3 +20,4 @@ Eine Zeile je Entscheidung. Quelle = wer sie getroffen hat und wo sie steht. Sta
 | 2026-11-01 | 30 Minuten kostenlos, darüber Betriebs-Check oder Analysephase mit Preis; kein Konzept ohne Auftrag | Robotik, Promeda, Ponholzer | strategy/05 §6 | vorgeschlagen |
 | 2026-11-01 | Kein P1-Projekt vor Januar 2027 zusagen; P3 nur mit zweitem Entwickler | Vertrag bis 31.12., Bogner, ZAMM | strategy/05 §6 | vorgeschlagen |
 | 2026-11-01 | Profil-Headline ohne „Freelance“ | Freelance-Wording seit 10/2026 in Posts verboten; Käufer und Arbeitgeber lesen das Profil | strategy/05 §6 | vorgeschlagen |
+| 2026-11-01 | Ein Leistungsmodell, drei Kundensituationen (ohne Entwickler, gebundenes Team, Gründer); LinkedIn zuerst auf zwei Problemsituationen; welche mehr Erstgespräche bringt, zeigen echte Reaktionen | Zusammenführung des zweiten Agenten, deckungsgleich mit 04 und 05 | strategy/05 v1.1 §3b, §7 | vorgeschlagen |
