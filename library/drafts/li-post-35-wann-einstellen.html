@@ -1,0 +1,59 @@
+<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>graphic</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;600&display=block" rel="stylesheet">
+<style>*{box-sizing:border-box;margin:0}html,body{background:#fff}
+body{font-family:"Montserrat","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;color:#0f3a50}
+.canvas{width:1200px;height:1200px;position:relative;overflow:hidden;background:#fff}
+.stripe{position:absolute;left:0;top:0;width:12px;height:100%;background:linear-gradient(180deg,#42F45D 0%,#01BC56 30%,#00BEE6 65%,#08E3FB 100%)}
+.who{position:absolute;right:72px;top:64px;text-align:right;font-family:"Open Sans",sans-serif;font-size:22px;color:#6b7f8c}
+.who b{display:block;font-weight:600;color:#0f3a50;font-size:25px}
+.eyebrow{position:absolute;left:96px;top:72px;font-family:"Open Sans",sans-serif;font-size:22px;letter-spacing:.22em;text-transform:uppercase;color:#20B8D0;font-weight:600}
+h1{position:absolute;left:96px;top:118px;width:900px;font-size:50px;line-height:1.12;font-weight:700;letter-spacing:-1px}
+svg{position:absolute;left:0;top:0}
+.note{position:absolute;left:96px;bottom:60px;right:72px;font-family:"Open Sans",sans-serif;font-size:22px;color:#6b7f8c;line-height:1.35}
+svg text{font-family:"Montserrat","Helvetica Neue",Arial,sans-serif;font-weight:600;fill:#0f3a50}
+svg .m{fill:#6b7f8c;font-family:"Open Sans",sans-serif;font-weight:400}
+svg .c{fill:#20B8D0} svg .w{fill:#fff}
+</style></head><body><div class="canvas"><div class="stripe"></div>
+
+<div class="eyebrow">Nach dem Go-live · 3</div><h1>Wann einstellen?<br>Beim dritten Mal.</h1>
+<svg width="1200" height="1200" viewBox="0 0 1200 1200">
+
+<line x1="150" y1="1040" x2="1110" y2="1040" stroke="#6b7f8c" stroke-width="3"/><line x1="150" y1="1040" x2="150" y2="410" stroke="#6b7f8c" stroke-width="3"/>
+<path d="M190,468 C211,500 274,604 316,657 C358,709 400,754 441,782 C483,810 525,812 567,822 C609,831 651,834 693,839 C735,844 777,848 819,850 C860,853 902,854 944,856 C986,858 1049,861 1070,862" fill="none" stroke="#0f3a50" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M190,839 C211,836 274,831 316,822 C358,812 400,798 441,782 C483,766 525,746 567,725 C609,704 651,679 693,657 C735,634 777,611 819,588 C860,565 902,540 944,520 C986,500 1049,477 1070,468" fill="none" stroke="#20B8D0" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="96" y="330" width="46" height="12" rx="6" fill="#20B8D0"/><text x="158" y="342" font-size="28" class="m">extern gelöst</text><rect x="419" y="330" width="46" height="12" rx="6" fill="#0f3a50"/><text x="481" y="342" font-size="28" class="m">eigene Stelle</text>
+
+<text x="150" y="1088" font-size="26" class="m">erstes Problem</text><text x="1110" y="1088" font-size="26" text-anchor="end" class="m">achtes Problem</text>
+<text x="178" y="406" font-size="26" class="m">Kosten je Vorfall</text><line x1="441" y1="782" x2="441" y2="856" stroke="#6b7f8c" stroke-width="2"/><text x="441" y="888" font-size="30" text-anchor="middle" font-weight="700">drittes Mal dasselbe</text></svg>
+<div class="note"></div></div><script>
+window.addEventListener('load',()=>{setTimeout(()=>{
+  const R=[];const els=[...document.querySelectorAll('svg text, h1, .eyebrow, .who, .note')].filter(e=>(e.textContent||'').trim());
+  const box=e=>{const b=e.getBoundingClientRect();return {l:b.left,t:b.top,r:b.right,b:b.bottom,s:(e.textContent||'').trim().slice(0,30)}};
+  const T=els.map(box);
+  const hit=(a,b,pad)=>a.l<b.r+pad&&b.l<a.r+pad&&a.t<b.b+pad&&b.t<a.b+pad;
+  const cnt=document.querySelectorAll('svg text').length;if(cnt>20)R.push('too many labels: '+cnt);
+  const stacked=(a,b)=>(Math.abs((a.l+a.r)/2-(b.l+b.r)/2)<3||Math.abs(a.l-b.l)<3)&&(Math.abs(a.b-b.t)<14||Math.abs(b.b-a.t)<14);
+  for(let i=0;i<T.length;i++)for(let j=i+1;j<T.length;j++)if(hit(T[i],T[j],4)&&!stacked(T[i],T[j]))R.push('text/text: "'+T[i].s+'" × "'+T[j].s+'"');
+  for(const t of T){if(t.l<60||t.r>1180||t.b>1180||t.t<40)R.push('margin: "'+t.s+'"')}
+  for(const e of els){const fs=parseFloat(getComputedStyle(e).fontSize);if(fs<26&&!e.classList.contains('eyebrow'))R.push('small text '+Math.round(fs)+'px: "'+(e.textContent||'').trim().slice(0,30)+'"')}
+  if(document.querySelector('svg circle, svg ellipse'))R.push('dots: circle markers present');
+  const F=[...document.querySelectorAll('svg rect, svg path[fill]:not([fill="none"])')].filter(e=>!e.closest('marker')).map(e=>e.getBoundingClientRect());
+  for(const t of T){const cx=(t.l+t.r)/2,cy=(t.t+t.b)/2;const host=F.find(f=>f.width>60&&f.height>60&&cx>f.left&&cx<f.right&&cy>f.top&&cy<f.bottom);
+    if(host&&(t.l<host.left+6||t.r>host.right-6))R.push('text wider than its box: "'+t.s+'"')}
+  const S=[...document.querySelectorAll('svg rect, svg path[fill]:not([fill="none"])')].filter(e=>!e.closest('marker')&&e.getBoundingClientRect().width>60&&e.getBoundingClientRect().height>60).map(e=>e.getBoundingClientRect());
+  for(let i=0;i<S.length;i++)for(let j=i+1;j<S.length;j++){const a=S[i],b=S[j];const inside=(a.left>=b.left&&a.right<=b.right&&a.top>=b.top&&a.bottom<=b.bottom)||(b.left>=a.left&&b.right<=a.right&&b.top>=a.top&&b.bottom<=a.bottom)||(Math.abs(a.left-b.left)<2&&Math.abs(a.width-b.width)<2);
+    if(!inside&&a.left<b.right+20&&b.left<a.right+20&&a.top<b.bottom+20&&b.top<a.bottom+20)R.push('shapes closer than 20px: '+Math.round(a.width)+'x'+Math.round(a.height)+' / '+Math.round(b.width)+'x'+Math.round(b.height))}
+  for(const p of document.querySelectorAll('svg path, svg line')){
+    const st=getComputedStyle(p);if(st.fill!=='none'&&st.fill!=='rgba(0, 0, 0, 0)'&&p.tagName==='path'&&!p.getAttribute('stroke'))continue;
+    if(p.getAttribute('fill')&&p.getAttribute('fill')!=='none'&&!p.getAttribute('stroke'))continue;
+    if(p.closest('marker'))continue;
+    let L=0;try{L=p.getTotalLength()}catch(e){continue}
+    const svg=p.ownerSVGElement.getBoundingClientRect();
+    for(let d=0;d<=L;d+=6){const q=p.getPointAtLength(d);const x=q.x+svg.left,y=q.y+svg.top;
+      const t=T.find(t=>x>t.l-2&&x<t.r+2&&y>t.t-2&&y<t.b+2);if(t){R.push('text/line: "'+t.s+'"');break}}
+  }
+  const words=els.map(e=>e.textContent.trim().split(/\s+/).length).reduce((a,b)=>a+b,0);
+  if(words>40)R.push('too much text: '+words+' words (max 40)');
+  const pre=document.createElement('pre');pre.id='__check';pre.textContent=JSON.stringify([...new Set(R)]);document.body.appendChild(pre);
+},300)});
+</script></body></html>

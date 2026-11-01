@@ -1,0 +1,22 @@
+{
+ "id": "li-post-36",
+ "channel": "personal",
+ "pillar": "transformation",
+ "topic": "",
+ "memo": "",
+ "photo": "",
+ "neighbour_shoots": [],
+ "model": "anton",
+ "created": "2026-11-01T13:08:04",
+ "versions": [],
+ "graphic": null,
+ "card": null,
+ "signals": null,
+ "editorial": {
+  "reader": "CTO oder Head of Software, der sein Team mit Agents arbeiten sieht und die Woche neu verteilen muss",
+  "insight": "Bauen ist zur kleinsten Phase geworden; Anforderungen, Architektur, Prüfen und Betrieb sind gewachsen",
+  "discussion_reason": "Wer Vibe Coding als Bedrohung sieht, widerspricht; wer die Prüfphase unterschätzt, auch",
+  "situation": "2"
+ },
+ "kind": "episode"
+}

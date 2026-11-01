@@ -20,8 +20,19 @@ BANNED_ALL = [r"richtet sich an", r"für alle, die", r"for everyone who", r"#Fre
               r"\bDebuxx\b", r"\bhaussoft\b", r"\bfacilioo\b", r"\bonOffice\b", r"Visionäre GmbH", r"Immobilienvisionäre", r"Versicherungsvisionäre"]
 BANNED_PERSONAL = [r"AlpiType", r"alpitype\.", r"\bFreelanc", r"freiberuflich", r"Festanstellung", r"Jobsuche"]
 
-def check(text, channel, signals=None):
+def check(text, channel, signals=None, kind=None):
+    """kind="episode": a diagram post of the series "Nach dem Go-live" (01.11.2026): the picture is the post, the caption is short.
+    Rules then: series line present, 120 to 700 characters, question at the end, banned words; no signal check, no 500-character minimum."""
     v = [p for p in BANNED_ALL if re.search(p, text, re.I)]
+    if kind == "episode":
+        if channel == "personal": v += [p for p in BANNED_PERSONAL if re.search(p, text, re.I)]
+        if not re.search(r"Nach dem Go-live\s*[·•:-]\s*Folge\s*\d+", text): v.append("no series line (Nach dem Go-live · Folge N)")
+        body = re.sub(r"(\s*#\w+)+\s*$", "", text.strip())
+        if "?" not in body[-220:]: v.append("no question at the end")
+        n = len(body)
+        if n < 120: v.append(f"too short ({n} chars)")
+        if n > 700: v.append(f"too long for an episode ({n} chars)")
+        return v
     if channel == "personal": v += [p for p in BANNED_PERSONAL if re.search(p, text, re.I)]
     if channel == "personal" and signals is not None:
         if not _in(text, (signals or {}).get("lead")): v.append("no leadership signal (a sentence where he leads, decides, coordinates or sets up a practice; quote it verbatim in signals.lead)")

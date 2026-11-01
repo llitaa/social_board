@@ -1,0 +1,22 @@
+{
+ "id": "li-post-35",
+ "channel": "personal",
+ "pillar": "transformation",
+ "topic": "",
+ "memo": "",
+ "photo": "",
+ "neighbour_shoots": [],
+ "model": "anton",
+ "created": "2026-11-01T13:08:03",
+ "versions": [],
+ "graphic": null,
+ "card": null,
+ "signals": null,
+ "editorial": {
+  "reader": "Entwicklungsleiter oder Geschäftsführer, der dasselbe Problem gerade zum dritten Mal extern vergibt",
+  "insight": "Die Stelle entsteht nicht aus Budget, sondern aus Wiederholung; der dritte Kreis ist das Signal",
+  "discussion_reason": "Man kann einwenden: Externe sind flexibler, eine Stelle bindet; die Kurve sagt, ab wann das nicht mehr stimmt",
+  "situation": "beide"
+ },
+ "kind": "episode"
+}

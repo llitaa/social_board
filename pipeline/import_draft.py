@@ -19,7 +19,8 @@ def next_free_after(plan, after):
 def main():
     if len(sys.argv) < 2: print(__doc__); return
     e = json.load(open(sys.argv[1], encoding="utf-8")); plan, fields = read_csv(CFG["content_plan"])
-    text = rules_check.fix_orthography(e["text"].strip(), "personal"); v = rules_check.check(text, "personal", e.get("signals"))
+    kind = "episode" if e.get("png") else None   # series episode: rendered diagram from pipeline/graphics.py, short caption
+    text = rules_check.fix_orthography(e["text"].strip(), "personal"); v = rules_check.check(text, "personal", e.get("signals"), kind=kind)
     if v: print("rules:", v); return
     if "--slot" in sys.argv:
         dt = datetime.strptime(sys.argv[sys.argv.index("--slot") + 1], "%Y-%m-%d %H:%M")
@@ -32,16 +33,21 @@ def main():
         slots = draft.open_slots(plan, date.today()); per = [s for s in slots if s[1] == "personal"]
         dt = per[0][0] if per else next_free_after(plan, max(date.fromisoformat(x["planned"][:10]) for x in plan if x["channel"] == "linkedin" and len(x.get("planned") or "") >= 10 and x["status"] not in ("dropped", "skipped")))
     ids = draft.next_ids(plan); num = ids["post"] + 1; cid = f"li-post-{num:02d}"
-    slug = re.sub(r"[^a-z0-9]+", "-", e["graphic"].get("title", e["pillar"]).lower()).strip("-")[:28]; base = f"{cid}-{slug}"
+    slug = re.sub(r"[^a-z0-9]+", "-", (e.get("graphic") or {}).get("title", e.get("slug", e["pillar"])).lower()).strip("-")[:28]; base = f"{cid}-{slug}"
     open(os.path.join(draft.DRAFTS, base + ".txt"), "w", encoding="utf-8").write(text + "\n")
-    png = draft.render_graphic(e["graphic"], base, brand="personal")
+    if kind == "episode":
+        import shutil; src = os.path.expanduser(e["png"]); dst = os.path.join(draft.DRAFTS, base + ".png"); shutil.copy2(src, dst); png = dst
+        htm = os.path.splitext(src)[0] + ".html"
+        if os.path.isfile(htm): shutil.copy2(htm, os.path.join(draft.DRAFTS, base + ".html"))
+    else:
+        png = draft.render_graphic(e["graphic"], base, brand="personal")
     meta = {"id": cid, "channel": "personal", "pillar": e["pillar"], "topic": e.get("topic", ""), "memo": "", "photo": "", "neighbour_shoots": [], "model": "anton",
-            "created": datetime.now().isoformat(timespec="seconds"), "versions": [], "graphic": e["graphic"], "card": None, "signals": e.get("signals"), "editorial": e.get("editorial")}
+            "created": datetime.now().isoformat(timespec="seconds"), "versions": [], "graphic": e.get("graphic"), "card": None, "signals": e.get("signals"), "editorial": e.get("editorial"), "kind": kind or ""}
     json.dump(meta, open(os.path.join(draft.DRAFTS, base + ".json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     plan.append({"id": str(max(int(r["id"]) for r in plan if r["id"].isdigit()) + 1), "campaign": "linkedin-anton", "channel": "linkedin", "slot": slug,
                  "asset": f"library/drafts/{base}.png (1200x1200 graphic; source library/drafts/{base}.html)" if png else "", "format": "grafik-post", "language": "de",
                  "caption_ref": f"library/drafts/{base}.txt", "planned": dt.strftime("%Y-%m-%d %H:%M"), "status": "draft",
-                 "notes": f"[imported {date.today()} pillar={e['pillar']} topic={e.get('topic', '-')} photo=-] {e['graphic'].get('title', '')}"})
+                 "notes": f"[imported {date.today()} pillar={e['pillar']} topic={e.get('topic', '-')} photo=-{' kind=episode' if kind else ''}] {(e.get('graphic') or {}).get('title', e.get('slug', ''))}"})
     write_csv(CFG["content_plan"], plan, fields)
     if e.get("topic"): inv.set_status(e["topic"], "drafted", cid)
     print(f"{cid} on the board at {dt:%a %d.%m. %H:%M} (next chain run pushes it; or: zsh pipeline/run.sh fast)")

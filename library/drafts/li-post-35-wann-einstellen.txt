@@ -1,0 +1,7 @@
+Nach dem Go-live · Folge 1
+
+Beim Aufbau eines Luftfahrt-Backends habe ich dreimal dasselbe Problem extern lösen lassen, jedes Mal neu erklärt. Beim dritten Mal war es kein Problem mehr, sondern eine Stelle. Seitdem zähle ich nicht Budget, sondern Wiederholungen.
+
+Welches Problem erklären Sie gerade zum dritten Mal?
+
+#Führung #Softwareentwicklung #Hiring
