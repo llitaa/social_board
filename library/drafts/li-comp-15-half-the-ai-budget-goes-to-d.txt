@@ -1,0 +1,21 @@
+Of every industrial AI budget we plan, 50 to 60 percent goes to data. Not to the model.
+
+In production, the model is rarely the part that fails. The data underneath it does: a sensor recalibrated without a note, a machine variant that logs a field differently, timestamps in local time on one line and UTC on the next.
+
+So the larger share of the budget goes to the unglamorous work:
+
+1. Finding out what the machine actually records, not what the spec says it records.
+
+2. Reading it where it already lives, inside the client's own environment.
+
+3. Cleaning, labelling and versioning it, so every result traces back to its source.
+
+4. Watching it after go-live, because data keeps changing after the model is trained.
+
+Once the data is right, a well-understood method usually does the job.
+
+This is also where 70/30 starts. The machine can only take over 70 percent of the work if the data it works on can be trusted. Who trains, who controls, who is accountable stays written down, including who is accountable for the data.
+
+How much of your last AI budget was set aside for data before the project started?
+
+#IndustrialAI #DataQuality #7030

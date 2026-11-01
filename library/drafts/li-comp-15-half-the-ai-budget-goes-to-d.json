@@ -1,0 +1,31 @@
+{
+ "id": "li-comp-15",
+ "channel": "company",
+ "pillar": "company",
+ "topic": "t032",
+ "memo": "",
+ "photo": "",
+ "neighbour_shoots": [],
+ "model": "claude-opus-5-5",
+ "created": "2026-11-01T13:44:29",
+ "versions": [],
+ "graphic": {
+  "eyebrow": "Budget planning",
+  "title": "Half the AI budget\ngoes to data",
+  "lines": [
+   "Find what the machine actually records",
+   "Read data where it already lives",
+   "Clean, label and version every source",
+   "Watch the data after go-live"
+  ],
+  "footer": "50–60 % data"
+ },
+ "card": null,
+ "signals": null,
+ "editorial": {
+  "reader": "Leiter Entwicklung oder Digitalisierung bei einem Maschinenbauer, der gerade ein KI-Projekt budgetiert und den Großteil fürs Modell eingeplant hat",
+  "insight": "In Produktion scheitert selten das Modell, sondern die Daten darunter – deshalb gehört die größere Budgethälfte vor Projektstart in Datenpfad, Bereinigung, Versionierung und Überwachung nach Go-live",
+  "discussion_reason": "Leser können widersprechen, ob 50–60 % für Daten realistisch oder übertrieben sind und ob ihr Modellteil tatsächlich der kleinere ist",
+  "situation": "1"
+ }
+}

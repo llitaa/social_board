@@ -1,0 +1,17 @@
+Ich wollte mein LinkedIn-System verbessern und bekam 50 Seiten zurück.
+
+Ein paar Iterationen mit zwei KI-Assistenten, dann einige Stunden am Stück. Ich dachte, ich sei so weit: kurz die neuen Verbesserungen durchsehen, dann loslegen. Das Ergebnis war ein Dokument mit 50 Seiten Verbesserungsvorschlägen.
+
+An dieser Stelle habe ich mich ehrlich gefragt, was das soll.
+
+An der Qualität lag es nicht. Viele Vorschläge waren vernünftig. Aber jede Antwort erzeugte neue Fragen, und keine sagte: Das reicht jetzt. Ein Modell kennt keinen Zustand „fertig“. Es liefert, solange man fragt.
+
+Im Rheinmetall-Projekt habe ich sechs Entwickler technisch koordiniert. Ein grosser Teil dieser Arbeit war nicht die Technik, sondern die Entscheidung, wann etwas fertig ist. Diese Entscheidung gehört vor den Sprint, nicht danach. Ohne sie wird jeder Sprint ein offenes Ende.
+
+Mit KI fehlt genau diese Rolle, wenn man sie nicht selbst übernimmt. Die Maschine generiert schneller, als der Mensch prüfen kann. 50 Seiten liest niemand gründlich. Sie werden ignoriert oder ungeprüft übernommen, beides ist schlecht.
+
+Meine Konsequenz: Vor der ersten Iteration schreibe ich auf, welche eine Sache am Ende anders sein soll. Alles, was darüber hinausgeht, gehört in die nächste Iteration, nicht in diese.
+
+Wer entscheidet bei Ihnen, wann eine Iteration mit KI fertig ist?
+
+#KIEntwicklung #Softwarearchitektur #7030

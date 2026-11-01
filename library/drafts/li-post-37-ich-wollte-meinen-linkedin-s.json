@@ -1,0 +1,29 @@
+{
+ "id": "li-post-37",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t076",
+ "memo": "",
+ "photo": "img3142",
+ "neighbour_shoots": [
+  "2025-10-30_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-11-01T13:44:02",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "KI-Praxis",
+  "headline": "Ich wollte mein LinkedIn-System verbessern und bekam 50 Seiten zurück."
+ },
+ "signals": {
+  "lead": "Ein grosser Teil dieser Arbeit war nicht die Technik, sondern die Entscheidung, wann etwas fertig ist.",
+  "ai": "Meine Konsequenz: Vor der ersten Iteration schreibe ich auf, welche eine Sache am Ende anders sein soll."
+ },
+ "editorial": {
+  "reader": "Entwicklungsleiter, dessen Team seit Monaten mit KI-Assistenten iteriert und dessen Ergebnisse immer grösser, aber nicht fertig werden",
+  "insight": "KI liefert ohne Stopp-Signal endlos Verbesserungen; das Fertig-Kriterium ist eine Führungsentscheidung, die vor der Iteration fallen muss, nicht danach",
+  "discussion_reason": "Man kann einwenden, dass breite KI-Exploration wertvoll ist und ein zu frühes Fertig-Kriterium gute Ideen abschneidet",
+  "situation": "2"
+ }
+}

@@ -98,3 +98,5 @@ ts,step,model,ms,input,cache_read,cache_create,output,cost_usd,ok
 2026-10-24T11:08:53,draft,claude-opus-5-5,56761048,40,192248,126683,1208,1.0762,yes
 2026-10-25T12:55:52,draft,claude-opus-5-5,38119733,30,129959,105196,2700,0.9217,yes
 2026-10-26T08:03:38,draft,claude-opus-5-5,28026,2,649,15179,2930,0.1802,yes
+2026-11-01T13:44:01,draft,claude-opus-5-5,33522,2,649,16870,3380,0.2027,yes
+2026-11-01T13:44:28,draft,claude-opus-5-5,25350,2,2256,8780,2308,0.1169,yes
