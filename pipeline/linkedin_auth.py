@@ -20,7 +20,7 @@ ORG = "--org" in sys.argv
 CFG_FILE = os.path.join(ROOT, "config.local.linkedin-org.json" if ORG else "config.local.linkedin.json")
 REDIRECT = "http://localhost:8765/callback"
 SCOPES_MEMBER = "openid profile w_member_social"
-SCOPES_ORG = "openid profile w_organization_social r_organization_social r_member_postAnalytics"
+SCOPES_ORG = "w_organization_social r_organization_social"   # the company app has no "Sign In with LinkedIn" product, so no openid/profile; post analytics need their own product
 
 def load(): return json.load(open(CFG_FILE)) if os.path.isfile(CFG_FILE) else {}
 def save(d): json.dump(d, open(CFG_FILE, "w"), indent=1); os.chmod(CFG_FILE, 0o600)
@@ -44,8 +44,11 @@ def main():
     data = urllib.parse.urlencode({"grant_type": "authorization_code", "code": got["code"][0], "redirect_uri": REDIRECT, "client_id": c["client_id"], "client_secret": c["client_secret"]}).encode()
     tok = json.load(urllib.request.urlopen(urllib.request.Request("https://www.linkedin.com/oauth/v2/accessToken", data=data, headers={"Content-Type": "application/x-www-form-urlencoded"})))
     c["access_token"] = tok["access_token"]; c["expires"] = (datetime.now() + timedelta(seconds=int(tok.get("expires_in", 0)))).isoformat(timespec="seconds"); c["scopes"] = tok.get("scope", scopes)
-    me = json.load(urllib.request.urlopen(urllib.request.Request("https://api.linkedin.com/v2/userinfo", headers={"Authorization": "Bearer " + c["access_token"]})))
-    c["person_urn"] = "urn:li:person:" + me["sub"]; c["name"] = me.get("name", "")
+    if ORG:
+        c["name"] = "AlpiType (company page)"
+    else:
+        me = json.load(urllib.request.urlopen(urllib.request.Request("https://api.linkedin.com/v2/userinfo", headers={"Authorization": "Bearer " + c["access_token"]})))
+        c["person_urn"] = "urn:li:person:" + me["sub"]; c["name"] = me.get("name", "")
     save(c); print(f"authorised as {c['name']}, token valid until {c['expires'][:10]}, scopes: {c['scopes']}; saved to {CFG_FILE}")
 
 if __name__ == "__main__": main()
