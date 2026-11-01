@@ -31,7 +31,7 @@ slots:                    # weekday -> channel and time; the pipeline keeps ever
   company:  {days: [Thu], time: "09:00", lang: en}
 horizon_days: 14
 engagement:               # Anton 30.10.: 1-2 posts a week for founders without a tech background and AI-leadership hirers, with a graphic instead of a photo
-  days: [Mon, Fri]        # personal slots on these weekdays take an engagement pillar first (when one has unused topics)
+  days: []                # 01.11.: no automatic graphic posts; Mon/Fri are photo posts again, a diagram only when a topic needs one (import_draft with png); series test continues by hand
   pillars: [transformation, money, learning, trend]
 publish:
   where: server           # server = the host posts approved cards at their slot (server/publish.php, hPanel cron + ticks); mac = pipeline/publish.py posts from here
