@@ -49,6 +49,14 @@ def promote_scheduled(plan, plog):
                 if l["post_id"] == cid and not (l.get("note") or "").upper().startswith("POSTED"): l["note"] = f"POSTED (LinkedIn schedule) {w:%d.%m.%Y %H:%M}. " + (l.get("note") or "")
     return n
 
+def situation_of(card, plan):
+    """editorial.situation from the draft JSON of this card (S1, 01.11.2026); empty when the draft has none."""
+    row = next((r for r in plan if r["id"] == (card or {}).get("plan_row")), None)
+    tp = resolve(row.get("caption_ref", "")) if row else ""
+    mp = os.path.splitext(tp)[0] + ".json" if tp else ""
+    try: return str((json.load(open(mp, encoding="utf-8")).get("editorial") or {}).get("situation") or "")
+    except Exception: return ""
+
 def main():
     os.makedirs(LOGDIR, exist_ok=True)
     done = jload(STATE, {})
@@ -94,18 +102,19 @@ def main():
                         if d.get("text") and status in ("approved", "posted") and write_edit(r, d["text"], d["ts"]): r["notes"] = f"[board {d['ts'][:16]} edited on the card] " + r.get("notes", ""); d["edited"] = "yes"
                         changed_plan = True
                 if status == "posted":
-                    hit = False
+                    hit = False; sit = situation_of(card, plan)
                     for r in plog:
                         if r["post_id"] == cid:
                             r["note"] = f"POSTED via {d.get('via', 'board')} {d['ts'][:10]}. " + r.get("note", "")
                             if d.get("url"): r["link"] = d["url"]
+                            if sit and not r.get("situation"): r["situation"] = sit
                             changed_log = hit = True
                     if not hit:   # drafts have no posts-log row yet: create it (21.10.: server-published posts were invisible to metrics and featured)
                         row = next((r for r in plan if r["id"] == card.get("plan_row")), None)
                         if row:
                             tp = resolve(row.get("caption_ref", "")); hook = open(tp, encoding="utf-8").readline().strip()[:120] if tp and os.path.isfile(tp) else ""
                             plog.append({"date": (row.get("planned") or d["ts"])[:10], "channel": row["channel"], "post_id": cid, "hook": hook, "type": row.get("format", ""), "language": row.get("language", ""),
-                                         "link": d.get("url", ""), "note": f"POSTED via {d.get('via', 'board')} {d['ts'][:10]}"}); changed_log = True
+                                         "link": d.get("url", ""), "situation": sit, "note": f"POSTED via {d.get('via', 'board')} {d['ts'][:10]}"}); changed_log = True
                 if card and status: card["status"] = status
                 append(os.path.join(LOGDIR, "post-decisions.csv"), ["ts", "card_id", "decision", "option", "note", "reason", "url", "edited", "when"], d)
             elif t == "comment":
@@ -124,6 +133,18 @@ def main():
                         r["note"] = f"metrics board {d['ts'][:16].replace('T', ' ')}. " + (r.get("note") or ""); changed_log = True
                 append(os.path.join(LOGDIR, "board-events.csv"), ["ts", "type", "id", "decision", "files", "file", "note", "answer", "expiry", "review", "card_id"],
                        {**d, "id": d.get("post_id", ""), "note": " ".join(f"{k}={d[k]}" for k in ("impressions", "reactions", "comments") if d.get(k) not in (None, ""))})
+            elif t == "profile_visits":   # S3: weekly sum of profile visits, typed by Anton on the board (no names, no attribution)
+                pw = os.path.expanduser(CFG.get("profile_weekly", "~/dev/campaign/profile-weekly.csv"))
+                rows, f = read_csv(pw) if os.path.isfile(pw) else ([], ["week", "visits", "entered_at"])
+                rows = [r for r in rows if r.get("week") != d.get("week")] + [{"week": d.get("week", ""), "visits": str(d.get("visits", "")), "entered_at": d["ts"][:16]}]
+                rows.sort(key=lambda r: r.get("week", "")); write_csv(pw, rows, f or ["week", "visits", "entered_at"]); log("profile visits", d.get("week"), d.get("visits"))
+            elif t == "inbound":   # S4: a proposed contact (lead mail from alpitype.de) confirmed into inbound-log or dropped; the source is what the form said
+                st = jload(os.path.join(LIB, "inbound", "state.json"), {}); st[d.get("id", "")] = {"state": d.get("decision"), "ts": d["ts"]}; jdump(os.path.join(LIB, "inbound", "state.json"), st)
+                if d.get("decision") == "confirm":
+                    ib = os.path.expanduser(CFG.get("inbound_log", "~/dev/campaign/inbound-log.csv"))
+                    rows, f = read_csv(ib) if os.path.isfile(ib) else ([], ["date", "source", "who", "what", "qualified", "next"])
+                    rows.append({"date": (d.get("date") or d["ts"])[:10], "source": d.get("source") or "website form", "who": d.get("who", ""), "what": d.get("what", ""), "qualified": d.get("qualified", ""), "next": d.get("next", "")})
+                    write_csv(ib, rows, f or ["date", "source", "who", "what", "qualified", "next"]); log("inbound confirmed", d.get("who"))
             elif t in ("photo", "upload", "memo", "settings", "answer"):
                 append(os.path.join(LOGDIR, "board-events.csv"), ["ts", "type", "id", "decision", "files", "file", "note", "answer", "expiry", "review", "card_id"],
                        {**d, "files": ",".join(d.get("files", []) or [])})

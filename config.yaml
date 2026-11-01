@@ -1,7 +1,8 @@
 campaign_repo: /Users/anton/dev/campaign
 content_plan: /Users/anton/dev/campaign/content-plan.csv
 posts_log: /Users/anton/dev/campaign/posts-log.csv
-inbound_log: /Users/anton/dev/campaign/inbound-log.csv   # F5: qualified conversations and introductions, one row each, source as the person stated it
+inbound_log: /Users/anton/dev/campaign/inbound-log.csv
+profile_weekly: /Users/anton/dev/campaign/profile-weekly.csv   # S3: weekly sum of profile visits, typed on the board   # F5: qualified conversations and introductions, one row each, source as the person stated it
 post_texts: /Users/anton/dev/campaign/local/reports/out
 post_images: /Users/anton/dev/campaign/local/resources/post-images
 legacy_photos: /Users/anton/dev/campaign/local/resources/anton-photos

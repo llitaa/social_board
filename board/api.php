@@ -56,6 +56,14 @@ function overlay_pipeline(array $pipe): array {   // posts Anton logged as publi
     foreach (['impressions', 'reactions', 'comments'] as $k) if (isset($st[$k]) && $st[$k] !== '') $p[$k] = $st[$k];
     $p['numbers_at'] = substr((string)$st['ts'], 0, 16);
   } unset($p);
+  // S4: proposals Anton already confirmed or dropped here disappear at once; S3: a typed week shows before the Mac folds it in
+  $pipe['inbound_proposed'] = array_values(array_filter($pipe['inbound_proposed'] ?? [], fn($q) => !fresh($ov['inbound'][$q['id']] ?? null)));
+  $pipe['profile_weekly'] = $pipe['profile_weekly'] ?? [];
+  foreach ($ov['profile'] ?? [] as $week => $st) {
+    if (!fresh($st)) continue; $found = false;
+    foreach ($pipe['profile_weekly'] as &$w) { if (($w['week'] ?? '') === $week) { $w['visits'] = $st['visits']; $found = true; } } unset($w);
+    if (!$found) $pipe['profile_weekly'][] = ['week' => $week, 'visits' => $st['visits']];
+  }
   usort($pipe['published'], fn($a, $b) => strcmp((string)$b['date'], (string)$a['date']));
   return $pipe;
 }
@@ -209,6 +217,18 @@ switch ($a) {
     $patch = []; foreach (['impressions', 'reactions', 'comments'] as $k) if (isset($body[$k]) && $body[$k] !== '') $patch[$k] = (string)(int)preg_replace('/\D/', '', (string)$body[$k]);
     if (!$patch) out(['error' => 'no numbers']);
     set_overlay('metrics', $id, $patch); decide(['type' => 'metrics', 'post_id' => $id] + $patch); out(['ok' => true]);
+
+  case 'profile_visits': // S3: weekly sum of profile visits Anton reads off the LinkedIn app; one number per ISO week, no names
+    $week = preg_replace('/[^0-9W-]/', '', (string)($body['week'] ?? '')); $v = preg_replace('/\D/', '', (string)($body['visits'] ?? ''));
+    if (!preg_match('/^\d{4}-W\d{2}$/', $week) || $v === '') out(['error' => 'week and visits needed']);
+    set_overlay('profile', $week, ['visits' => $v]); decide(['type' => 'profile_visits', 'week' => $week, 'visits' => $v]); out(['ok' => true]);
+
+  case 'inbound': // S4: a proposed contact from a lead mail: confirm (becomes an inbound-log row) or drop; nothing is sent anywhere
+    $id = preg_replace('/[^\w.@-]/', '', (string)($body['id'] ?? '')); $dec = (($body['decision'] ?? '') === 'confirm') ? 'confirm' : 'drop';
+    if ($id === '') out(['error' => 'bad request']);
+    $d = ['type' => 'inbound', 'id' => $id, 'decision' => $dec];
+    foreach (['date', 'source', 'who', 'what', 'qualified', 'next'] as $k) if (isset($body[$k])) { $s = trim((string)$body[$k]); $d[$k] = function_exists('mb_substr') ? mb_substr($s, 0, 300) : substr($s, 0, 300); }
+    set_overlay('inbound', $id, ['state' => $dec]); decide($d); out(['ok' => true]);
 
   case 'settings':
     $s = settings(); foreach (['expiry','review'] as $k) if (isset($body[$k])) $s[$k] = (string)$body[$k];

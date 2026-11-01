@@ -43,6 +43,28 @@ def last_runs(n=3):
     for r in rows: by.setdefault(r["step"], []).append(r)
     return {k: v[-n:] for k, v in by.items()}
 
+def weekly(n=4):
+    """S5 (01.11.2026): one indicator line per ISO week, side by side, no rates between columns. Posts and comments from posts-log,
+    profile visits from profile-weekly.csv, contacts and qualified conversations from inbound-log.csv. Missing stays empty, never zero."""
+    from datetime import date as _date, timedelta as _td
+    plog, _ = read_csv(CFG["posts_log"])
+    ib_p = os.path.expanduser(CFG.get("inbound_log", "~/dev/campaign/inbound-log.csv")); ib = read_csv(ib_p)[0] if os.path.isfile(ib_p) else []
+    pw_p = os.path.expanduser(CFG.get("profile_weekly", "~/dev/campaign/profile-weekly.csv")); pw = read_csv(pw_p)[0] if os.path.isfile(pw_p) else []
+    def wk(s):
+        try: y, m, d = map(int, (s or "")[:10].split("-")); iso = _date(y, m, d).isocalendar(); return f"{iso[0]}-W{iso[1]:02d}"
+        except Exception: return ""
+    today = _date.today(); weeks = []
+    for i in range(n - 1, -1, -1):
+        iso = (today - _td(weeks=i)).isocalendar(); weeks.append(f"{iso[0]}-W{iso[1]:02d}")
+    rows = []
+    for w in weeks:
+        posts = [r for r in plog if wk(r.get("date")) == w]
+        have = [int(r["comments"]) for r in posts if str(r.get("comments", "")).isdigit()]
+        contacts = [r for r in ib if wk(r.get("date")) == w]
+        rows.append({"week": w, "posts": len(posts), "comments": sum(have) if have else "", "visits": next((r.get("visits", "") for r in pw if r.get("week") == w), ""),
+                     "contacts": len(contacts), "linkedin": sum(1 for r in contacts if "linkedin" in (r.get("source") or "").lower()), "qualified": sum(1 for r in contacts if (r.get("qualified") or "").lower() == "yes")})
+    return rows
+
 def main():
     issues, ok = [], []
     runs = last_runs()
@@ -86,7 +108,7 @@ def main():
     auto = bool(CFG.get("llm", {}).get("auto", True)); pend = pending(plan, memos)
     if not auto and any(pend.values()): ok.append("waiting for python3 pipeline/process.py on the Mac: " + ", ".join(f"{v} {k}" for k, v in pend.items() if v))
     jdump(os.path.join(BOARD_LOCAL, "health.json"), {"ts": datetime.now().isoformat(timespec="seconds"), "issues": issues, "ok": ok, "month_cost_usd": round(cost, 2), "slots_planned": len(slots), "topics_unused": unused,
-          "linkedin": li, "rules_learned": len(rules), "builder_notes": fb, "auto": auto, "pending": pend})
+          "linkedin": li, "rules_learned": len(rules), "builder_notes": fb, "auto": auto, "pending": pend, "weekly": weekly()})
     log(f"health: {len(issues)} issue(s)" + (": " + "; ".join(i["what"] for i in issues) if issues else ""))
 
 if __name__ == "__main__": main()

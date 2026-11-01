@@ -1,9 +1,11 @@
-- [ ] 0.1 `library/positioning.md` aus Positionierung v1.3 neu schreiben (alte Fassung als `positioning-2026-10-31.md` behalten); kein Modellaufruf. Start nur auf Antons Wort.
-- [ ] 1.1 S1: `editorial.situation` in draft.py, redraft.py, import_draft.py; Anzeige in board/index.php; Spalte `situation` in posts-log beim Veröffentlichen (publish.php schreibt posts-log? prüfen: heute apply_decisions/cards) 
-- [ ] 1.2 S4: mail_watch.py erkennt Formular-Mails (Betreff und Absender der WordPress-Kontaktseite prüfen), schreibt `library/inbound/proposed.json`; api.php Aktion `inbound_confirm` und `inbound_drop`; Board zeigt Vorschläge unter Conversations
-- [ ] 1.3 S3 minimal: Feld Profilbesuche auf dem Board, api.php Aktion `profile_visits`, `~/dev/campaign/profile-weekly.csv`
-- [ ] 1.4 S5: health.py Wochenzeile aus posts-log, profile-weekly, inbound-log; Board zeigt vier Wochen; keine Quoten
-- [ ] 1.5 Tests in pipeline/tests: situation-Werte, Formular-Mail-Erkennung an einer gespeicherten Beispielmail, Wochenzeile mit leeren Werten
-- [ ] 1.6 Website: optionales Feld „Woher kennen Sie uns?“ auf alpitype.de/kontakt, nur wenn das Formular-Plugin es ohne grössere Änderung erlaubt; sonst Rückmeldung an Anton
-- [ ] 1.7 Bericht: geänderte Dateien, Tests, was Anton auf dem Board tut
+- [x] 0.1 `library/positioning.md` aus Positionierung v1.3 neu schreiben (alte Fassung als `positioning-2026-10-31.md` behalten); kein Modellaufruf. Start nur auf Antons Wort.
+- [x] 1.1 S1: `editorial.situation` in draft.py, redraft.py, import_draft.py; Anzeige in board/index.php; Spalte `situation` in posts-log beim Veröffentlichen (publish.php schreibt posts-log? prüfen: heute apply_decisions/cards) 
+- [x] 1.2 S4: mail_watch.py erkennt Formular-Mails (Betreff und Absender der WordPress-Kontaktseite prüfen), schreibt `library/inbound/proposed.json`; api.php Aktion `inbound_confirm` und `inbound_drop`; Board zeigt Vorschläge unter Conversations
+- [x] 1.3 S3 minimal: Feld Profilbesuche auf dem Board, api.php Aktion `profile_visits`, `~/dev/campaign/profile-weekly.csv`
+- [x] 1.4 S5: health.py Wochenzeile aus posts-log, profile-weekly, inbound-log; Board zeigt vier Wochen; keine Quoten
+- [x] 1.5 Tests in pipeline/tests: situation-Werte, Formular-Mail-Erkennung an einer gespeicherten Beispielmail, Wochenzeile mit leeren Werten
+- [ ] 1.6 (offen, Rückmeldung an Anton 01.11.: Gravity Forms, kein GF-API-Schlüssel im Repo; Feld in GF-Admin anlegen oder Schlüssel geben) Website: optionales Feld „Woher kennen Sie uns?“ auf alpitype.de/kontakt, nur wenn das Formular-Plugin es ohne grössere Änderung erlaubt; sonst Rückmeldung an Anton
+- [x] 1.7 Bericht: geänderte Dateien, Tests, was Anton auf dem Board tut
 - [ ] 2.x später, bei Bedarf: S2 Antwort-Haken, S6 DM-Bausteine
+
+Umsetzung 01.11.2026, Commit in linkedin-system. Hinweis aus der Umsetzung: in 400 Tagen kam keine Benachrichtigung des Kontaktformulars in anton@alpitype.com an; nur die Buch-Lead-Mails von noreply@alpitype.de. Die Formular-Benachrichtigung zeigt vermutlich auf eine andere Adresse oder wurde nie ausgelöst; in Gravity Forms prüfen.

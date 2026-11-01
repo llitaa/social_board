@@ -43,4 +43,14 @@ os.unlink(f.name)
 
 # F1: prompt tail carries the three editorial keys
 t("F1 editorial keys", all(k in editorial.EDITORIAL_JSON for k in ("reader", "insight", "discussion_reason")))
-print("ALL PASS" if ok else "SOME FAILED"); sys.exit(0 if ok else 1)
+
+# ---- 01.11.2026: S1 situation key, S4 proposal parsing, S5 weekly line with empty values
+import health, mail_watch, re as _re
+t("S1 situation in editorial JSON", '"situation"' in editorial.EDITORIAL_JSON)
+body = 'Neuer Lead: Email: someone@example.com Seite: kontakt UTM: {"utm_source":"linkedin","utm_medium":"post"} IP: 1.2.3.4'
+who = _re.search(r"[\w.+-]+@[\w-]+\.[\w.-]+", body)[0]; page = _re.search(r"Seite:\s*([\w-]+)", body)[1]; utm = _re.search(r'"utm_source":"([^"]*)"', body)[1]
+t("S4 lead mail fields parsed", who == "someone@example.com" and page == "kontakt" and utm == "linkedin")
+rows = health.weekly(4)
+t("S5 four weekly rows", len(rows) == 4 and all(k in rows[0] for k in ("week", "posts", "comments", "visits", "contacts", "linkedin", "qualified")))
+t("S5 missing comments stay empty, not zero", all(r["comments"] == "" or isinstance(r["comments"], int) for r in rows) and not any(r["comments"] == 0 and r["posts"] == 0 for r in rows))
+print("ALL PASS (incl. S1/S4/S5)" if ok else "SOME FAILED"); sys.exit(0 if ok else 1)

@@ -11,7 +11,7 @@ Images are copied as web copies (max 1600 px) + final file into board/data/img/.
 import json, os, re
 from datetime import datetime, timedelta, date
 from PIL import Image, ImageOps
-from common import CFG, BOARD_LOCAL, LIB, read_csv, jdump, log, resolve
+from common import CFG, BOARD_LOCAL, LIB, read_csv, jdump, jload, log, resolve
 
 PLAN, OUT, IMG = CFG["content_plan"], CFG["post_texts"], CFG["post_images"]
 CAMP = CFG["campaign_repo"]
@@ -136,8 +136,11 @@ def main():
     # qualified business conversations (F5): ~/dev/campaign/inbound-log.csv, written by Anton in the weekly review; the board shows the last five, read-only
     ib_path = os.path.expanduser(CFG.get("inbound_log", "~/dev/campaign/inbound-log.csv"))
     inbound = read_csv(ib_path)[0][-5:][::-1] if os.path.isfile(ib_path) else []
+    proposed = jload(os.path.join(LIB, "inbound", "proposed.json"), [])   # S4: lead mails waiting for Anton's confirm or drop
+    pw_path = os.path.expanduser(CFG.get("profile_weekly", "~/dev/campaign/profile-weekly.csv"))
+    profile_weekly = read_csv(pw_path)[0][-8:] if os.path.isfile(pw_path) else []   # S3: weekly profile visits typed by Anton
     jdump(os.path.join(BOARD_LOCAL, "pipeline.json"), {"upcoming": upcoming, "published": published[:12], "featured": featured, "metrics_missing": missing, "material": material,
-          "memos": mv, "inbound": inbound, "generated": now.isoformat(timespec="seconds")})
+          "memos": mv, "inbound": inbound, "inbound_proposed": proposed, "profile_weekly": profile_weekly, "generated": now.isoformat(timespec="seconds")})
     log(f"{len(cards)} cards: " + ", ".join(f"{c['id']}@{c['slot'][:16]}[{c['status']}]" for c in cards) + f"; {len(upcoming)} upcoming, {len(published)} published; images {total // 1024} KB, pruned {pruned}")
 
 if __name__ == "__main__": main()
