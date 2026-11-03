@@ -7,7 +7,7 @@
 // a decision line the Mac folds into the CSVs, published.json as its own memory, publish.log.
 declare(strict_types=1);
 date_default_timezone_set('Europe/Berlin');   // the host runs UTC; slots are Berlin time (found in the 21.10. review: the cron would have posted two hours late)
-$W = __DIR__; $DATA = getenv('BOARD_DATA') ?: glob($_SERVER['HOME'] . '/domains/alpitype.de/public_html/board/*/data')[0] ?? '';
+$W = __DIR__; $DATA = getenv('BOARD_DATA') ?: '';   // one board (api.php?a=tick sets it); empty = every board/*/data in turn (cron, by hand)
 $DRY = in_array('--dry', $argv ?? [], true);
 function L(string $m): void { global $W, $DRY; $l = date('Y-m-d H:i:s') . ($DRY ? ' [dry] ' : ' ') . $m; echo $l, "\n"; if (!$DRY) file_put_contents("$W/publish.log", $l . "\n", FILE_APPEND); }
 function jr(string $p, $d) { $x = is_file($p) ? json_decode((string)file_get_contents($p), true) : null; return $x ?? $d; }
@@ -39,9 +39,10 @@ function ov_patch(string $id, array $patch): void {   // overlay read-modify-wri
 function run(): array {
   global $W, $DATA, $DRY; $out = ['checked' => 0, 'published' => [], 'failed' => []];
   if (!$DATA || !is_dir($DATA)) { L("no board data dir"); return $out; }
-  $lock = "$W/.lock"; if (!$DRY && !@mkdir($lock)) { if (filemtime($lock) > time() - 600) return $out; @rmdir($lock); @mkdir($lock); }
+  $lock = "$W/.lock" . ($DATA ? "-" . substr(md5($DATA), 0, 8) : ""); if (!$DRY && !@mkdir($lock)) { if (filemtime($lock) > time() - 600) return $out; @rmdir($lock); @mkdir($lock); }
   try {
-    $me = jr("$W/linkedin.json", []); $org = jr("$W/linkedin-org.json", []); $done = jr("$W/published.json", []);
+    $slug = (string)(jr("$DATA/auth.json", [])['slug'] ?? '');   // a person's board: their own token (linkedin-<slug>.json, no company page) and their own memory
+    $me = jr($slug ? "$W/linkedin-$slug.json" : "$W/linkedin.json", []); $org = $slug ? [] : jr("$W/linkedin-org.json", []); $done = jr($slug ? "$W/published-$slug.json" : "$W/published.json", []);
     $ov = jr("$DATA/overlay.json", []); $cards = jr("$DATA/cards.json", []); $now = date('Y-m-d\TH:i');
     $until = jr("$DATA/applied.json", [])['until'] ?? '';   // overlay entries older than the Mac's last fold are already in cards.json (same rule as the page)
     foreach ($cards as $c) {
@@ -54,22 +55,22 @@ function run(): array {
       $fails = (int)($o['publish_fails'] ?? 0); if ($fails >= 5) continue;   // after five failures the card says "needs you"; no retry storm
       $creds = $c['channel'] === 'company' ? $org : $me; $author = $c['channel'] === 'company' ? ($org['org_urn'] ?? '') : ($me['person_urn'] ?? '');
       if (empty($creds['access_token']) || !$author) {   // company page without the Community Management API: the card waits for Anton by hand; say so once a day, not every minute
-        $k = "$id.notoken"; if (empty($done[$k]) || time() - (int)$done[$k] > 86400) { L("$id: no token for {$c['channel']} on the server; the card waits for a by-hand post (logged once a day)"); $done[$k] = time(); jw("$W/published.json", $done); }
+        $k = "$id.notoken"; if (empty($done[$k]) || time() - (int)$done[$k] > 86400) { L("$id: no token for {$c['channel']} on the server; the card waits for a by-hand post (logged once a day)"); $done[$k] = time(); jw($slug ? "$W/published-$slug.json" : "$W/published.json", $done); }
         continue; }
       if (!empty($creds['expires']) && $creds['expires'] < date('c')) { L("$id: token expired"); ov_patch($id, ['publish_error' => 'LinkedIn token expired: run pipeline/linkedin_auth.py on the Mac']); continue; }
       if (!empty($done[$id . '.attempt']) && time() - (int)$done[$id . '.attempt'] < 600) { L("$id: an attempt is still open, wait"); continue; }   // a lost answer must not post twice
-      $done[$id . '.attempt'] = time(); jw("$W/published.json", $done);
+      $done[$id . '.attempt'] = time(); jw($slug ? "$W/published-$slug.json" : "$W/published.json", $done);
       $text = trim((string)($o['text'] ?? $c['text'])); $img = is_file("$DATA/img/$id-final.jpg") ? "$DATA/img/$id-final.jpg" : null;
       if ($DRY) { L("would publish $id ({$c['channel']}, slot $slot, " . strlen($text) . " chars, image " . ($img ? 'yes' : 'no') . ")"); continue; }
       try {
         $urn = publish_one($creds, $author, $text, $img); $url = $urn ? "https://www.linkedin.com/feed/update/$urn/" : '';
-        $done[$id] = ['ts' => date('c'), 'urn' => $urn, 'url' => $url]; unset($done[$id . '.attempt']); jw("$W/published.json", $done);
+        $done[$id] = ['ts' => date('c'), 'urn' => $urn, 'url' => $url]; unset($done[$id . '.attempt']); jw($slug ? "$W/published-$slug.json" : "$W/published.json", $done);
         ov_patch($id, ['status' => 'posted', 'url' => $url, 'published_by' => 'server', 'publish_error' => null, 'publish_fails' => null]);
         $d = ['type' => 'post', 'card_id' => $id, 'decision' => 'posted', 'url' => $url, 'via' => 'server', 'ts' => date('c')];
         file_put_contents("$DATA/decisions/" . date('Y-m-d') . ".jsonl", json_encode($d, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) . "\n", FILE_APPEND|LOCK_EX);
         L("published $id -> $url"); $out['published'][] = $id;
       } catch (Throwable $e) {
-        unset($done[$id . '.attempt']); jw("$W/published.json", $done);
+        unset($done[$id . '.attempt']); jw($slug ? "$W/published-$slug.json" : "$W/published.json", $done);
         ov_patch($id, ['publish_error' => substr($e->getMessage(), 0, 160) . ($fails + 1 >= 5 ? ' · five failures, needs you' : ''), 'publish_fails' => $fails + 1]);
         L("FAILED $id: " . $e->getMessage()); $out['failed'][] = $id;
       }
@@ -77,4 +78,7 @@ function run(): array {
   } finally { if (!$DRY) @rmdir($lock); }
   return $out;
 }
-if (PHP_SAPI === 'cli' && realpath($argv[0] ?? '') === __FILE__) { $r = run(); if (!$r['checked'] && $DRY) L("nothing due"); }
+if (PHP_SAPI === 'cli' && realpath($argv[0] ?? '') === __FILE__) {   // by hand or cron: every board in turn
+  $dirs = $DATA ? [$DATA] : glob(($_SERVER['HOME'] ?? getenv('HOME')) . '/domains/alpitype.de/public_html/board/*/data');
+  foreach ($dirs as $DATA) { $r = run(); if (!$r['checked'] && $DRY) L("nothing due in " . basename(dirname($DATA))); }
+}

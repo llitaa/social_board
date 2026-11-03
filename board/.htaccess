@@ -10,6 +10,7 @@ Header set Cache-Control "no-store"
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteRule ^data/uploads/memos/ - [F]
+RewriteRule ^data/uploads/profile/ - [F]
 RewriteRule ^data/decisions/ - [F]
 RewriteRule ^data/decisions-local/ - [F]
 </IfModule>

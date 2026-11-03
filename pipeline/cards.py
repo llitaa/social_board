@@ -139,8 +139,10 @@ def main():
     proposed = jload(os.path.join(LIB, "inbound", "proposed.json"), [])   # S4: lead mails waiting for Anton's confirm or drop
     pw_path = os.path.expanduser(CFG.get("profile_weekly", "~/dev/campaign/profile-weekly.csv"))
     profile_weekly = read_csv(pw_path)[0][-8:] if os.path.isfile(pw_path) else []   # S3: weekly profile visits typed by Anton
+    su = read_csv(os.path.join(LIB, "log", "shared-uses.csv"))[0][-6:][::-1]   # my shared photos that landed on another board (apply_decisions, proposal accept)
+    notices = [{"ts": r.get("ts", ""), "photo": r.get("photo", ""), "who": r.get("used_by_name", ""), "card": r.get("card", "")} for r in su]
     jdump(os.path.join(BOARD_LOCAL, "pipeline.json"), {"upcoming": upcoming, "published": published[:12], "featured": featured, "metrics_missing": missing, "material": material,
-          "memos": mv, "inbound": inbound, "inbound_proposed": proposed, "profile_weekly": profile_weekly, "generated": now.isoformat(timespec="seconds")})
+          "memos": mv, "inbound": inbound, "inbound_proposed": proposed, "profile_weekly": profile_weekly, "notices": notices, "generated": now.isoformat(timespec="seconds")})
     log(f"{len(cards)} cards: " + ", ".join(f"{c['id']}@{c['slot'][:16]}[{c['status']}]" for c in cards) + f"; {len(upcoming)} upcoming, {len(published)} published; images {total // 1024} KB, pruned {pruned}")
 
 if __name__ == "__main__": main()

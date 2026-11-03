@@ -32,3 +32,15 @@ library/log/post-decisions.csv
 library/log/board-events.csv
 library/log/comment-log.csv
 library/feedback.md
+
+# other people's boards (03.11.): config and CSVs tracked, secrets and mirrors never
+users/*/token
+users/*/linkedin.json
+users/*/board-data/
+users/*/inbox/
+users/*/library/sources/
+users/*/library/memos/*.txt
+users/*/library/log/
+config.local.admin.txt
+config.local.krickl.txt
+users-archive/

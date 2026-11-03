@@ -3,8 +3,9 @@ Since 20.10.2026 a personal post must also carry a leadership signal and an AI s
 names the two sentences, check() verifies they are really in the text. Swiss orthography (ss for ß) is applied, not checked."""
 import re
 try:
-    from common import CFG
-except ImportError: CFG = {}
+    from common import CFG, profile
+    DEFAULT = profile()["default"]   # Anton's board: AlpiType ban, leadership and AI signals. Another person's board: only the general rules
+except ImportError: CFG = {}; DEFAULT = True
 
 def fix_orthography(text, channel):
     return text.replace("ß", "ss") if channel == "personal" and CFG.get("orthography", "ch") == "ch" else text
@@ -33,8 +34,8 @@ def check(text, channel, signals=None, kind=None):
         if n < 120: v.append(f"too short ({n} chars)")
         if n > 700: v.append(f"too long for an episode ({n} chars)")
         return v
-    if channel == "personal": v += [p for p in BANNED_PERSONAL if re.search(p, text, re.I)]
-    if channel == "personal" and signals is not None:
+    if channel == "personal" and DEFAULT: v += [p for p in BANNED_PERSONAL if re.search(p, text, re.I)]
+    if channel == "personal" and signals is not None and DEFAULT:
         if not _in(text, (signals or {}).get("lead")): v.append("no leadership signal (a sentence where he leads, decides, coordinates or sets up a practice; quote it verbatim in signals.lead)")
         if not _in(text, (signals or {}).get("ai")): v.append("no AI signal (a sentence with his own agent practice or position on AI in software work; quote it verbatim in signals.ai)")
     if not text.strip().rstrip("#").strip(): v.append("empty")

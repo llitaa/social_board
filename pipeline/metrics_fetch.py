@@ -10,7 +10,7 @@ import json, os, re, urllib.parse, urllib.request
 from datetime import datetime, timedelta
 from common import CFG, ROOT, read_csv, write_csv, log
 
-ORG_FILE = os.path.join(ROOT, "config.local.linkedin-org.json")
+from common import LI_ORG_FILE as ORG_FILE
 API = "https://api.linkedin.com/rest"; VERSION = (datetime.now().replace(day=1) - timedelta(days=40)).strftime("%Y%m")
 METRICS = {"impressions": "IMPRESSION", "reactions": "REACTION", "comments": "COMMENT"}
 

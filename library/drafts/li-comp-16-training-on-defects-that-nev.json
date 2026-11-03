@@ -1,0 +1,31 @@
+{
+ "id": "li-comp-16",
+ "channel": "company",
+ "pillar": "company",
+ "topic": "t033",
+ "memo": "",
+ "photo": "",
+ "neighbour_shoots": [],
+ "model": "claude-opus-5-5",
+ "created": "2026-11-02T15:01:03",
+ "versions": [],
+ "graphic": {
+  "eyebrow": "Optics inspection",
+  "title": "Training on defects\nthat never happened",
+  "lines": [
+   "Start with ideal interferometer images",
+   "Add synthetic defects of known size",
+   "Train regression on exact ground truth",
+   "Uncertain cases go to a person"
+  ],
+  "footer": "98.5 % confidence"
+ },
+ "card": null,
+ "signals": null,
+ "editorial": {
+  "reader": "Leiter Qualitätssicherung bei einem Optik- oder Messgerätehersteller, der eine Bildprüfung automatisieren will, aber kaum echte Fehlerbilder hat",
+  "insight": "Synthetische Defekte lösen nicht nur das Mengenproblem seltener Fehler, sondern liefern exakte Größen-Labels und damit eine reproduzierbare Größenberechnung statt handmarkierter Schätzungen",
+  "discussion_reason": "Ob synthetische Defekte echten Fehlern ähnlich genug sind, um einem Modell im Produktionseinsatz zu vertrauen, und ob 98,5 % Konfidenz ohne menschliche Freigabe der Restfälle reicht",
+  "situation": "1"
+ }
+}

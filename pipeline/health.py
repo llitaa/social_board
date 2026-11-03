@@ -9,7 +9,7 @@ from common import CFG, LIB, BOARD_LOCAL, read_csv, jdump, jload, log
 STEPS = os.path.join(LIB, "log", "steps.jsonl")
 NAMES = {"worker": "token push to the host", "metrics": "metrics import", "metrics_api": "metrics from the API", "pull": "server sync (pull)", "apply": "decisions → CSV", "learn": "notes → preferences", "transcribe": "memo transcription", "photos": "photo pool",
          "redraft": "notes → redraft", "publish": "LinkedIn publishing", "mail": "mailbox watch (read only)", "draft": "slot filling", "cards": "cards + pipeline", "push": "server sync (push)"}
-LI = os.path.join(os.path.dirname(LIB), "config.local.linkedin.json"); LI_ORG = os.path.join(os.path.dirname(LIB), "config.local.linkedin-org.json")
+from common import LI_FILE as LI, LI_ORG_FILE as LI_ORG, USER, profile
 
 def linkedin():
     """What the board says next to an approved card: posts itself, or 'you post it' until the app exists."""
@@ -77,7 +77,8 @@ def main():
     # content checks
     plan, _ = read_csv(CFG["content_plan"]); today = date.today(); horizon = today + timedelta(days=int(CFG.get("horizon_days", 14)))
     slots = [r for r in plan if r["channel"].startswith("linkedin") and r["status"] in ("draft", "approved", "scheduled", "change") and today.isoformat() <= (r.get("planned") or "")[:10] <= horizon.isoformat()]
-    if len(slots) < 4: issues.append({"what": "slot filling", "since": today.isoformat(), "times": 1, "log": f"only {len(slots)} posts planned in the next 14 days", "fix": "check library/log/draft.out, inventory.csv (unused topics) and the photo pool"})
+    fresh_board = bool(USER) and not profile().get("confirmed")   # before the profile is confirmed there is nothing to fill or to draw from
+    if len(slots) < 4 and not fresh_board: issues.append({"what": "slot filling", "since": today.isoformat(), "times": 1, "log": f"only {len(slots)} posts planned in the next 14 days", "fix": "check library/log/draft.out, inventory.csv (unused topics) and the photo pool"})
     stuck = [r for r in plan if r["status"] == "change" and "[redraft failed" in r.get("notes", "")]
     for r in stuck: issues.append({"what": "notes → redraft", "since": today.isoformat(), "times": 1, "log": r["notes"][:160], "fix": "decide the card again or rephrase the note"})
     li = linkedin()
@@ -88,7 +89,7 @@ def main():
     for r in plan:
         if r["status"] == "approved" and r.get("notes", "").startswith("[publish failed"): issues.append({"what": "LinkedIn publishing", "since": today.isoformat(), "times": 1, "log": r["notes"][:160], "fix": "post it yourself (Copy text) or run: python3 pipeline/publish.py; token: pipeline/linkedin_auth.py"})
     inv, _ = read_csv(os.path.join(LIB, "inventory.csv")); unused = sum(1 for r in inv if r["status"] == "unused" and r["pillar"] != "company")
-    if unused < 4: issues.append({"what": "material", "since": today.isoformat(), "times": 1, "log": f"{unused} unused personal topics left", "fix": "record memos or run inventory.py"})
+    if unused < 4 and not fresh_board: issues.append({"what": "material", "since": today.isoformat(), "times": 1, "log": f"{unused} unused personal topics left", "fix": "record memos or run inventory.py"})
     calls = os.path.join(LIB, "log", "llm-calls.csv"); failed = 0; cost = 0.0
     if os.path.isfile(calls):
         for r in read_csv(calls)[0]:
@@ -102,7 +103,8 @@ def main():
     if pipe.get("metrics_missing", 0) >= 3: ok.append(f"numbers missing for {pipe['metrics_missing']} published posts: tap the post under Published on the board and type them, or download LinkedIn's export (Analytics > Post impressions > Export; page: Analytics > Content > Export) into ~/Downloads; the API fills them itself once LinkedIn grants the Community Management API")
     memos, _ = read_csv(os.path.join(LIB, "memos", "index.csv")); fb = sum(1 for m in memos if m.get("status") == "feedback")
     if fb: ok.append(f"{fb} note{'s' if fb > 1 else ''} for the builder in library/feedback.md")
-    if not li["connected"]: issues.append({"what": "LinkedIn token", "since": today.isoformat(), "times": 1, "log": "no valid token for the profile: nothing can be published", "fix": "run: python3 pipeline/linkedin_auth.py (then the full run pushes it to the host)"})
+    if USER and not li["connected"]: pass   # another person's board: not connected is the normal state (the card says "post it yourself"), no red line
+    elif not li["connected"]: issues.append({"what": "LinkedIn token", "since": today.isoformat(), "times": 1, "log": "no valid token for the profile: nothing can be published", "fix": "run: python3 pipeline/linkedin_auth.py (then the full run pushes it to the host)"})
     if li["connected"] and li["days_left"] < 7: issues.append({"what": "LinkedIn token", "since": today.isoformat(), "times": 1, "log": f"expires in {li['days_left']} days", "fix": "run: python3 pipeline/linkedin_auth.py"})
     rules = [l for l in open(os.path.join(LIB, "style-rules.txt"), encoding="utf-8") if l.strip() and not l.startswith("#")] if os.path.isfile(os.path.join(LIB, "style-rules.txt")) else []
     auto = bool(CFG.get("llm", {}).get("auto", True)); pend = pending(plan, memos)

@@ -14,10 +14,10 @@ def rsync(args, must=True):
     cmd = ["rsync", "-az", "--timeout=60", "-e", SSH] + args
     try: r = subprocess.run(cmd, capture_output=True, text=True, timeout=240)
     except subprocess.TimeoutExpired: log("rsync timed out:", " ".join(cmd)); sys.exit(1) if must else None; return
-    if r.returncode: log("rsync failed:", " ".join(cmd), r.stderr.strip()); sys.exit(1)
+    if r.returncode and must: log("rsync failed:", " ".join(cmd), r.stderr.strip()); sys.exit(1)
 
 def push():
-    for item in ("cards.json", "pipeline.json", "photos.json", "messages.json", "applied.json", "health.json"):
+    for item in ("cards.json", "pipeline.json", "photos.json", "messages.json", "applied.json", "health.json", "profile.json", "proposals.json"):
         f = os.path.join(BOARD_LOCAL, item)
         if os.path.isfile(f): rsync([f, f"{ALIAS}:{R}/data/"])
     for d in ("queue", "img"):
@@ -26,11 +26,11 @@ def push():
 
 def pull():
     os.makedirs(os.path.join(BOARD_LOCAL, "decisions"), exist_ok=True)
-    rsync([f"{ALIAS}:{R}/data/decisions/", os.path.join(BOARD_LOCAL, "decisions") + "/"])
+    rsync([f"{ALIAS}:{R}/data/decisions/", os.path.join(BOARD_LOCAL, "decisions") + "/"], must=not CFG.get("name"))   # a new person's board has no decisions dir until its first API call
     # uploads are MOVED to the Mac: once pulled they leave the server, so "pending" on the board = not yet pulled
-    for d in ("uploads/photos", "uploads/memos"):
+    for d in ("uploads/photos", "uploads/memos", "uploads/profile"):
         os.makedirs(os.path.join(BOARD_LOCAL, d), exist_ok=True)
-        rsync(["--remove-source-files", f"{ALIAS}:{R}/data/{d}/", os.path.join(BOARD_LOCAL, d) + "/"])
+        rsync(["--remove-source-files", f"{ALIAS}:{R}/data/{d}/", os.path.join(BOARD_LOCAL, d) + "/"], must=d != "uploads/profile")
     # macOS ships openrsync without --ignore-missing-args (19.10.: that flag silently skipped these three files for two days); a missing file is simply ignored
     for src, dst in ((f"{R}/data/uploads/photo-notes.json", os.path.join(BOARD_LOCAL, "uploads") + "/"), (f"{R}/data/settings.json", BOARD_LOCAL + "/"), (f"{R}/data/overlay.json", BOARD_LOCAL + "/")):
         try: subprocess.run(["rsync", "-az", "--timeout=60", "-e", SSH, f"{ALIAS}:{src}", dst], capture_output=True, timeout=120)
@@ -38,17 +38,20 @@ def pull():
 
 def push_worker():
     """server/publish.php + the LinkedIn token(s) -> ~/board-worker on the host (outside public_html). The server publishes
-    approved cards at their slot by itself (21.10.); the Mac only folds the result into the CSVs."""
+    approved cards at their slot by itself (21.10.); the Mac only folds the result into the CSVs.
+    A user's board pushes only its own token as linkedin-<slug>.json (03.11.)."""
     subprocess.run(["ssh"] + SSH.split()[1:] + [ALIAS, "mkdir -p ~/board-worker && chmod 700 ~/board-worker"], capture_output=True, timeout=60)
     files = [os.path.join(ROOT, "server", "publish.php")]
     import json, tempfile
-    for f, name in ((os.path.join(ROOT, "config.local.linkedin.json"), "linkedin.json"), (os.path.join(ROOT, "config.local.linkedin-org.json"), "linkedin-org.json")):
+    from common import USER, LI_FILE, LI_ORG_FILE
+    pairs = ((LI_FILE, f"linkedin-{USER}.json"),) if USER else ((LI_FILE, "linkedin.json"), (LI_ORG_FILE, "linkedin-org.json"))
+    for f, name in pairs:
         if not os.path.isfile(f): continue
         c = json.load(open(f)); keep = {k: c[k] for k in ("access_token", "expires", "person_urn", "org_urn", "scopes") if k in c}   # no client secret on the host
         if not keep.get("access_token"): continue
         fd, tmp = tempfile.mkstemp(suffix=".json"); os.close(fd); json.dump(keep, open(tmp, "w")); os.chmod(tmp, 0o600)
         rsync([tmp, f"{ALIAS}:~/board-worker/{name}"], must=False); os.remove(tmp)
-    rsync([files[0], f"{ALIAS}:~/board-worker/publish.php"], must=False)
+    if not USER: rsync([files[0], f"{ALIAS}:~/board-worker/publish.php"], must=False)
     subprocess.run(["ssh"] + SSH.split()[1:] + [ALIAS, "chmod 600 ~/board-worker/*.json 2>/dev/null; true"], capture_output=True, timeout=60)
 
 def deploy():

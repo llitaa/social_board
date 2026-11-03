@@ -1,0 +1,17 @@
+Autonom heisst für mich: automatisiert, bis es zusammenbricht.
+
+Neulich habe ich mit einem Ingenieur über autonome Codeentwicklung mit Agents gesprochen. Irgendwann merkten wir, dass wir über zwei verschiedene Dinge redeten. Er meinte einen Agent, der eine Aufgabe ohne Rückfrage abarbeitet. Ich hörte ein System, das selbst entscheidet, wann es fertig ist und was es dafür in Kauf nimmt.
+
+Der Unterschied klingt akademisch. Im Projekt ist er es nicht.
+
+Automatisiert heisst: Der Ablauf ist festgelegt, ein Mensch hat die Grenzen gezogen, und was ausserhalb liegt, hält den Ablauf an. Was heute als autonom bezeichnet wird, ist oft genau das, nur ohne die Stelle, an der es anhält. Es läuft weiter, bis etwas bricht.
+
+In einer grossen Legacy-C/C++-Codebasis setze ich täglich Coding-Agents ein. Ich habe dort Interprozess-Tests eingeführt, und für mich sind sie die eigentliche Grenze. Der Agent arbeitet innerhalb dessen, was diese Tests prüfen. Was ausserhalb liegt, landet bei mir, nicht im Merge.
+
+Ohne Stopp-Signal wird Kontrolle zur Beobachtung von Bewegung.
+
+Wenn zwei Ingenieure „autonom“ sagen und Verschiedenes meinen, ist das kein Wortstreit. Dahinter steht eine offene Frage: Wer entscheidet, wann der Agent aufhört?
+
+Was meinen Sie, wenn in Ihrem Team jemand „autonom“ sagt?
+
+#KIEntwicklung #Softwarearchitektur #CodingAgents

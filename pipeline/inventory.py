@@ -3,7 +3,7 @@
 Built from the CV, the company context and the published posts with one model call; re-running keeps statuses
 (unused / drafted / published / skipped) and only adds new candidates. Shown on the board as counts per pillar."""
 import os, re, subprocess
-from datetime import datetime
+from datetime import datetime, date
 from common import CFG, LIB, read_csv, write_csv, log, resolve
 from llm import llm_json
 
@@ -20,6 +20,8 @@ PILLARS = {"thought": "a phrase Anton recorded or wrote himself (memo or chat): 
            "company": "AlpiType company post (EN): industrial or office automation built as code in the client's own environment, 70/30, who approves"}
 
 def cv_text():
+    if not CFG.get("cv_pdf"):   # another person's board: the facts are their confirmed profile (library/profile.md, from onboard.py)
+        f = os.path.join(LIB, "profile.md"); return open(f, encoding="utf-8").read() if os.path.isfile(f) else ""
     out = os.path.join(LIB, "sources", "cv-en.txt"); pdf = os.path.expanduser(CFG["cv_pdf"])
     if not os.path.isfile(out) or os.path.getmtime(out) < os.path.getmtime(pdf):
         os.makedirs(os.path.dirname(out), exist_ok=True); subprocess.run(["pdftotext", "-layout", pdf, out], check=True)
@@ -37,7 +39,32 @@ def published():
 def load(): rows, _ = read_csv(INV); return rows
 def save(rows): write_csv(INV, rows, FIELDS)
 
+def build_user():
+    """Topic inventory for another person's board: facts only from their confirmed profile, personal pillars only, no company page."""
+    from common import profile
+    who = profile(); rows = load(); have = {r["topic"].lower() for r in rows}; facts = cv_text()
+    if not facts.strip(): log("no profile.md yet, no inventory"); return
+    de = who["lang"] == "de"
+    prompt = f"""You build a topic inventory for the LinkedIn posts of {who['name']}{(' (' + who['role'] + ')') if who.get('role') else ''}. Facts may only come from the profile below; invent nothing, no numbers or clients that are not there.
+Pillars: case = a concrete situation from their work, what was done, what came out; decision = a position or rule they hold, with the reason; trend = a development in their field with their own view.
+Rules: posts on their personal profile, in {'German' if de else 'English'}, first person; no audience addressing ("richtet sich an", "für alle, die"); no job search; one angle per topic.
+Already published or planned (do not repeat): {chr(10).join(published()) or '-'}
+Existing inventory topics (do not repeat): {sorted(have) or 'none'}
+
+Produce 8-10 case topics, 5-6 decision topics, 4 trend topics, strongest first within a pillar.
+Answer with one JSON object only: {{"topics": [{{"pillar": "case|decision|trend", "topic": "4-8 words in {'German' if de else 'English'}", "angle": "one sentence, the concrete hook", "source": "profile: <section or fact>", "tags": "3-6 lowercase words"}}]}}
+
+=== Profile ===
+{facts[:12000]}
+"""
+    d = llm_json("inventory", prompt); n = 0
+    for t in d.get("topics", []):
+        if t.get("topic", "").lower() in have or t.get("pillar") not in ("case", "decision", "trend"): continue
+        rows.append({"id": f"t{len(rows) + 1:03d}", "pillar": t["pillar"], "topic": t["topic"][:80], "angle": t.get("angle", "")[:300], "source": t.get("source", "")[:120], "tags": t.get("tags", "")[:80], "status": "unused", "used_in": "", "added": date.today().isoformat()}); n += 1
+    save(rows); log(f"inventory: {n} new topics, {len(rows)} total"); return n
+
 def build():
+    if not CFG.get("cv_pdf"): return build_user()
     rows = load(); have = {r["topic"].lower() for r in rows}
     ctx = open(os.path.expanduser(CFG["company_context"]), encoding="utf-8").read()
     prompt = f"""You build a topic inventory for Anton Lytvynenko's LinkedIn posts. Facts may only come from the CV and the company context below; invent nothing.

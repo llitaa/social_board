@@ -5,9 +5,9 @@ becomes posted. Company cards need the organisation scope; until granted they st
 Dry run: python3 pipeline/publish.py --dry   (shows what would go out, publishes nothing)."""
 import json, os, re, sys, urllib.request
 from datetime import datetime, timedelta
-from common import CFG, ROOT, read_csv, write_csv, resolve, log
+from common import CFG, ROOT, LI_FILE, LI_ORG_FILE, read_csv, write_csv, resolve, log
 
-CFG_FILE = os.path.join(ROOT, "config.local.linkedin.json"); ORG_FILE = os.path.join(ROOT, "config.local.linkedin-org.json")
+CFG_FILE = LI_FILE; ORG_FILE = LI_ORG_FILE   # per board (common.py): users/<slug>/linkedin.json or config.local.linkedin.json
 API = "https://api.linkedin.com/rest"; VERSION = (datetime.now().replace(day=1) - timedelta(days=40)).strftime("%Y%m")   # two months back: always inside LinkedIn's ~12-month window (202509 answered 426 on 21.10.2026)
 
 def creds(org=False):

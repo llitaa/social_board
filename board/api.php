@@ -5,7 +5,10 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 date_default_timezone_set('Europe/Berlin');
 $D = __DIR__ . '/data';
-foreach (['decisions','uploads/photos','uploads/memos','queue','img'] as $p) { if (!is_dir("$D/$p")) mkdir("$D/$p", 0755, true); }
+require __DIR__ . '/auth.php';
+$a0 = $_GET['a'] ?? $_POST['a'] ?? '';
+if (!in_array($a0, ['ping', 'tick'], true) && !auth_check()) { http_response_code(401); echo json_encode(['error' => 'login']); exit; }   // a person's board: session cookie or nothing; ping (change stamp) and tick (publisher) carry no data and stay open for the worker
+foreach (['decisions','uploads/photos','uploads/memos','uploads/profile','queue','img'] as $p) { if (!is_dir("$D/$p")) mkdir("$D/$p", 0755, true); }
 
 function jread(string $f, $def) { return is_file($f) ? (json_decode((string)file_get_contents($f), true) ?? $def) : $def; }
 function jwrite(string $f, $v): void { file_put_contents($f, json_encode($v, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES), LOCK_EX); }
@@ -118,7 +121,11 @@ switch ($a) {
     foreach (glob("$D/uploads/memos/*") as $f) { $memos[] = ['id' => basename($f), 'ts' => date('c', filemtime($f)), 'bytes' => filesize($f)]; }
     $msg = jread("$D/messages.json", []);
     $health = jread("$D/health.json", ['ts' => '', 'issues' => []]);
-    out(['health' => $health, 'cards' => $cards, 'pipeline' => $pipe, 'queue' => today_queue(), 'photos' => $photos, 'pending' => $pending, 'memos' => $memos, 'settings' => settings(), 'messages' => $msg, 'now' => date('c'), 'build' => (int)filemtime(__DIR__ . '/index.php')]);   // build: the page reloads itself after a deploy
+    $me = auth_user(); $me = $me ? ['slug' => $me['slug'], 'name' => $me['name'], 'lang' => $me['lang'] ?? 'de'] + jread("$D/profile.json", []) : null;   // profile.json: pushed by the worker (onboard.py)
+    $props = jread("$D/proposals.json", []); $pov = jread("$D/overlay.json", [])['proposals'] ?? [];   // shared photos offered on cards (match.py); a tap here shows before the worker folds it
+    foreach ($props as $cid => &$pp) { if (fresh($pov[$cid] ?? null)) $pp['state'] = $pov[$cid]['state']; } unset($pp);
+    $profile_pending = is_file("$D/uploads/profile/request.json");
+    out(['me' => $me, 'proposals' => $props, 'profile_pending' => $profile_pending, 'health' => $health, 'cards' => $cards, 'pipeline' => $pipe, 'queue' => today_queue(), 'photos' => $photos, 'pending' => $pending, 'memos' => $memos, 'settings' => settings(), 'messages' => $msg, 'now' => date('c'), 'build' => (int)filemtime(__DIR__ . '/index.php')]);   // build: the page reloads itself after a deploy
 
   case 'decide': // post card: post (now) | schedule (when) | change (note) | skip | posted | unschedule | photo_next
     $id = (string)($body['card_id'] ?? ''); $dec = (string)($body['decision'] ?? '');
@@ -162,7 +169,7 @@ switch ($a) {
 
   case 'photo': // hold | use_friday | mark_used | delete  (id = photo id or shoot id)
     $dec = (string)($body['decision'] ?? ''); $id = (string)($body['id'] ?? '');
-    if ($id === '' || !in_array($dec, ['hold','use_friday','mark_used','delete'], true)) out(['error' => 'bad request']);
+    if ($id === '' || !in_array($dec, ['hold','use_friday','mark_used','delete','share','unshare'], true)) out(['error' => 'bad request']);   // share: offered to the other boards (03.11.)
     if ($dec === 'delete' && is_file("$D/uploads/photos/$id") && preg_match('/^[\w.\-]+$/', $id)) unlink("$D/uploads/photos/$id");
     set_overlay('photos', $id, ['state' => $dec]);
     decide(['type'=>'photo','id'=>$id,'decision'=>$dec]);
@@ -183,6 +190,7 @@ switch ($a) {
       }
     }
     $note = trim((string)($_POST['note'] ?? '')); $card = preg_replace('/[^\w-]/', '', (string)($_POST['card_id'] ?? ''));
+    if (!empty($_POST['share']) && $card === '') $note = '[netzwerk] ' . $note;   // shared for the other boards as soon as the worker has it (photo_index.py)
     if ($card !== '') { $note = "card:$card"; if ($saved) set_overlay('cards', $card, ['image_pending' => time()]); }   // image for one post, not for the pool
     if ($note !== '' && $saved) { $notes = jread("$D/uploads/photo-notes.json", []); foreach ($saved as $s) $notes[$s] = $note; jwrite("$D/uploads/photo-notes.json", $notes); }
     if (!$saved && !$failed) $failed[] = 'no file arrived in the request (the browser sent none: pick the photos again, fewer at once)';
@@ -229,6 +237,38 @@ switch ($a) {
     $d = ['type' => 'inbound', 'id' => $id, 'decision' => $dec];
     foreach (['date', 'source', 'who', 'what', 'qualified', 'next'] as $k) if (isset($body[$k])) { $s = trim((string)$body[$k]); $d[$k] = function_exists('mb_substr') ? mb_substr($s, 0, 300) : substr($s, 0, 300); }
     set_overlay('inbound', $id, ['state' => $dec]); decide($d); out(['ok' => true]);
+
+  case 'logout': auth_logout(); out(['ok' => true]);
+
+  case 'profile': // onboarding (03.11.): website, own words, optional document -> uploads/profile/request.json; the worker's onboard.py makes the proposal
+    if (!auth_user()) out(['error' => 'no owner']);
+    $web = trim((string)($_POST['website'] ?? '')); $words = trim((string)($_POST['words'] ?? ''));
+    if ($web !== '' && !preg_match('~^(https?://)?[\w.-]+\.[a-z]{2,}(/\S*)?$~i', $web)) out(['error' => 'Website: bitte eine Adresse wie firma.de']);
+    $doc = '';
+    if (!empty($_FILES['doc']) && $_FILES['doc']['error'] === UPLOAD_ERR_OK) {
+      $ext = strtolower(pathinfo($_FILES['doc']['name'], PATHINFO_EXTENSION));
+      if (!in_array($ext, ['pdf','txt','md','docx'], true)) out(['error' => 'Dokument: PDF oder Text']);
+      if ($_FILES['doc']['size'] > 15 * 1048576) out(['error' => 'Dokument größer als 15 MB']);
+      $doc = "doc.$ext"; move_uploaded_file($_FILES['doc']['tmp_name'], "$D/uploads/profile/$doc");
+    }
+    if ($web === '' && $words === '' && $doc === '') out(['error' => 'Website, ein paar Sätze oder ein Dokument: mindestens eins davon']);
+    jwrite("$D/uploads/profile/request.json", ['website' => $web, 'words' => function_exists('mb_substr') ? mb_substr($words, 0, 4000) : substr($words, 0, 4000), 'doc' => $doc, 'ts' => date('c')]);
+    decide(['type' => 'profile', 'decision' => 'request', 'website' => $web, 'doc' => $doc]); out(['ok' => true]);
+
+  case 'profile_confirm': // the person corrected the proposal and said yes: profile.json confirmed here at once, the worker writes facts, positioning and inventory
+    if (!auth_user()) out(['error' => 'no owner']);
+    $pr = jread("$D/profile.json", []); $d = ['type' => 'profile_confirm'];
+    foreach (['role','company','website','audience','offer','tone','facts','words'] as $k) if (isset($body[$k])) { $v = trim((string)$body[$k]); $d[$k] = function_exists('mb_substr') ? mb_substr($v, 0, 6000) : substr($v, 0, 6000); $pr[$k] = $d[$k]; }
+    if (isset($body['topics'])) { $t = array_values(array_filter(array_map('trim', is_array($body['topics']) ? $body['topics'] : explode("\n", (string)$body['topics'])))); $d['topics'] = array_slice($t, 0, 12); $pr['topics'] = $d['topics']; }
+    $pr['confirmed'] = true; $pr['confirmed_at'] = date('c'); jwrite("$D/profile.json", $pr); decide($d); out(['ok' => true]);
+
+  case 'proposal': // a shared photo offered on a card: accept | decline (apply_decisions.py puts it on the card with a credit line)
+    $id = preg_replace('/[^\w-]/', '', (string)($body['card_id'] ?? '')); $dec = ($body['decision'] ?? '') === 'accept' ? 'accept' : 'decline';
+    $props = jread("$D/proposals.json", []); if ($id === '' || empty($props[$id])) out(['error' => 'unknown proposal']);
+    set_overlay('proposals', $id, ['state' => $dec]); decide(['type' => 'proposal', 'card_id' => $id, 'decision' => $dec, 'photo' => $props[$id]['photo'] ?? '', 'owner' => $props[$id]['owner'] ?? '']); out(['ok' => true]);
+
+  case 'password': // the person changes their own password (auth.php); ends all other sessions of this board
+    $r = auth_set_password((string)($body['new'] ?? '')); if ($r !== '') out(['error' => $r]); auth_login((string)$body['new']); out(['ok' => true]);
 
   case 'settings':
     $s = settings(); foreach (['expiry','review'] as $k) if (isset($body[$k])) $s[$k] = (string)$body[$k];

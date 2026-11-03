@@ -1,0 +1,29 @@
+{
+ "id": "li-post-38",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t077",
+ "memo": "",
+ "photo": "img1766",
+ "neighbour_shoots": [
+  "2025-09-09_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-11-02T15:00:36",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "Coding-Agents",
+  "headline": "Autonom heisst für mich: automatisiert, bis es zusammenbricht."
+ },
+ "signals": {
+  "lead": "Ich habe dort Interprozess-Tests eingeführt, und für mich sind sie die eigentliche Grenze.",
+  "ai": "In einer grossen Legacy-C/C++-Codebasis setze ich täglich Coding-Agents ein."
+ },
+ "editorial": {
+  "reader": "Entwicklungsleiter, der gerade entscheidet, wie viel Freiheit Coding-Agents im bestehenden Code bekommen",
+  "insight": "Autonom ist meist automatisiert ohne Haltepunkt; die Grenze zieht nicht das Modell, sondern ein Test und eine Person, die abnimmt",
+  "discussion_reason": "Manche halten Autonomie für ein reines Reifegrad-Thema der Modelle, nicht für eine Frage fehlender Stopp-Signale",
+  "situation": "2"
+ }
+}

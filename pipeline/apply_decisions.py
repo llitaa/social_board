@@ -9,7 +9,7 @@ Idempotent: remembers the last processed line per decisions file in library/log/
 """
 import csv, glob, json, os, re, shutil
 from datetime import datetime
-from common import CFG, BOARD_LOCAL, LIB, read_csv, write_csv, jload, jdump, log, resolve
+from common import CFG, BOARD_LOCAL, LIB, USER, boards, profile, read_csv, write_csv, jload, jdump, log, resolve
 
 STATE = os.path.join(LIB, "log", ".applied.json")
 LOGDIR = os.path.join(LIB, "log")
@@ -145,7 +145,39 @@ def main():
                     rows, f = read_csv(ib) if os.path.isfile(ib) else ([], ["date", "source", "who", "what", "qualified", "next"])
                     rows.append({"date": (d.get("date") or d["ts"])[:10], "source": d.get("source") or "website form", "who": d.get("who", ""), "what": d.get("what", ""), "qualified": d.get("qualified", ""), "next": d.get("next", "")})
                     write_csv(ib, rows, f or ["date", "source", "who", "what", "qualified", "next"]); log("inbound confirmed", d.get("who"))
-            elif t in ("photo", "upload", "memo", "settings", "answer"):
+            elif t == "profile_confirm":   # onboarding: the person corrected and confirmed the profile proposal -> facts for drafts, positioning, inventory (onboard.py)
+                pf = os.path.join(LIB, "profile.json"); pr = jload(pf, {})
+                for k in ("role", "company", "website", "audience", "offer", "tone", "facts", "words"):
+                    if k in d: pr[k] = str(d[k])[:6000]
+                if "topics" in d: pr["topics"] = [str(x)[:160] for x in (d["topics"] if isinstance(d["topics"], list) else str(d["topics"]).splitlines()) if str(x).strip()][:12]
+                pr["confirmed"] = True; pr["confirmed_at"] = d["ts"][:16]; jdump(pf, pr); jdump(os.path.join(BOARD_LOCAL, "profile.json"), pr)
+                import onboard; onboard.write_facts(pr); log("profile confirmed")
+            elif t == "proposal":   # a shared photo of another board offered on a card: accept = into this pool + on the card + credit line; decline = remembered
+                pf = os.path.join(BOARD_LOCAL, "proposals.json"); props = jload(pf, {}); p = props.get(d.get("card_id", ""), {})
+                p["state"] = "accept" if d.get("decision") == "accept" else "decline"; p["decided"] = d["ts"][:16]; props[d.get("card_id", "")] = p; jdump(pf, props)
+                if p["state"] == "accept" and p.get("file") and os.path.isfile(p["file"]):
+                    try:
+                        import photo_index as ph
+                        row = ph.ingest(p["file"], note=f"von {p.get('owner_name', '')}", status="ready", copy=True, src="shared")
+                        if not row: row = next((x for x in ph.read_index() if os.path.basename(x["file"]) == os.path.basename(p["file"])), None)
+                        pr_ = next((r for r in plan if r.get("caption_ref") and "-".join(os.path.basename(r["caption_ref"]).split("-")[0:3]) == d.get("card_id")), None)
+                        if row and pr_:
+                            rows = ph.read_index()
+                            for x in rows:
+                                if x["id"] == row["id"]: x["owner"] = p.get("owner", ""); x["share"] = ""
+                            ph.write_index(rows)
+                            ph.set_card_image(pr_, row, f"Foto von {p.get('owner_name', '')}")
+                            tp = resolve(pr_.get("caption_ref", "")); txt = open(tp, encoding="utf-8").read().rstrip() if tp and os.path.isfile(tp) else ""
+                            credit = f"Foto: {p.get('owner_name', '')}"
+                            if txt and credit not in txt:
+                                m = re.search(r"(\n\s*#\w[\w\s#]*)$", txt); new = (txt[:m.start()].rstrip() + "\n\n" + credit + "\n" + txt[m.start():].lstrip("\n")) if m else txt + "\n\n" + credit + "\n"
+                                write_edit(pr_, new, d["ts"])
+                            pr_["notes"] = f"[board {d['ts'][:16]} shared photo {row['id']} von {p.get('owner_name', '')}] " + pr_.get("notes", ""); changed_plan = True
+                            ob = boards().get(p.get("owner", ""), {})
+                            if ob: append(os.path.join(ob["lib"], "log", "shared-uses.csv"), ["ts", "photo", "used_by", "used_by_name", "card"], {"ts": d["ts"][:16], "photo": row["id"], "used_by": USER or "anton", "used_by_name": profile()["name"], "card": d.get("card_id", "")})
+                            log("proposal accepted", d.get("card_id"), row["id"])
+                    except Exception as e: log("proposal accept failed", repr(e)[:300])
+            elif t in ("photo", "upload", "memo", "settings", "answer", "profile"):
                 append(os.path.join(LOGDIR, "board-events.csv"), ["ts", "type", "id", "decision", "files", "file", "note", "answer", "expiry", "review", "card_id"],
                        {**d, "files": ",".join(d.get("files", []) or [])})
         done[key] = ok_upto

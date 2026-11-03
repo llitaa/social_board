@@ -7,7 +7,8 @@ from common import CFG, LIB, log
 
 L = CFG.get("llm", {})
 MODELS = {"draft": "claude-opus-5-5", "redraft": "claude-opus-5-5", "inventory": "claude-opus-5-5",
-          "tags": "claude-haiku-5-5", "comment": "claude-sonnet-5-5", "learn": "claude-sonnet-5-5"} | L.get("models", {})
+          "tags": "claude-haiku-5-5", "comment": "claude-sonnet-5-5", "learn": "claude-sonnet-5-5",
+          "profile": "claude-sonnet-5-5", "match": "claude-sonnet-5-5"} | L.get("models", {})
 CALLS = os.path.join(LIB, "log", "llm-calls.csv")
 DEFERRED = "deferred: model calls are off in the background (config llm.auto: false); run python3 pipeline/process.py in a terminal"
 

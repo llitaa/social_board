@@ -23,7 +23,7 @@ pillow_heif.register_heif_opener()
 PH = os.path.join(LIB, "photos"); SHOOTS, SQUARE = (os.path.join(PH, d) for d in ("shoots", "square"))
 THUMBS = os.path.join(BOARD_LOCAL, "img", "thumbs")
 INDEX = os.path.join(PH, "index.csv")
-FIELDS = ["id", "file", "taken", "gps", "shoot", "note", "status", "used_in", "used_at", "crop", "face", "faces", "scene", "tags", "people", "label", "added", "src"]
+FIELDS = ["id", "file", "taken", "gps", "shoot", "note", "status", "used_in", "used_at", "crop", "face", "faces", "scene", "tags", "people", "label", "added", "src", "share", "owner"]   # share: network = other boards may be offered this photo (03.11.); owner: slug of the board it came from
 YUNET = p("pipeline", "models", "face_detection_yunet_2023mar.onnx")
 EXCLUDE = re.compile(r"ust-id|invoice|rechnung|mwst|meme|whatsapp|screenshot|^image ?\(|^image0|quelle|dirk|controllers|^li-post|_upright|^d24-198 \(13\)", re.I)
 REUSE = int(CFG.get("photo_reuse_days", 90)); FRESH = int(CFG.get("photo_fresh_months", 24))
@@ -112,12 +112,12 @@ def ingest(path, note="", status="ready", copy=True, src="board"):
     rows = read_index(); pid = pid_of(path); base = os.path.basename(path)
     if EXCLUDE.search(base): return None
     taken, gps, model = exif_info(path)
-    if src != "board" and not taken: return None                      # no camera date: a download, a scan, a meme
+    if src not in ("board", "shared") and not taken: return None       # no camera date: a download, a scan, a meme (board uploads and shared photos are trusted)
     tk = taken.isoformat() if taken else ""
     for r in rows:
         if r["id"] == pid or os.path.basename(r["file"]) == base or (tk and r["taken"] == tk): return None
     im = ImageOps.exif_transpose(Image.open(path)); faces = faces_of(im)
-    if src != "board" and not faces: return None                      # pool = photos with a person in them
+    if src not in ("board", "shared") and not faces: return None       # pool = photos with a person in them
     shoot = assign_shoot(rows, taken, gps, note)
     sdir = os.path.join(SHOOTS, shoot); os.makedirs(sdir, exist_ok=True); os.makedirs(SQUARE, exist_ok=True); os.makedirs(THUMBS, exist_ok=True)
     dst = os.path.join(sdir, base)
@@ -173,6 +173,8 @@ def apply_board_events():
                     if e["decision"] == "hold" and r["status"] in ("ready", "new"): r["status"] = "hold"
                     if e["decision"] == "delete": r["status"] = "deleted"
                     if e["decision"] == "use_friday": r["label"] = "friday"
+                    if e["decision"] == "share": r["share"] = "network"       # offered to the other boards (match.py); never posted by itself
+                    if e["decision"] == "unshare": r["share"] = ""            # no more proposals from it; posts already made keep their copy
     write_index(rows)
 
 def plan_images():
@@ -237,7 +239,7 @@ def export_board():
             try: free = (date.fromisoformat(r["used_at"][:10]) + timedelta(days=REUSE)).isoformat()
             except ValueError: pass
         s["photos"].append({"id": r["id"], "thumb": f"data/img/thumbs/{r['id']}.jpg", "status": r["status"], "used_in": r["used_in"], "free_from": free,
-                            "scene": r["scene"], "label": r["label"], "eligible": eligible(r, today)})
+                            "scene": r["scene"], "label": r["label"], "eligible": eligible(r, today), "share": r.get("share", ""), "owner": r.get("owner", "")})
     for s in shoots.values():
         st = {p["status"] for p in s["photos"]}
         s["status"] = "used" if st == {"used"} else "hold" if st == {"hold"} else ("new" if "new" in st else "ready")
@@ -297,7 +299,13 @@ def main(fast=False):
     for f in sorted(os.listdir(up)) if os.path.isdir(up) else []:
         if not f.lower().endswith((".jpg", ".jpeg", ".png", ".heic", ".heif", ".webp")): continue
         note = notes.get(f, ""); card = note[5:] if note.startswith("card:") else ""
+        share = note.startswith("[netzwerk]"); note = note[10:].strip() if share else note
         row = ingest(os.path.join(up, f), note, "used" if card else "ready", copy=False, src="board")
+        if row and share:   # "gleich für das Netzwerk freigeben" on the upload form
+            rows = read_index()
+            for x in rows:
+                if x["id"] == row["id"]: x["share"] = "network"
+            write_index(rows)
         if row: n += 1
         elif card: row = next((r for r in read_index() if os.path.basename(r["file"]) == f), None)   # already in the pool
         if card and row: uploaded[card] = row

@@ -1,0 +1,17 @@
+We trained a defect detector for interferometers on defects that never happened.
+
+In optics manufacturing, the defect you need for training is the one you rarely have. Waiting until the line has produced enough of them is not a plan.
+
+So the training set was built from two parts: ideal interferometer images, and synthetic defects placed into them.
+
+The consequence matters more than the amount of data. When you create a defect, you know exactly how large it is. Every training example carries its true size, not an estimate someone marked by hand. The model learns size as supervised regression on that ground truth.
+
+The result is a size calculation that is repeatable: the same image gives the same number, which is what a quality decision needs. Confidence reached 98.5 percent.
+
+98.5 is not 100, and we do not pretend it is. Our 70/30 principle decides what happens with the rest: the machine handles what it is sure about, and the cases it is not sure about go to a person who approves them. Who trains the model, who checks its output, and who is accountable for a release stays written down.
+
+A synthetic defect is only as useful as its resemblance to a real one. That is the part worth arguing about before the first image is generated.
+
+How do you get training data for a defect your line almost never produces?
+
+#ComputerVision #QualityInspection #7030

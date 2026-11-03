@@ -17,6 +17,20 @@ DRAFTS = os.path.join(LIB, "drafts"); os.makedirs(DRAFTS, exist_ok=True)
 WD = {"Mon": 0, "Tue": 1, "Wed": 2, "Thu": 3, "Fri": 4, "Sat": 5, "Sun": 6}
 SLOTS = CFG["slots"]; HORIZON = int(CFG.get("horizon_days", 14))
 CHAN = {"personal": "linkedin", "company": "linkedin-company"}
+from common import profile as _profile
+WHO = _profile()
+def user_style():
+    """Style block for another person's board: their name and role, first person, no Anton-specific rules."""
+    de = WHO["lang"] == "de"; role = (" " + WHO["role"] + ".") if WHO.get("role") else ""
+    return (f"""Du schreibst als {WHO['name']} auf dem persönlichen LinkedIn-Profil, auf Deutsch, in der Ich-Form.{role}
+Form: 700-1400 Zeichen. Erster Satz = Hook (konkret, kein Clickbait). Kurze Absätze, keine Emojis, keine Aufzählungs-Orgie. Ein Gedanke pro Post.
+Immer eine Frage als letzter Satz vor den Hashtags, dann genau 3 Hashtags.
+Verboten: Zielgruppen-Ansprache ("richtet sich an", "für alle, die"), erfundene Zahlen, Projekte oder Kundennamen, Behauptungen, die nicht in den Fakten stehen. Fehlt ein Detail, lass es weg.
+Wenn ein Foto beschrieben ist, darf der erste Satz es leicht aufgreifen, muss aber nicht.""" if de else
+            f"""You write as {WHO['name']} on their personal LinkedIn profile, in English, first person.{role}
+Form: 700-1400 characters. First sentence = hook (concrete, no clickbait). Short paragraphs, no emojis, no bullet orgy. One idea per post.
+Always end with a question, then exactly 3 hashtags.
+Forbidden: addressing an audience ("for everyone who"), invented numbers, projects or client names, claims not in the facts. If a detail is missing, leave it out.""")
 STYLE = {"personal": """Du schreibst als Anton Lytvynenko auf seinem persönlichen LinkedIn-Profil, auf Deutsch, Sie-Form, als Softwarearchitekt mit 13 Jahren C++.
 Form: 900-1600 Zeichen. Erster Satz = Hook (konkret, kein Clickbait). Kurze Absätze, keine Aufzählungszeichen-Orgie, keine Emojis. Ein Gedanke pro Post.
 Immer eine Frage als letzter Satz vor den Hashtags, dann genau 3 Hashtags.
@@ -236,8 +250,8 @@ def draft_one(dt, channel, plan, idx, memo=None, topic=None):
                 set(re.findall(r"square/(\w+)_sq\.png|photo (\w+) \+", " ".join(r.get("asset", "") for r in plan if r["status"] not in ("dropped", "skipped"))) and
                      {x for t in re.findall(r"square/(\w+)_sq\.png|photo (\w+) \+", " ".join(r.get("asset", "") for r in plan if r["status"] not in ("dropped", "skipped"))) for x in t if x})
         cands = ph.pick(slot_day, nb, topic_tags=(topic["tags"].split() if topic else ()), friday=slot_day.weekday() == 4, exclude_ids=taken)   # one photo, one post (also within one run)
-        if not cands: log("no eligible photo for", slot_day); return None
-        photo = cands[0]
+        if not cands and WHO["default"]: log("no eligible photo for", slot_day); return None
+        photo = cands[0] if cands else None   # another person's board may have no photos yet: the post goes out as text (no graphic, no stock)
     ex = examples(channel)
     material = f"Voice memo (Anton's own words, keep his thought, clean spelling and structure only, add nothing he did not say):\n{memo[1]}" if memo else \
                ((f"Antons eigener Satz, wörtlich (er ist der erste Satz des Posts und die Karten-Headline; baue den Post darum, mit einem konkreten Beispiel aus seinen Fakten; ist der Satz auf Englisch, übersetze ihn sinntreu ins Deutsche und nimm die Übersetzung als Hook und als card.headline):\n{topic['angle']}" if len(topic['angle']) <= 95 else
@@ -245,10 +259,11 @@ def draft_one(dt, channel, plan, idx, memo=None, topic=None):
                 + f"\nQuelle: {topic['source']}\nPillar: thought" if pillar == "thought" else
                 f"Topic: {topic['topic']}\nAngle: {topic['angle']}\nSource: {topic['source']}\nPillar: {pillar} = {inv.PILLARS[pillar]}")
     facts = inv.cv_text() if channel == "personal" else open(os.path.expanduser(CFG["company_context"]), encoding="utf-8").read()
-    img = f"\nPhoto that will be posted with the text: {photo['scene'] or photo['note'] or 'Anton, ' + photo['tags']}\n" if photo else \
+    style = STYLE[channel] if WHO["default"] else user_style()
+    img = "" if (not photo and not WHO["default"]) else f"\nPhoto that will be posted with the text: {photo['scene'] or photo['note'] or 'Anton, ' + photo['tags']}\n" if photo else \
           ("\nDer Post bekommt eine 1200x1200-Grafik (kein Foto): gib eyebrow (2-3 Wörter, das Thema), title (max. 8 Wörter, die Kernaussage des Posts, darf ein \\n enthalten), lines = die 3-5 nummerierten Punkte des Posts in Kurzform (max. 8 Wörter je Punkt, dieselben Punkte wie im Text, dieselbe Reihenfolge) und footer (1-3 Wörter, z.B. das Jahr oder leer).\n" if graphic_post else
            "\nThe post gets a 1200x1200 graphic: give eyebrow (2-3 words), title (max 8 words, may contain one \\n), 3-4 numbered lines (max 9 words each) and a 1-3 word footer.\n")
-    prompt = f"""{STYLE[channel]}
+    prompt = f"""{style}
 {positioning() + book_phrases() if channel == 'personal' else ''}{style_rules()}
 Slot: {dt.strftime('%A %d.%m.%Y %H:%M')}
 {material}
@@ -266,6 +281,8 @@ Facts you may use (nothing else):
 {EDITORIAL_PROMPT}
 
 Answer with one JSON object only: {{"text": "the full post incl. hashtags, newlines as \\n"{', "graphic": {"eyebrow": "", "title": "", "lines": [""], "footer": ""}' if channel == 'company' else (', "graphic": {"eyebrow": "", "title": "", "lines": [""], "footer": ""}' if graphic_post else ', "card": {"kicker": "2-3 words, the field (e.g. Legacy C++)", "headline": "the one sentence of the post that should stand under the photo, max 70 characters"}') + ', "signals": {"lead": "the sentence of the post that shows him leading or deciding, copied verbatim", "ai": "the sentence that shows his own AI practice or position, copied verbatim"}'}{EDITORIAL_JSON}}}"""
+    if not WHO["default"]:   # another person's board: the prompt's wording about Anton (memo, signals, examples) speaks of them instead
+        f = WHO["first"]; prompt = prompt.replace("Anton's", f"{f}'s").replace("Antons", f"{f}s").replace("Anton", f).replace("Sie-Form", "Ich-Form")
     d = llm_json("draft", prompt); text = rules_check.fix_orthography(d.get("text", "").strip(), channel)
     v = rules_check.check(text, channel, d.get("signals"))
     if v:
@@ -287,14 +304,14 @@ Answer with one JSON object only: {{"text": "the full post incl. hashtags, newli
             import personal_card
             png = personal_card.render(ph.square_of(photo), d["card"], base)
             if png: asset = f"library/drafts/{base}.png (card: photo {photo['id']} + headline, style {CFG['personal_card']['style']}; source library/drafts/{base}.html)"
-    else:
+    elif WHO["default"] or channel == "company":
         png = render_graphic(d.get("graphic", {}), base, brand="personal" if channel == "personal" else "company")
         asset = f"library/drafts/{base}.png (1200x1200 graphic; source library/drafts/{base}.html)" if png else ""
     meta = {"id": cid, "channel": channel, "pillar": pillar, "topic": topic["id"] if topic else "", "memo": memo[0]["id"] if memo else "", "photo": photo["id"] if photo else "",
             "neighbour_shoots": nb, "model": MODELS["draft"], "created": datetime.now().isoformat(timespec="seconds"), "versions": [], "graphic": d.get("graphic"), "card": d.get("card"), "signals": d.get("signals"), "editorial": d.get("editorial")}
     json.dump(meta, open(os.path.join(DRAFTS, base + ".json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    row = {"id": str(max(int(r["id"]) for r in plan if r["id"].isdigit()) + 1), "campaign": "linkedin-anton" if channel == "personal" else "linkedin-alpitype",
-           "channel": CHAN[channel], "slot": slug, "asset": asset, "format": "foto-post" if photo else "grafik-post", "language": SLOTS[channel]["lang"],
+    row = {"id": str(max([int(r["id"]) for r in plan if r["id"].isdigit()], default=0) + 1), "campaign": ("linkedin-anton" if WHO["default"] else f"linkedin-{WHO['slug']}") if channel == "personal" else "linkedin-alpitype",
+           "channel": CHAN[channel], "slot": slug, "asset": asset, "format": "foto-post" if photo else ("grafik-post" if asset else "text-post"), "language": SLOTS[channel]["lang"],
            "caption_ref": f"library/drafts/{base}.txt", "planned": dt.strftime("%Y-%m-%d %H:%M"), "status": "draft",
            "notes": f"[draft {today.isoformat()} pillar={pillar} topic={topic['id'] if topic else 'memo'} photo={photo['id'] if photo else '-'}] {topic['angle'] if topic else 'from voice memo ' + memo[0]['id']}"}
     plan.append(row)
