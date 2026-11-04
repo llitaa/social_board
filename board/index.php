@@ -181,6 +181,9 @@ button,.b,.sm,label.b{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 .item .ex{font-weight:600;-webkit-line-clamp:2}.meta .gap{display:inline-block;width:10px}.amber{color:#c77700}
 .noimg.cover{display:flex;align-items:center;padding:14px;background:var(--tint);color:var(--d);font-weight:600;font-size:15px;line-height:1.3}
 @media(max-width:959px){.sheet .act{position:sticky;bottom:0;z-index:1;box-shadow:0 -6px 16px rgba(0,0,0,.08)}}
+.chips2{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.chip2{border:1.5px solid var(--b);border-radius:999px;padding:9px 14px;font-size:15px;background:#fff;cursor:pointer;color:var(--t)}.chip2.on{border-color:var(--c);background:var(--tint);color:var(--d);font-weight:600}
+.tcard{border:1.5px solid var(--b);border-radius:12px;padding:12px 14px;margin-top:10px;cursor:pointer;background:#fff}.tcard.on{border-color:var(--c);background:var(--tint)}.tcard b{display:block;margin-bottom:4px}.tcard span{font-size:14px;color:var(--t)}
+.setup h2{margin:0 0 4px;text-transform:none;font-size:20px;letter-spacing:0;color:var(--d)}.setup .prog{font-size:12px;color:var(--m);margin:0 0 10px}.setup .q{margin:0 0 10px}.setup .nav{display:flex;gap:8px;margin-top:16px}.setup .nav .b{flex:1}
 </style>
 </head>
 <body>
@@ -361,28 +364,61 @@ async function sendOrder(){const items=[...document.querySelectorAll('#items .it
   const before=[...S.cards].sort((a,b)=>a.slot.localeCompare(b.slot)).filter(c=>c.status!=='scheduled').map(c=>c.id);
   let n=0;for(const ch in byCh){const ids=byCh[ch];if(ids.length<2)continue;const prev=before.filter(id=>S.cards.find(c=>c.id===id).channel===ch);if(prev.join()===ids.join())continue;const r=await post({a:'decide',card_id:ids[0],decision:'order',order:ids});if(r.ok)n++}
   if(n){toast('Reihenfolge gespeichert, Slots neu verteilt');watchUntil=Date.now()+60000}load()}
+let SU=null, suStep=0;
+const SU_STEPS=['check','readers','goal','topics','tone','examples','day','photos','done'];
+const DAYS=[['Mon','Montag'],['Tue','Dienstag'],['Wed','Mittwoch'],['Thu','Donnerstag'],['Fri','Freitag'],['Sat','Samstag'],['Sun','Sonntag']];
+function suLoad(){if(SU)return;try{SU=JSON.parse(localStorage.getItem('su-'+((S.me||{}).slug||''))||'null')}catch(e){SU=null}SU=SU||{};suStep=SU._step||0}
+function suSave(){SU._step=suStep;try{localStorage.setItem('su-'+((S.me||{}).slug||''),JSON.stringify(SU))}catch(e){}}
+function suSet(k,v){SU[k]=v;suSave();renderPost()}
+function suInput(k,el){SU[k]=el.value;suSave()}
+function suToggle(k,v,single){const a=SU[k]||[];SU[k]=single?[v]:(a.includes(v)?a.filter(x=>x!==v):[...a,v]);suSave();renderPost()}
+function suGo(d){suStep=Math.max(0,Math.min(SU_STEPS.length-1,suStep+d));suSave();renderPost();window.scrollTo(0,0)}
+function chips(k,opts,single){const sel=SU[k]||[];return `<div class="chips2">${opts.map(o=>`<button class="chip2 ${sel.includes(o)?'on':''}" onclick="suToggle('${k}',${JSON.stringify(o).replace(/"/g,'&quot;')},${!!single})">${esc(o)}</button>`).join('')}</div>`}
+function suNav(ok,last){return `<div class="nav">${suStep>0?`<button class="b s" onclick="suGo(-1)">Zurück</button>`:''}${last?`<button class="b p" onclick="confirmProfile()">Fertig, ersten Entwurf schreiben</button>`:`<button class="b p" ${ok?'':'disabled style="opacity:.4"'} onclick="suGo(1)">Weiter</button>`}</div>`}
 function onboardingHtml(){
-  const m=S.me||{}; const T=(v)=>esc(v||'');
-  if(S.profile_pending) return `<div class="card" style="padding:16px"><h2 style="margin:0 0 6px">Dein Profil wird erstellt</h2><div class="q" style="margin:0">Das System liest deine Website und deine Sätze und macht einen Vorschlag. Das dauert ein bis zwei Minuten, die Seite aktualisiert sich von selbst.</div></div>`;
-  if(m.proposed) return `<div class="card" style="padding:16px"><h2 style="margin:0 0 4px">Dein Profil, bitte prüfen</h2><div class="q" style="margin:0 0 10px">Aus deiner Website und deinen Sätzen. Korrigiere, was nicht stimmt, streiche, was du nicht willst. Erfunden wird nichts: was unklar war, steht unten.</div>
-    <label class="hint" style="padding:0">Was du machst</label><input type="text" id="pf-role" value="${T(m.role)}">
-    <div class="row" style="margin-top:6px"><div><label class="hint" style="padding:0">Firma</label><input type="text" id="pf-company" value="${T(m.company)}"></div><div><label class="hint" style="padding:0">Website</label><input type="text" id="pf-website" value="${T(m.website)}"></div></div>
-    <label class="hint" style="padding:0;margin-top:8px;display:block">Wer deine Posts lesen soll</label><input type="text" id="pf-audience" value="${T(m.audience)}">
-    <label class="hint" style="padding:0;margin-top:8px;display:block">Was hängen bleiben soll</label><input type="text" id="pf-offer" value="${T(m.offer)}">
-    <label class="hint" style="padding:0;margin-top:8px;display:block">Themen, eins je Zeile</label><textarea id="pf-topics" rows="6">${T((m.topics||[]).join('\n'))}</textarea>
-    <label class="hint" style="padding:0;margin-top:8px;display:block">Fakten, die ein Post nutzen darf</label><textarea id="pf-facts" rows="10">${T(m.facts)}</textarea>
-    ${(m.uncertain||[]).length?`<div class="note" style="margin:10px 0 0"><b>Unklar geblieben</b><ul style="margin:4px 0 0;padding-left:18px">${(m.uncertain||[]).map(u=>`<li>${esc(u)}</li>`).join('')}</ul></div>`:''}
-    <div class="row" style="margin-top:12px"><button class="b p" onclick="confirmProfile()">Passt, weiter</button></div>
-    <div class="q" style="margin:6px 0 0;font-size:13px">Danach baut das System aus den Fakten eine Themenliste und den ersten Entwurf. Beides siehst du hier, nichts geht ohne dich raus.</div></div>`;
-  return `<div class="card" style="padding:16px"><h2 style="margin:0 0 4px">Hallo ${esc((m.name||'').split(' ')[0])}, kurz zu dir</h2><div class="q" style="margin:0 0 10px">Deine Website reicht. Ein paar Sätze in deinen Worten machen den ersten Entwurf besser. Ein Dokument (PDF) geht auch.</div>
-    <form id="pf" onsubmit="return false"><label class="hint" style="padding:0">Website</label><input type="text" name="website" placeholder="firma.de" inputmode="url">
-    <label class="hint" style="padding:0;margin-top:8px;display:block">Ein paar Sätze: was du machst, für wen, was dir wichtig ist</label><textarea name="words" rows="5" placeholder="Ich ..."></textarea>
-    <label class="lbl" style="margin-top:10px">Dokument anhängen (optional)<input type="file" name="doc" accept=".pdf,.txt,.md,.docx" style="display:none" onchange="$('#pf-docname').textContent=this.files[0]?this.files[0].name:''"></label> <span id="pf-docname" class="hint"></span>
-    <div class="row" style="margin-top:12px"><button class="b p" onclick="sendProfile()">Profil erstellen</button></div></form>
-    <div class="q" style="margin:6px 0 0;font-size:13px">Nichts davon wird veröffentlicht. Du bekommst einen Vorschlag zum Prüfen.</div></div>`;
+  const m=S.me||{}; suLoad();
+  if(S.profile_pending) return `<div class="card setup" style="padding:16px"><h2>Deine Website wird gelesen</h2><div class="q">Das dauert ein bis zwei Minuten, die Seite aktualisiert sich von selbst. Erfunden wird nichts: was unklar bleibt, siehst du gleich als Liste.</div></div>`;
+  if(!m.proposed) return `<div class="card setup" style="padding:16px"><h2>Hallo ${esc((m.name||'').split(' ')[0])}, kurz zu dir</h2><div class="q">Deine Website reicht für den Anfang. Das System liest sie und schlägt dir vor, wer deine Posts lesen soll und worüber du schreibst.</div>
+    <label class="hint" style="padding:0">Deine Website</label><input type="text" id="su-web" value="${esc(SU.website||'')}" placeholder="firma.de" inputmode="url" oninput="suInput('website',this)">
+    <label class="hint" style="padding:0;margin-top:10px;display:block">Dein LinkedIn-Profil (optional)</label><input type="text" id="su-li" value="${esc(SU.linkedin||'')}" placeholder="linkedin.com/in/…" inputmode="url" oninput="suInput('linkedin',this)">
+    <label class="hint" style="padding:0;margin-top:10px;display:block">Wenn LinkedIn uns nicht reinlässt: dein Steckbrief, hier eingefügt (optional)</label><textarea id="su-words" rows="4" placeholder="Was du machst, für wen, was dir wichtig ist" oninput="suInput('words',this)">${esc(SU.words||'')}</textarea>
+    <label class="lbl" style="margin-top:10px">Dokument anhängen (optional)<input type="file" id="su-doc" accept=".pdf,.txt,.md,.docx" style="display:none" onchange="$('#su-docname').textContent=this.files[0]?this.files[0].name:''"></label> <span id="su-docname" class="hint"></span>
+    <div class="nav"><button class="b p" onclick="sendProfile()">Weiter</button></div><div class="q" style="margin:8px 0 0;font-size:13px">Nichts davon wird veröffentlicht.</div></div>`;
+  const step=SU_STEPS[suStep], n=suStep+1, N=SU_STEPS.length; const prog=`<div class="prog">Schritt ${n} von ${N}</div>`;
+  const T=v=>esc(v||''); let h='';
+  if(step==='check'){h=`<h2>Stimmt das?</h2><div class="q">Aus deiner Website. Tipp auf eine Zeile, um sie zu ändern.</div>
+    <label class="hint" style="padding:0">Name</label><div style="padding:6px 0 2px">${T(m.name)}</div>
+    <label class="hint" style="padding:0;margin-top:8px;display:block">Was du machst</label><input type="text" value="${T(SU.role??m.role)}" oninput="suInput('role',this)">
+    <label class="hint" style="padding:0;margin-top:8px;display:block">Firma</label><input type="text" value="${T(SU.company??m.company)}" oninput="suInput('company',this)">
+    <label class="hint" style="padding:0;margin-top:8px;display:block">Was du anbietest</label><input type="text" value="${T(SU.offer??m.offer)}" oninput="suInput('offer',this)">
+    ${(m.uncertain||[]).length?`<div class="note" style="margin:12px 0 0"><b>Unklar geblieben, kommt in keinen Post</b><ul style="margin:4px 0 0;padding-left:18px">${(m.uncertain||[]).map(u=>`<li>${esc(u)}</li>`).join('')}</ul></div>`:''}${suNav(true)}`}
+  else if(step==='readers'){const opts=(m.audiences&&m.audiences.length?m.audiences:(m.audience||'').split(/;|,/).map(x=>x.trim()).filter(Boolean)).slice(0,6);
+    h=`<h2>Wer soll deine Posts lesen?</h2><div class="q">Eins oder zwei. Für diese Person wird jeder Post geschrieben.</div>${chips('readers',opts)}
+    <input type="text" value="${T(SU.readersX)}" placeholder="anders, in deinen Worten" style="margin-top:10px" oninput="suInput('readersX',this)">${suNav((SU.readers||[]).length||SU.readersX)}`}
+  else if(step==='goal'){h=`<h2>Was soll der Leser danach tun?</h2><div class="q">Eins. Das Ende jedes Posts zielt darauf.</div>${chips('goal',['Beratungstermin buchen','Mir schreiben','Nur verstehen'],true)}
+    <input type="text" value="${T(SU.goalX)}" placeholder="oder etwas anderes" style="margin-top:10px" oninput="suInput('goalX',this)">${suNav((SU.goal||[]).length||SU.goalX)}`}
+  else if(step==='topics'){const opts=(m.topics||[]).slice(0,12); if(!SU.topics&&!SU._topicsInit){SU.topics=[...opts];SU._topicsInit=true;suSave()}
+    h=`<h2>Worüber willst du schreiben?</h2><div class="q">Streich, was nicht passt. Ein Thema wird ein Post.</div>${chips('topics',opts)}
+    <input type="text" value="${T(SU.topicsX)}" placeholder="ein eigenes Thema, in deinen Worten" style="margin-top:10px" oninput="suInput('topicsX',this)">
+    <label class="hint" style="padding:0;margin-top:12px;display:block">Worüber nie (optional)</label><input type="text" value="${T(SU.avoid)}" placeholder="z. B. Preise, Konkurrenten" oninput="suInput('avoid',this)">${suNav((SU.topics||[]).length||SU.topicsX)}`}
+  else if(step==='tone'){const ts=m.tone_samples||{};const cards=[['locker','Locker und direkt',ts.locker],['sachlich','Ruhig und sachlich',ts.sachlich],['persoenlich','Persönlich, erzählt',ts.persoenlich]];
+    h=`<h2>Wie willst du klingen?</h2><div class="q">Drei Proben aus deinen Fakten. Tipp auf eine.</div>${cards.map(([k,l,sm])=>`<div class="tcard ${SU.register===k?'on':''}" onclick="SU.register='${k}';SU.toneLabel='${l}';suSave();renderPost()"><b>${l}</b><span>${esc(sm||'')}</span></div>`).join('')}${suNav(!!SU.register)}`}
+  else if(step==='examples'){h=`<h2>Zwei, drei Posts, die dir gefallen</h2><div class="q">Deine oder fremde. Wir kopieren nichts, nur den Rhythmus. Optional.</div><textarea rows="8" placeholder="Posts hier einfügen, durch Leerzeilen getrennt" oninput="suInput('examples',this)">${T(SU.examples)}</textarea>${suNav(true)}`}
+  else if(step==='day'){if(!SU.day){SU.day='Tue';suSave()}
+    h=`<h2>An welchem Tag soll dein Post rausgehen?</h2><div class="q">Einer pro Woche. Du kannst ihn jederzeit ändern.</div><div class="chips2">${DAYS.map(([k,l])=>`<button class="chip2 ${SU.day===k?'on':''}" onclick="suSet('day','${k}')">${l}</button>`).join('')}</div>${suNav(true)}`}
+  else if(step==='photos'){h=`<h2>Ein, zwei Fotos von dir oder deiner Arbeit</h2><div class="q">Ohne Foto geht es auch, dann nimmt der Post Text. Optional.</div>
+    <form id="up"><label class="b p" style="display:block;text-align:center;border-radius:8px;padding:12px;background:var(--c);color:#fff;font-weight:600;cursor:pointer">+ Fotos hinzufügen<input type="file" name="photos[]" accept="image/*" multiple style="display:none" onchange="startUpload(this)"><input type="hidden" name="note" value=""><input type="checkbox" name="share" value="1" style="display:none"></label></form>
+    ${SU.photos?`<div class="q" style="margin-top:8px">${SU.photos} Foto${SU.photos===1?'':'s'} hochgeladen</div>`:''}${suNav(true)}`}
+  else {const readers=[...(SU.readers||[]),...(SU.readersX?[SU.readersX]:[])].join(', ');const goal=(SU.goal||[])[0]||SU.goalX||'';
+    h=`<h2>Fertig</h2><div class="q">So schreibt das System deinen ersten Entwurf. Er kommt in etwa einer Minute, und nichts geht ohne dich raus.</div>
+    <div class="note" style="margin:0"><b>Für</b> ${esc(readers)}<br><b>Ziel</b> ${esc(goal)}<br><b>Ton</b> ${esc(SU.toneLabel||'')}<br><b>Tag</b> ${esc((DAYS.find(d=>d[0]===SU.day)||[])[1]||'Dienstag')}<br><b>Themen</b> ${esc([...(SU.topics||[]),...(SU.topicsX?[SU.topicsX]:[])].slice(0,4).join(', '))}${(SU.topics||[]).length>4?' …':''}</div>${suNav(true,true)}`}
+  return `<div class="card setup" style="padding:16px">${prog}${h}</div>`;
 }
-async function sendProfile(){const f=$('#pf');const fd=new FormData(f);fd.append('a','profile');if(!fd.get('website')&&!fd.get('words')&&!(fd.get('doc')||{}).size){toast('Website, Sätze oder Dokument: mindestens eins');return}toast('gesendet …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={error:'keine Verbindung'}}toast(r.ok?'angekommen, der Vorschlag kommt in ein bis zwei Minuten':'Fehler: '+(r.error||''),r.ok?4000:8000);watchUntil=Date.now()+300000;load()}
-async function confirmProfile(){const v=id=>($('#'+id)||{}).value||'';const r=await post({a:'profile_confirm',role:v('pf-role'),company:v('pf-company'),website:v('pf-website'),audience:v('pf-audience'),offer:v('pf-offer'),topics:v('pf-topics'),facts:v('pf-facts')});toast(r.ok?'gespeichert, die Themen und der erste Entwurf kommen in Kürze':'Fehler: '+(r.error||''),4000);watchUntil=Date.now()+300000;load()}
+async function sendProfile(){suLoad();const fd=new FormData();fd.append('a','profile');fd.append('website',SU.website||'');fd.append('linkedin',SU.linkedin||'');fd.append('words',SU.words||'');const doc=$('#su-doc');if(doc&&doc.files[0])fd.append('doc',doc.files[0]);
+  if(!(SU.website||SU.words||(doc&&doc.files[0]))){toast('Website, Steckbrief oder Dokument: mindestens eins');return}toast('gesendet …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={error:'keine Verbindung'}}toast(r.ok?'angekommen, der Vorschlag kommt in ein bis zwei Minuten':'Fehler: '+(r.error||''),r.ok?4000:8000);watchUntil=Date.now()+300000;load()}
+async function confirmProfile(){suLoad();const m=S.me||{};const readers=[...(SU.readers||[]),...(SU.readersX?[SU.readersX]:[])];const topics=[...(SU.topics||[]),...(SU.topicsX?[SU.topicsX]:[])];const goal=(SU.goal||[])[0]||SU.goalX||'';
+  const r=await post({a:'profile_confirm',role:SU.role??m.role??'',company:SU.company??m.company??'',website:SU.website||m.website||'',offer:SU.offer??m.offer??'',audience:readers.join(', '),goal,topics,avoid:(SU.avoid||'').split(',').map(x=>x.trim()).filter(Boolean),tone:SU.toneLabel||m.tone||'',style:{register:SU.register==='persoenlich'?'':(SU.register||''),length:'mittel',question:'ja'},examples:SU.examples||'',linkedin:SU.linkedin||m.linkedin||'',day:SU.day||'Tue',facts:m.facts||''});
+  toast(r.ok?'gespeichert, dein erster Entwurf kommt in etwa einer Minute':'Fehler: '+(r.error||''),4000);if(r.ok){try{localStorage.removeItem('su-'+(m.slug||''))}catch(e){}SU=null}watchUntil=Date.now()+300000;load()}
 function renderPost(){
   const el=$('#post'); let h=systemHtml();
   if(S.me&&!S.me.confirmed){el.innerHTML=onboardingHtml();document.body.classList.remove('noscroll');return}   // onboarding first; the system line comes after the profile
@@ -466,7 +502,8 @@ function profileHtml(){
   return networkHtml()+`
   <div class="card" style="padding:16px"><h2 style="margin:0 0 4px">Über dich</h2><div class="q" style="margin:0">Daraus baut das System jeden Entwurf. Was hier nicht steht, darf es nicht behaupten.</div>
     ${L('Was du machst','pf-role',m.role)}<div class="row" style="margin-top:0"><div style="flex:1">${L('Firma','pf-company',m.company)}</div><div style="flex:1">${L('Website','pf-website',m.website)}</div></div>
-    ${L('Wer deine Posts lesen soll','pf-audience',m.audience)}${L('Was hängen bleiben soll','pf-offer',m.offer)}</div>
+    ${L('Wer deine Posts lesen soll','pf-audience',m.audience)}${L('Was der Leser danach tun soll','pf-goal',m.goal)}${L('Was hängen bleiben soll','pf-offer',m.offer)}${L('Dein LinkedIn-Profil','pf-linkedin',m.linkedin)}
+    <div class="row" style="flex-wrap:wrap;align-items:center;font-size:14px;margin-top:10px"><span>Posttag</span>${sel('pf-day',m.day||'Tue',[['Mon','Montag'],['Tue','Dienstag'],['Wed','Mittwoch'],['Thu','Donnerstag'],['Fri','Freitag'],['Sat','Samstag'],['Sun','Sonntag']])}</div></div>
   <div class="card" style="padding:16px"><h2 style="margin:0 0 4px">Themen</h2><div class="q" style="margin:0">Eine Zeile je Thema. Ein neues Thema wird beim nächsten Lauf zu einem Entwurf. Was unter „nie“ steht, kommt in keinem Post vor.</div>
     ${L('Worüber du schreiben willst','pf-topics',(m.topics||[]).join('\n'),6)}${L('Worüber nie','pf-avoid',(m.avoid||[]).join('\n'),3)}</div>
   <div class="card" style="padding:16px"><h2 style="margin:0 0 4px">Ton</h2><div class="q" style="margin:0">Drei Regler statt Prompt. Beispielposts, die dir gefallen, lernt das System als Rhythmus, kopiert aber nichts.</div>
@@ -482,7 +519,7 @@ function renderProfile(){const el=$('#profile');if($('#inv-box')&&$('#inv-box').
   if(!S.me.confirmed){el.innerHTML=networkHtml()+`<div class="card" style="padding:16px"><div class="q" style="margin:0">Dein Profil erscheint hier, sobald es bestätigt ist. Das geht im Tab Posts.</div></div>`;return}
   if(profileDirty&&el.dataset.slug===S.me.slug)return;   // never overwrite what the person is typing
   el.innerHTML=profileHtml();el.dataset.slug=S.me.slug;el.querySelectorAll('input,textarea,select').forEach(x=>x.addEventListener('input',()=>profileDirty=true))}
-async function saveProfile(){const v=id=>($('#'+id)||{}).value||'';const r=await post({a:'profile_save',role:v('pf-role'),company:v('pf-company'),website:v('pf-website'),audience:v('pf-audience'),offer:v('pf-offer'),topics:v('pf-topics'),avoid:v('pf-avoid'),tone:v('pf-tone'),examples:v('pf-examples'),facts:v('pf-facts'),style:{register:v('pf-register'),length:v('pf-length'),question:v('pf-question')},share_default:$('#pf-share').checked});
+async function saveProfile(){const v=id=>($('#'+id)||{}).value||'';const r=await post({a:'profile_save',role:v('pf-role'),company:v('pf-company'),website:v('pf-website'),audience:v('pf-audience'),offer:v('pf-offer'),topics:v('pf-topics'),avoid:v('pf-avoid'),tone:v('pf-tone'),examples:v('pf-examples'),facts:v('pf-facts'),goal:v('pf-goal'),linkedin:v('pf-linkedin'),day:v('pf-day'),style:{register:v('pf-register'),length:v('pf-length'),question:v('pf-question')},share_default:$('#pf-share').checked});
   profileDirty=false;toast(r.ok?'gespeichert, gilt ab dem nächsten Entwurf':'Fehler: '+(r.error||''),4000);load()}
 async function changePassword(){const p=$('#pw1').value;if(p.length<10){toast('mindestens 10 Zeichen');return}const r=await post({a:'password',new:p});toast(r.ok?'Passwort geändert':'Fehler: '+(r.error||''),4000);if(r.ok)$('#pw1').value=''}
 function renderPhotos(){
@@ -508,7 +545,7 @@ function renderPhotos(){
   if(S.memos.length) h+=`<div class="set">Memos, die auf den Mac warten: ${S.memos.length}</div>`;
   el.innerHTML=h;
 }
-async function startUpload(inp){const files=[...inp.files],note=$('#up').note.value,shareIt=$('#up').share.checked,B=3;let ok=0,failed=[];
+async function startUpload(inp){if(SU&&S.me&&!S.me.confirmed){SU.photos=(SU.photos||0)+inp.files.length;suSave()}const files=[...inp.files],note=$('#up').note.value,shareIt=$('#up').share.checked,B=3;let ok=0,failed=[];
   for(let i=0;i<files.length;i+=B){const fd=new FormData();fd.append('a','upload');fd.append('note',note);if(shareIt)fd.append('share','1');for(const f of files.slice(i,i+B))fd.append('photos[]',f,f.name||'photo.jpg');
     const mb=(files.slice(i,i+B).reduce((a,f)=>a+f.size,0)/1048576).toFixed(1);toast(`lädt ${Math.min(i+B,files.length)} von ${files.length} hoch (${mb} MB) …`,60000);
     let r=null;for(let t=0;t<2&&!r;t++){try{const res=await fetch(api,{method:'POST',body:fd});r=await res.json()}catch(e){if(t)failed.push(`${files.slice(i,i+B).map(f=>f.name).join(', ')}: ${e.message||'Netzwerkfehler'}`)}}

@@ -247,7 +247,8 @@ switch ($a) {
 
   case 'profile': // onboarding (03.11.): website, own words, optional document -> uploads/profile/request.json; the worker's onboard.py makes the proposal
     if (!auth_user()) out(['error' => 'no owner']);
-    $web = trim((string)($_POST['website'] ?? '')); $words = trim((string)($_POST['words'] ?? ''));
+    $web = trim((string)($_POST['website'] ?? '')); $words = trim((string)($_POST['words'] ?? '')); $li = trim((string)($_POST['linkedin'] ?? ''));
+    if ($li !== '' && !preg_match('~^(https?://)?([\w-]+\.)?linkedin\.com/\S+$~i', $li)) out(['error' => 'LinkedIn: bitte den Link zu deinem Profil (linkedin.com/in/...)']);
     if ($web !== '' && !preg_match('~^(https?://)?[\w.-]+\.[a-z]{2,}(/\S*)?$~i', $web)) out(['error' => 'Website: bitte eine Adresse wie firma.de']);
     $doc = '';
     if (!empty($_FILES['doc']) && $_FILES['doc']['error'] === UPLOAD_ERR_OK) {
@@ -257,14 +258,16 @@ switch ($a) {
       $doc = "doc.$ext"; move_uploaded_file($_FILES['doc']['tmp_name'], "$D/uploads/profile/$doc");
     }
     if ($web === '' && $words === '' && $doc === '') out(['error' => 'Website, ein paar Sätze oder ein Dokument: mindestens eins davon']);
-    jwrite("$D/uploads/profile/request.json", ['website' => $web, 'words' => function_exists('mb_substr') ? mb_substr($words, 0, 4000) : substr($words, 0, 4000), 'doc' => $doc, 'ts' => date('c')]);
+    jwrite("$D/uploads/profile/request.json", ['website' => $web, 'linkedin' => $li, 'words' => function_exists('mb_substr') ? mb_substr($words, 0, 4000) : substr($words, 0, 4000), 'doc' => $doc, 'ts' => date('c')]);
     decide(['type' => 'profile', 'decision' => 'request', 'website' => $web, 'doc' => $doc]); out(['ok' => true]);
 
   case 'profile_confirm': // the person corrected the proposal and said yes: profile.json confirmed here at once, the worker writes facts, positioning and inventory
     if (!auth_user()) out(['error' => 'no owner']);
     $pr = jread("$D/profile.json", []); $d = ['type' => 'profile_confirm'];
-    foreach (['role','company','website','audience','offer','tone','facts','words'] as $k) if (isset($body[$k])) { $v = trim((string)$body[$k]); $d[$k] = function_exists('mb_substr') ? mb_substr($v, 0, 6000) : substr($v, 0, 6000); $pr[$k] = $d[$k]; }
-    if (isset($body['topics'])) { $t = array_values(array_filter(array_map('trim', is_array($body['topics']) ? $body['topics'] : explode("\n", (string)$body['topics'])))); $d['topics'] = array_slice($t, 0, 12); $pr['topics'] = $d['topics']; }
+    foreach (['role','company','website','audience','offer','goal','tone','facts','words','examples','linkedin'] as $k) if (isset($body[$k])) { $v = trim((string)$body[$k]); $d[$k] = function_exists('mb_substr') ? mb_substr($v, 0, 6000) : substr($v, 0, 6000); $pr[$k] = $d[$k]; }
+    foreach (['topics','avoid'] as $k) if (isset($body[$k])) { $t = array_values(array_filter(array_map('trim', is_array($body[$k]) ? $body[$k] : explode("\n", (string)$body[$k])))); $d[$k] = array_slice($t, 0, 20); $pr[$k] = $d[$k]; }
+    if (isset($body['style']) && is_array($body['style'])) { $st = []; foreach (['register','length','question'] as $k) $st[$k] = substr((string)($body['style'][$k] ?? ''), 0, 20); $d['style'] = $st; $pr['style'] = $st; }
+    if (isset($body['day']) && in_array($body['day'], ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], true)) { $d['day'] = $body['day']; $pr['day'] = $d['day']; }
     $pr['confirmed'] = true; $pr['confirmed_at'] = date('c'); jwrite("$D/profile.json", $pr); decide($d); out(['ok' => true]);
 
   case 'invite': // any board invites a person (04.11.): a new board in one of my teams or in a new team; link + start password come back once, the inviter sends them
@@ -288,7 +291,8 @@ switch ($a) {
   case 'profile_save': // Mein Profil (04.11.): facts, topics, never-topics, tone, examples, sharing default; profile.json here at once, the worker writes facts and positioning (apply_decisions.py)
     if (!auth_user()) out(['error' => 'no owner']);
     $pr = jread("$D/profile.json", []); $d = ['type' => 'profile_save']; $cut = fn($v, $n) => function_exists('mb_substr') ? mb_substr($v, 0, $n) : substr($v, 0, $n);
-    foreach (['role','company','website','audience','offer','tone','facts','words','examples'] as $k) if (isset($body[$k])) { $d[$k] = $cut(trim((string)$body[$k]), 8000); $pr[$k] = $d[$k]; }
+    foreach (['role','company','website','audience','offer','goal','tone','facts','words','examples','linkedin'] as $k) if (isset($body[$k])) { $d[$k] = $cut(trim((string)$body[$k]), 8000); $pr[$k] = $d[$k]; }
+    if (isset($body['day']) && in_array($body['day'], ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], true)) { $d['day'] = $body['day']; $pr['day'] = $d['day']; }
     foreach (['topics','avoid'] as $k) if (isset($body[$k])) { $t = array_values(array_filter(array_map(fn($x) => $cut(trim((string)$x), 160), is_array($body[$k]) ? $body[$k] : explode("\n", (string)$body[$k])))); $d[$k] = array_slice($t, 0, 20); $pr[$k] = $d[$k]; }
     if (isset($body['style']) && is_array($body['style'])) { $st = []; foreach (['register','length','question'] as $k) $st[$k] = $cut((string)($body['style'][$k] ?? ''), 20); $d['style'] = $st; $pr['style'] = $st; }
     if (isset($body['share_default'])) { $d['share_default'] = (bool)$body['share_default']; $pr['share_default'] = $d['share_default']; }

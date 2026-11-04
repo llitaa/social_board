@@ -45,6 +45,8 @@ Answer with one JSON object only:
  "audience": "one line: who should read their posts (a role and a situation, not 'everyone')", "offer": "one line: what the reader should take away or ask for",
  "topics": ["6-10 short post topics from the material, each with a concrete angle"],
  "tone": "one line: how they write or speak (from their own words if present)",
+ "audiences": ["3-5 reader groups as short chips, 2-5 words each, concrete (for example: Eltern kurzsichtiger Kinder)"],
+ "tone_samples": {"locker": "two sentences in a casual, direct voice, built from the facts, as a post opening", "sachlich": "two sentences, calm and factual, from the facts", "persoenlich": "two sentences, personal, told as a small story from the facts"},
  "facts": "10-25 lines of facts a post may use: services, methods, places, years, typical clients described without names, results that are stated. One fact per line, nothing invented.",
  "uncertain": ["points the material does not settle"]}}
 
@@ -62,6 +64,8 @@ Answer with one JSON object only:
     pr.update({"role": str(d.get("role", ""))[:200], "company": str(d.get("company", ""))[:120], "website": str(d.get("website") or req.get("website", ""))[:200],
                "audience": str(d.get("audience", ""))[:300], "offer": str(d.get("offer", ""))[:300], "topics": [str(t)[:160] for t in d.get("topics", [])][:12],
                "tone": str(d.get("tone", ""))[:300], "facts": str(d.get("facts", ""))[:6000], "uncertain": [str(u)[:200] for u in d.get("uncertain", [])][:10],
+               "audiences": [str(a)[:60] for a in (d.get("audiences") or [])][:6], "tone_samples": {k: str(v)[:400] for k, v in (d.get("tone_samples") or {}).items() if k in ("locker", "sachlich", "persoenlich")},
+               "linkedin": str(req.get("linkedin", ""))[:200],
                "words": words[:4000], "proposed": datetime.now().isoformat(timespec="minutes"), "confirmed": False})
     pr.setdefault("name", who["name"]); pr.setdefault("lang", who["lang"])
     jdump(os.path.join(LIB, "profile.json"), pr); jdump(os.path.join(BOARD_LOCAL, "profile.json"), pr)
@@ -73,7 +77,7 @@ def write_facts(pr):
     lines = [f"# {pr.get('name', '')}", pr.get("role", ""), f"Firma: {pr['company']}" if pr.get("company") else "", f"Website: {pr['website']}" if pr.get("website") else "", "",
              "## Fakten", pr.get("facts", ""), "", "## In eigenen Worten", pr.get("words", ""), "", "## Themen"] + [f"- {t}" for t in pr.get("topics", [])]
     open(os.path.join(LIB, "profile.md"), "w", encoding="utf-8").write("\n".join(l for l in lines if l is not None) + "\n")
-    pos = [f"Leser: {pr.get('audience', '')}", f"Was hängen bleiben soll: {pr.get('offer', '')}", f"Ton: {pr.get('tone', '')}" if pr.get("tone") else "",
+    pos = [f"Leser: {pr.get('audience', '')}", f"Was hängen bleiben soll: {pr.get('offer', '')}", f"Was der Leser danach tun soll: {pr['goal']}" if pr.get("goal") else "", f"Ton: {pr.get('tone', '')}" if pr.get("tone") else "",
            ("Nie als Thema, auch nicht am Rand: " + "; ".join(pr["avoid"])) if pr.get("avoid") else ""]
     open(os.path.join(LIB, "positioning.md"), "w", encoding="utf-8").write("\n".join(l for l in pos if l) + "\n")
     ex = os.path.join(LIB, "examples.md")   # posts the person likes (Mein Profil): tone reference for draft.py, never copied

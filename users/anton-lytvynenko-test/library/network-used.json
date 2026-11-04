@@ -46,12 +46,72 @@
  },
  "anton:post:li-post-10": {
   "state": "none",
-  "seen": 22,
-  "ts": "2026-11-04T20:45"
+  "seen": 23,
+  "ts": "2026-11-04T21:07"
  },
  "anton:memo:2026-11-03_203335.m4a": {
   "state": "none",
   "seen": 23,
   "ts": "2026-11-04T20:56"
+ },
+ "anton:post:li-comp-10": {
+  "state": "none",
+  "seen": 23,
+  "ts": "2026-11-04T21:07"
+ },
+ "anton:post:li-comp-11": {
+  "state": "none",
+  "seen": 23,
+  "ts": "2026-11-04T21:07"
+ },
+ "anton:post:li-post-08": {
+  "state": "none",
+  "seen": 23,
+  "ts": "2026-11-04T21:07"
+ },
+ "anton:post:li-post-09": {
+  "state": "none",
+  "seen": 23,
+  "ts": "2026-11-04T21:07"
+ },
+ "anton:post:li-comp-08": {
+  "state": "none",
+  "seen": 23,
+  "ts": "2026-11-04T21:07"
+ },
+ "anton:post:li-post-07": {
+  "state": "none",
+  "seen": 23,
+  "ts": "2026-11-04T21:07"
+ },
+ "anton:post:li-post-06": {
+  "state": "none",
+  "seen": 23,
+  "ts": "2026-11-04T21:07"
+ },
+ "anton:post:li-comp-06": {
+  "state": "none",
+  "seen": 23,
+  "ts": "2026-11-04T21:07"
+ },
+ "anton:photo:img9505": {
+  "state": "none",
+  "seen": 23,
+  "ts": "2026-11-04T21:07"
+ },
+ "anton:photo:lchingtreffen1": {
+  "state": "none",
+  "seen": 23,
+  "ts": "2026-11-04T22:21"
+ },
+ "anton:photo:lchingtreffen2": {
+  "state": "none",
+  "seen": 23,
+  "ts": "2026-11-04T22:21"
+ },
+ "anton:photo:lchingtreffen3": {
+  "state": "none",
+  "seen": 23,
+  "ts": "2026-11-04T22:21"
  }
 }

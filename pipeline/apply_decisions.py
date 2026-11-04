@@ -33,6 +33,15 @@ def write_edit(r, text, ts):
     open(tp, "w", encoding="utf-8").write(text.strip() + "\n"); jdump(mp, meta)
     return True
 
+def set_day(day):
+    """The posting day of another person's board (setup step 9): users/<slug>/config.yaml slots.personal.days. Anton's board keeps its config."""
+    if not USER or day not in ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"): return
+    import yaml
+    uc = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "users", USER, "config.yaml")
+    cfg = (yaml.safe_load(open(uc)) or {}) if os.path.isfile(uc) else {}
+    cfg.setdefault("slots", {}).setdefault("personal", {})["days"] = [day]
+    yaml.safe_dump(cfg, open(uc, "w"), allow_unicode=True, sort_keys=False); log("posting day", day)
+
 def promote_scheduled(plan, plog):
     """A post Anton scheduled in LinkedIn is posted once its slot has passed: the board must not show it as open."""
     now = datetime.now(); n = 0
@@ -147,15 +156,19 @@ def main():
                     write_csv(ib, rows, f or ["date", "source", "who", "what", "qualified", "next"]); log("inbound confirmed", d.get("who"))
             elif t == "profile_confirm":   # onboarding: the person corrected and confirmed the profile proposal -> facts for drafts, positioning, inventory (onboard.py)
                 pf = os.path.join(LIB, "profile.json"); pr = jload(pf, {})
-                for k in ("role", "company", "website", "audience", "offer", "tone", "facts", "words"):
+                for k in ("role", "company", "website", "audience", "offer", "goal", "tone", "facts", "words", "examples", "linkedin"):
                     if k in d: pr[k] = str(d[k])[:6000]
-                if "topics" in d: pr["topics"] = [str(x)[:160] for x in (d["topics"] if isinstance(d["topics"], list) else str(d["topics"]).splitlines()) if str(x).strip()][:12]
+                for k in ("topics", "avoid"):
+                    if k in d: pr[k] = [str(x)[:160] for x in (d[k] if isinstance(d[k], list) else str(d[k]).splitlines()) if str(x).strip()][:20]
+                if isinstance(d.get("style"), dict): pr["style"] = {k: str(v)[:20] for k, v in d["style"].items() if k in ("register", "length", "question")}
+                if d.get("day"): pr["day"] = str(d["day"])[:3]; set_day(pr["day"])
                 pr["confirmed"] = True; pr["confirmed_at"] = d["ts"][:16]; jdump(pf, pr); jdump(os.path.join(BOARD_LOCAL, "profile.json"), pr)
                 import onboard; onboard.write_facts(pr); log("profile confirmed")
             elif t == "profile_save":   # Mein Profil (04.11.): the person changed facts, topics, tone or sharing default; new topics go straight into the inventory, no model call
                 pf = os.path.join(LIB, "profile.json"); pr = jload(pf, {}); before = [x.strip().lower() for x in pr.get("topics", [])]
-                for k in ("role", "company", "website", "audience", "offer", "tone", "facts", "words", "examples"):
+                for k in ("role", "company", "website", "audience", "offer", "goal", "tone", "facts", "words", "examples", "linkedin"):
                     if k in d: pr[k] = str(d[k])[:8000]
+                if d.get("day"): pr["day"] = str(d["day"])[:3]; set_day(pr["day"])
                 for k in ("topics", "avoid"):
                     if k in d: pr[k] = [str(x).strip()[:160] for x in (d[k] if isinstance(d[k], list) else str(d[k]).splitlines()) if str(x).strip()][:20]
                 if isinstance(d.get("style"), dict): pr["style"] = {k: str(v)[:20] for k, v in d["style"].items() if k in ("register", "length", "question")}
