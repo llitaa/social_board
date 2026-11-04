@@ -1,3 +1,12 @@
-{"pillar": "transformation", "slug": "wann-einstellen", "png": "library/drafts/examples/g/E-hire-curve.png",
- "text": "Nach dem Go-live · Folge 1\n\nBeim Aufbau eines Luftfahrt-Backends habe ich dreimal dasselbe Problem extern lösen lassen, jedes Mal neu erklärt. Beim dritten Mal war es kein Problem mehr, sondern eine Stelle. Seitdem zähle ich nicht Budget, sondern Wiederholungen.\n\nWelches Problem erklären Sie gerade zum dritten Mal?\n\n#Führung #Softwareentwicklung #Hiring",
- "editorial": {"reader": "Entwicklungsleiter oder Geschäftsführer, der dasselbe Problem gerade zum dritten Mal extern vergibt", "insight": "Die Stelle entsteht nicht aus Budget, sondern aus Wiederholung; der dritte Kreis ist das Signal", "discussion_reason": "Man kann einwenden: Externe sind flexibler, eine Stelle bindet; die Kurve sagt, ab wann das nicht mehr stimmt", "situation": "beide"}}
+{
+ "pillar": "transformation",
+ "slug": "wann-einstellen",
+ "png": "library/drafts/examples/g/E-hire-curve.png",
+ "text": "Nach dem Go-live, Folge 1\n\nBeim Aufbau eines Luftfahrt-Backends habe ich dreimal dasselbe Problem extern lösen lassen, jedes Mal neu erklärt. Beim dritten Mal war es kein Problem mehr, sondern eine Stelle. Seitdem zähle ich nicht Budget, sondern Wiederholungen.\n\nWelches Problem erklären Sie gerade zum dritten Mal?\n\n#Führung #Softwareentwicklung #Hiring",
+ "editorial": {
+  "reader": "Entwicklungsleiter oder Geschäftsführer, der dasselbe Problem gerade zum dritten Mal extern vergibt",
+  "insight": "Die Stelle entsteht nicht aus Budget, sondern aus Wiederholung; der dritte Kreis ist das Signal",
+  "discussion_reason": "Man kann einwenden: Externe sind flexibler, eine Stelle bindet; die Kurve sagt, ab wann das nicht mehr stimmt",
+  "situation": "beide"
+ }
+}

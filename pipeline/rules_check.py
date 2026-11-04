@@ -28,9 +28,10 @@ def check(text, channel, signals=None, kind=None):
     """kind="episode": a diagram post of the series "Nach dem Go-live" (01.11.2026): the picture is the post, the caption is short.
     Rules then: series line present, 120 to 700 characters, question at the end, banned words; no signal check, no 500-character minimum."""
     v = [p for p in BANNED_ALL if re.search(p, text, re.I)]
+    if "·" in text or "•" in text: v.append("middle dot or bullet in the text (Anton: never; a comma or a sentence)")
     if kind == "episode":
         if channel == "personal": v += [p for p in BANNED_PERSONAL if re.search(p, text, re.I)]
-        if not re.search(r"Nach dem Go-live\s*[·•:-]\s*Folge\s*\d+", text): v.append("no series line (Nach dem Go-live · Folge N)")
+        if not re.search(r"Nach dem Go-live\s*[,:]\s*Folge\s*\d+", text): v.append("no series line (Nach dem Go-live, Folge N)")
         body = re.sub(r"(\s*#\w+)+\s*$", "", text.strip())
         if "?" not in body[-220:]: v.append("no question at the end")
         n = len(body)

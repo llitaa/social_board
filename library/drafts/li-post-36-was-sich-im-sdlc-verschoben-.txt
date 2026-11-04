@@ -1,4 +1,4 @@
-Nach dem Go-live · Folge 2
+Nach dem Go-live, Folge 2
 
 2016 habe ich die halbe Woche gebaut. Heute baut der Agent, und ich verbringe die Woche mit dem, was er nicht kann: entscheiden, was gebaut wird, und dafür geradestehen, dass es läuft. Vibe Coding ist kein Gegner, es löst die kleinste Phase.
 

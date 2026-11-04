@@ -19,7 +19,7 @@ def esc(s): return html.escape(str(s or ""))
 
 def frame(spec, body):
     title = esc(spec.get("title", "")).replace("\\n", "<br>"); light = spec.get("light", True)
-    who = "" if light else '<div class="who"><b>Anton Lytvynenko</b>Software Architect · Technical Lead</div>'
+    who = "" if light else '<div class="who"><b>Anton Lytvynenko</b>Software Architect, Technical Lead</div>'
     return f"""<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>graphic</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Open+Sans:wght@400;600&display=block" rel="stylesheet">
 <style>*{{box-sizing:border-box;margin:0}}html,body{{background:#fff}}

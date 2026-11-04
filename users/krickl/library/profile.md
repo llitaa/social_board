@@ -1,5 +1,5 @@
 # Andreas Bentele-Krickl
-Bietet individuell angepasste Ortho-K-Nachtlinsen (Orthokeratologie) an, die nachts getragen werden, damit man tagsüber ohne Brille oder Kontaktlinsen klar sieht – über das eyefriends-Netzwerk aus Opt
+Eyefriends: Ortho-K-Nachtlinsen, damit man tagsüber ohne Brille und ohne Tageslinsen klar sieht
 Firma: Eyefriends
 Website: https://eyefriends.de
 
@@ -7,8 +7,6 @@ Website: https://eyefriends.de
 Eyefriends bietet Ortho-K-Nachtlinsen an: individuell angepasste Kontaktlinsen, die nachts getragen werden.
 Die Linsen formen die Hornhaut sanft, sodass man tagsüber ohne Brille oder Linsen auskommt.
 Ortho-K korrigiert die Sehschwäche über Nacht, ohne dauerhaften Eingriff.
-Angegeben sind 95 % Erfolgsquote bei korrekter Anwendung.
-Angegeben sind 15+ Jahre Erfahrung in der Ortho-K-Anpassung.
 Typischer Korrekturbereich: −8,5 bis +3,0 Dioptrien.
 Astigmatismus (Hornhautverkrümmung) cyl: −2,0 bis −3,50 dpt, im Einzelfall auch höher.
 Nachtlinsen gelten als vollständig reversibel und risikoarm; auch für Kinder und Jugendliche geeignet.
