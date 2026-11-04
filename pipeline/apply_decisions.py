@@ -33,6 +33,10 @@ def write_edit(r, text, ts):
     open(tp, "w", encoding="utf-8").write(text.strip() + "\n"); jdump(mp, meta)
     return True
 
+def _naive(ts):
+    """Decision timestamps come with and without a zone (server: +01:00, Mac: none): compare them as wall-clock time."""
+    return datetime.fromisoformat(ts).replace(tzinfo=None)
+
 def set_day(day):
     """The posting day of another person's board (setup step 9): users/<slug>/config.yaml slots.personal.days. Anton's board keeps its config."""
     if not USER or day not in ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"): return
@@ -82,7 +86,7 @@ def main():
             except json.JSONDecodeError: break   # a half-written last line: stop here, read it again next run
             ok_upto += 1
             t = d.get("type")
-            try: last_ts = d["ts"] if not last_ts or datetime.fromisoformat(d.get("ts", "")) > datetime.fromisoformat(last_ts) else last_ts
+            try: last_ts = d["ts"] if not last_ts or _naive(d.get("ts", "")) > _naive(last_ts) else last_ts
             except (ValueError, KeyError): pass
             if t == "post":
                 cid = d["card_id"]; card = cards.get(cid, {})
