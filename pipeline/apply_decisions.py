@@ -8,7 +8,7 @@
 Idempotent: remembers the last processed line per decisions file in library/log/.applied.json
 """
 import csv, glob, json, os, re, shutil
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from common import CFG, BOARD_LOCAL, LIB, USER, boards, profile, read_csv, write_csv, jload, jdump, log, resolve
 
 STATE = os.path.join(LIB, "log", ".applied.json")
@@ -45,6 +45,30 @@ def set_day(day):
     cfg = (yaml.safe_load(open(uc)) or {}) if os.path.isfile(uc) else {}
     cfg.setdefault("slots", {}).setdefault("personal", {})["days"] = [day]
     yaml.safe_dump(cfg, open(uc, "w"), allow_unicode=True, sort_keys=False); log("posting day", day)
+
+def reschedule_overdue(plan):
+    """A draft whose slot has passed does not keep a date in the past (Anton 04.11.): it takes the next upcoming slot of its
+    channel and the later drafts move one slot back; the last one gets a new slot after the end. Approved posts are not touched
+    (the server posts them), scheduled ones are LinkedIn's."""
+    import draft as dr
+    now = datetime.now(); n = 0
+    for ch, chan in (("personal", "linkedin"), ("company", "linkedin-company")):
+        rows = [r for r in plan if r.get("channel") == chan and r.get("status") in ("draft", "change") and len(r.get("planned") or "") >= 16]
+        def when(r): return datetime.strptime(r["planned"][:16], "%Y-%m-%d %H:%M")
+        overdue = sorted([r for r in rows if when(r) <= now - timedelta(hours=1)], key=when)
+        if not overdue: continue
+        rest = sorted([r for r in rows if r not in overdue], key=when)
+        times = [r["planned"] for r in rest]
+        last = max([when(r) for r in rest] + [now]); s_ = dr.SLOTS[ch]; d = last.date() + timedelta(days=1); extra = []
+        while len(extra) < len(overdue) and d < last.date() + timedelta(days=60):
+            if d.strftime("%a") in s_["days"]: extra.append(datetime.strptime(f"{d} {s_['time']}", "%Y-%m-%d %H:%M").strftime("%Y-%m-%d %H:%M"))
+            d += timedelta(days=1)
+        order = overdue + rest; times = times + extra
+        for r, t in zip(order, times):
+            if r["planned"] != t:
+                old = r["planned"]; r["planned"] = t; r["notes"] = f"[moved {now:%d.%m.} from {old}] " + r.get("notes", ""); n += 1
+        log(f"overdue: {len(overdue)} {ch} draft(s) moved to the front, {n} slot change(s)")
+    return n
 
 def promote_scheduled(plan, plog):
     """A post Anton scheduled in LinkedIn is posted once its slot has passed: the board must not show it as open."""
@@ -240,6 +264,7 @@ def main():
                        {**d, "files": ",".join(d.get("files", []) or [])})
         done[key] = ok_upto
     if promote_scheduled(plan, plog): changed_plan = changed_log = True
+    if reschedule_overdue(plan): changed_plan = True
     if changed_plan: write_csv(CFG["content_plan"], plan, pf); log("content-plan.csv updated")
     if changed_log: write_csv(CFG["posts_log"], plog, lf); log("posts-log.csv updated")
     jdump(os.path.join(BOARD_LOCAL, "cards.json"), list(cards.values()))

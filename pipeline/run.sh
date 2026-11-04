@@ -48,6 +48,7 @@ fi
 mstep onboard    $P pipeline/onboard.py        # a user's website or document -> profile proposal (one call); nothing to do for Anton
 mstep redraft    $P pipeline/redraft.py
 step publish     $P pipeline/publish.py
+[ -z "$BOARD_USER" ] && [ "$MODE" = full ] && step lisync $P pipeline/linkedin_sync.py   # posts made by hand on the company page -> posts-log, drafts marked posted (04.11.)
 [ "$MODE" = full ] && step  draft $P pipeline/draft.py   # gates itself: llm.auto, process.py, or a waiting memo (llm.memo_auto)
 step  match      $P pipeline/match.py          # shared material of the other boards that fits an open draft -> proposal on the card; gates itself (llm.auto, process.py or llm.match_auto)
 step cards       $P pipeline/cards.py

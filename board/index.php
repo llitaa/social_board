@@ -184,6 +184,14 @@ button,.b,.sm,label.b{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 .chips2{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.chip2{border:1.5px solid var(--b);border-radius:999px;padding:9px 14px;font-size:15px;background:#fff;cursor:pointer;color:var(--t)}.chip2.on{border-color:var(--c);background:var(--tint);color:var(--d);font-weight:600}
 .tcard{border:1.5px solid var(--b);border-radius:12px;padding:12px 14px;margin-top:10px;cursor:pointer;background:#fff}.tcard.on{border-color:var(--c);background:var(--tint)}.tcard b{display:block;margin-bottom:4px}.tcard span{font-size:14px;color:var(--t)}
 .setup h2{margin:0 0 4px;text-transform:none;font-size:20px;letter-spacing:0;color:var(--d)}.setup .prog{font-size:12px;color:var(--m);margin:0 0 10px}.setup .q{margin:0 0 10px}.setup .nav{display:flex;gap:8px;margin-top:16px}.setup .nav .b{flex:1}
+@media(max-width:959px){
+  main{padding:12px 12px 120px}
+  .sheet{padding:0 0 120px}.sheetin{max-width:none}.sheet .card{border-radius:0;border-left:0;border-right:0}
+  .sheetbar{border-radius:0;padding:10px 12px 10px 16px;font-size:14px}
+  .sheetbar .sm{width:40px;height:40px;border-radius:50%;padding:0;font-size:20px;line-height:40px;text-align:center;border-color:var(--b)}
+  .rec{right:16px;bottom:calc(18px + env(safe-area-inset-bottom))}
+  .act{padding:12px 16px calc(14px + env(safe-area-inset-bottom))}
+}
 </style>
 </head>
 <body>
@@ -429,7 +437,7 @@ function renderPost(){
   h+=itemsHtml();
   const oc=openCard&&S.cards.find(c=>c.id===openCard);
   if(openCard&&!oc) openCard=null;
-  if(oc) h+=`<div class="sheet" onclick="if(event.target===this){openCard=null;renderPost()}"><div class="sheetin"><div class="sheetbar"><span>${fmtDay(oc.slot)}, ${fmtTime(oc.slot)}, ${esc(oc.channel)}</span><button class="sm" onclick="openCard=null;renderPost()">✕ schließen</button></div>${fullCardHtml(oc)}</div></div>`;
+  if(oc) h+=`<div class="sheet" onclick="if(event.target===this){openCard=null;renderPost()}"><div class="sheetin"><div class="sheetbar"><span>${fmtDay(oc.slot)}, ${fmtTime(oc.slot)}, ${esc(oc.channel)}</span><button class="sm" onclick="openCard=null;renderPost()" title="schließen" aria-label="schließen">✕</button></div>${fullCardHtml(oc)}</div></div>`;
   document.body.classList.toggle('noscroll',!!oc);
   el.innerHTML=h;
 }
