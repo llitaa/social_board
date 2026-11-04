@@ -3,7 +3,7 @@
 directory on the worker (users/<slug>/: library, campaign CSVs, board mirror, token, config). The registry of boards is
 ~/board-worker/users.json on the host, written by the admin page (board/admin/) or by `users.py add`.
   python3 pipeline/users.py sync                 pull the registry, create users/<slug>/ for new boards, deploy the code to every board
-  python3 pipeline/users.py add <slug> "<Name>" [lang] [group]   create a board from here (prints the link and the one-time password)
+  python3 pipeline/users.py add <slug> "<Name>" [lang] [group,group]   create a board from here (prints the link and the one-time password)
   python3 pipeline/users.py admin                set or reset the admin password of board/admin/ (asks for it)
   python3 pipeline/users.py list"""
 import json, os, secrets, shutil, subprocess, sys, tempfile, yaml
@@ -33,8 +33,8 @@ def write_registry(reg):
     subprocess.run(["scp", "-q", tmp, f"{ALIAS}:~/board-worker/users.json"], check=True, timeout=90); os.remove(tmp)
     ssh("chmod 600 ~/board-worker/users.json")
 
-def local_config(slug, name, lang, group="bni-gilching"):
-    return {"name": name, "lang": lang, "group": group,   # boards share material only within their group (match.py)
+def local_config(slug, name, lang, groups=("bni-gilching",)):
+    return {"name": name, "lang": lang, "groups": list(groups),   # boards share material only within a common group (match.py); several groups allowed (04.11.)
             "llm": {"auto": True},                                       # a user's board must work without Anton at the terminal (decision 03.11.: per-user exception to llm.auto false)
             "slots": {"personal": {"days": ["Tue"], "time": "08:00", "lang": lang}},   # one post a week; the user changes it in users/<slug>/config.yaml
             "engagement": {"days": [], "pillars": []}, "personal_card": {"style": "off"}, "orthography": "de" if lang == "de" else "en",
@@ -51,10 +51,12 @@ def ensure_local(slug, info):
     inv = os.path.join(d, "library", "inventory.csv")
     if not os.path.isfile(inv): open(inv, "w", encoding="utf-8").write(open(os.path.join(ROOT, "library", "inventory.csv"), encoding="utf-8").readline())
     cf = os.path.join(d, "config.yaml")
-    if not os.path.isfile(cf): yaml.safe_dump(local_config(slug, info.get("name", slug), info.get("lang", "de"), info.get("group", "bni-gilching")), open(cf, "w"), allow_unicode=True, sort_keys=False)
+    from common import groups_of
+    want = groups_of(info)
+    if not os.path.isfile(cf): yaml.safe_dump(local_config(slug, info.get("name", slug), info.get("lang", "de"), want), open(cf, "w"), allow_unicode=True, sort_keys=False)
     else:
         c = yaml.safe_load(open(cf)) or {}
-        if c.get("group") != info.get("group", c.get("group", "bni-gilching")): c["group"] = info.get("group", "bni-gilching"); yaml.safe_dump(c, open(cf, "w"), allow_unicode=True, sort_keys=False)
+        if groups_of(c) != want or "group" in c: c.pop("group", None); c["groups"] = want; yaml.safe_dump(c, open(cf, "w"), allow_unicode=True, sort_keys=False)   # the registry (admin page) decides the groups
     open(os.path.join(d, "token"), "w").write(info["token"] + "\n"); os.chmod(os.path.join(d, "token"), 0o600)
     pj = os.path.join(d, "library", "profile.json")
     if not os.path.isfile(pj): jdump(pj, {"name": info.get("name", slug), "lang": info.get("lang", "de"), "confirmed": False})
@@ -84,13 +86,13 @@ def sync():
         if info.get("token") and not info.get("disabled") and slug != "anton": deploy(info["token"])
     log(f"users sync: {n} boards")
 
-def add(slug, name, lang="de", group="bni-gilching"):
+def add(slug, name, lang="de", groups="bni-gilching"):
     if not slug.isalnum() and not all(c.isalnum() or c in "-_" for c in slug): raise SystemExit("slug: letters, digits, - _")
     reg = registry()
     if slug in reg: raise SystemExit(f"{slug} exists: {URL}/{reg[slug]['token']}/")
     token = secrets.token_urlsafe(24).replace("-", "x").replace("_", "y")[:32]; pw = secrets.token_urlsafe(9)
     import hashlib
-    reg[slug] = {"name": name, "lang": lang, "group": group, "token": token, "created": datetime.now().isoformat(timespec="minutes")}
+    reg[slug] = {"name": name, "lang": lang, "groups": [g.strip() for g in groups.split(",") if g.strip()], "token": token, "created": datetime.now().isoformat(timespec="minutes")}
     deploy_code_copy(); deploy(token)
     # password hash via PHP on the host (same algorithm the login uses)
     h = ssh(f"php -r 'echo password_hash($argv[1], PASSWORD_DEFAULT);' {json.dumps(pw)}").strip()

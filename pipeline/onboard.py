@@ -73,8 +73,12 @@ def write_facts(pr):
     lines = [f"# {pr.get('name', '')}", pr.get("role", ""), f"Firma: {pr['company']}" if pr.get("company") else "", f"Website: {pr['website']}" if pr.get("website") else "", "",
              "## Fakten", pr.get("facts", ""), "", "## In eigenen Worten", pr.get("words", ""), "", "## Themen"] + [f"- {t}" for t in pr.get("topics", [])]
     open(os.path.join(LIB, "profile.md"), "w", encoding="utf-8").write("\n".join(l for l in lines if l is not None) + "\n")
-    pos = [f"Leser: {pr.get('audience', '')}", f"Was hängen bleiben soll: {pr.get('offer', '')}", f"Ton: {pr.get('tone', '')}" if pr.get("tone") else ""]
+    pos = [f"Leser: {pr.get('audience', '')}", f"Was hängen bleiben soll: {pr.get('offer', '')}", f"Ton: {pr.get('tone', '')}" if pr.get("tone") else "",
+           ("Nie als Thema, auch nicht am Rand: " + "; ".join(pr["avoid"])) if pr.get("avoid") else ""]
     open(os.path.join(LIB, "positioning.md"), "w", encoding="utf-8").write("\n".join(l for l in pos if l) + "\n")
+    ex = os.path.join(LIB, "examples.md")   # posts the person likes (Mein Profil): tone reference for draft.py, never copied
+    if (pr.get("examples") or "").strip(): open(ex, "w", encoding="utf-8").write(pr["examples"].strip() + "\n")
+    elif os.path.isfile(ex): os.remove(ex)
 
 def main():
     if not USER: return

@@ -173,13 +173,14 @@ button,.b,.sm,label.b{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 <body>
 <header>
  <div class="top"><div><h1><?= $ME ? htmlspecialchars($ME['name']) : 'Board' ?></h1><div class="sub" id="sub">lädt …</div></div><div class="sub" id="clock"></div></div>
- <div class="tabs"><button class="on" data-t="post">Posts</button><button data-t="comments">Kommentare</button><button data-t="photos">Fotos</button></div>
+ <div class="tabs"><button class="on" data-t="post">Posts</button><button data-t="comments">Kommentare</button><button data-t="photos">Fotos</button><?= $ME ? '<button data-t="profile">Profil</button>' : '' ?></div>
 </header>
 <main>
  <div id="content">
   <section id="post"></section>
   <section id="comments" hidden></section>
   <section id="photos" hidden></section>
+  <section id="profile" hidden></section>
  </div>
  <aside id="side"></aside>
 </main>
@@ -202,7 +203,7 @@ const STATUS={draft:'zu entscheiden',approved:'freigegeben',change:'wird überar
 let BUILD=null;
 async function load(){let st;try{const r=await fetch(api+'?a=state&_='+Date.now());if(r.status===401){location.reload();return}st=await r.json()}catch(e){$('#sub').textContent='offline · letzter Stand';return} if(BUILD===null)BUILD=st.build; if(st.me){st.me.initials=(st.me.name||'').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()} const busy=(document.activeElement&&(document.activeElement.isContentEditable||/^(TEXTAREA|INPUT)$/.test(document.activeElement.tagName)))||(mr&&mr.state==='recording')||drag.id; if(st.build&&st.build!==BUILD&&!busy){location.reload();return} if(busy){S=st;return} S=st;render()}
 function keepState(fn){const sh=document.querySelector('.sheet');const top=sh?sh.scrollTop:null;const vals={};document.querySelectorAll('textarea[id^="n-"],input[id^="u-"],input[id^="w-"],input[id^="m"],input[id^="x-"]').forEach(e=>{if(e.value&&e.value!==e.defaultValue)vals[e.id]=e.value});fn();for(const id in vals){const e=document.getElementById(id);if(e)e.value=vals[id]}const sh2=document.querySelector('.sheet');if(sh2&&top!==null)sh2.scrollTop=top}
-function showTab(n){tab=n;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===n));['post','comments','photos'].forEach(t=>$('#'+t).hidden=t!==tab);history.replaceState(null,'','#'+n)}
+function showTab(n){tab=n;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.t===n));['post','comments','photos','profile'].forEach(t=>{if($('#'+t))$('#'+t).hidden=t!==tab});history.replaceState(null,'','#'+n)}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
 if(['post','comments','photos'].includes(location.hash.slice(1))) showTab(location.hash.slice(1));
 if(location.hash.startsWith('#post/')) openCard=location.hash.slice(6);   // deep link to one post: #post/li-post-14
@@ -214,7 +215,7 @@ function renderAll(){
   const hand=S.cards.filter(byHand).length;
   $('#sub').textContent=`${open-hand} zu entscheiden${hand?` · ${hand} selbst zu posten`:''} · ${qOpen} Kommentar${qOpen===1?'':'e'} · bis ${S.queue.expiry}`;
   $('#clock').textContent=new Date(S.now).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
-  $('#side').innerHTML=renderPipeline(); renderPost(); renderComments(); renderPhotos();
+  $('#side').innerHTML=renderPipeline(); renderPost(); renderComments(); renderPhotos(); if(S.me&&$('#profile'))renderProfile();
 }
 function isAuto(c){const li=(S.health||{}).linkedin||{};return !!(li.connected&&(c.channel==='personal'||li.org))}
 const PEND=180;   // a picture or note change is "busy" for 3 minutes; after that the Mac has not picked it up (asleep, offline) and the page says so instead of spinning
@@ -414,7 +415,7 @@ function renderPost(){
   if(oc) h+=`<div class="sheet" onclick="if(event.target===this){openCard=null;renderPost()}"><div class="sheetin"><div class="sheetbar"><span>${fmtDay(oc.slot)} · ${fmtTime(oc.slot)} · ${esc(oc.channel)}</span><button class="sm" onclick="openCard=null;renderPost()">✕ schließen</button></div>${fullCardHtml(oc)}</div></div>`;
   document.body.classList.toggle('noscroll',!!oc);
   h+=`<div id="inline-pipe">${renderPipeline()}</div>`;
-  h+=`<div class="set">Einstellungen · Kommentarkarten verfallen um <input type="text" id="s-exp" value="${esc(S.settings.expiry)}"> <button class="sm s" onclick="saveSettings()">speichern</button>${S.me?` · <button class="sm s" onclick="logout()">Abmelden</button>`:''}</div>`;
+  h+=`<div class="set">Einstellungen · Kommentarkarten verfallen um <input type="text" id="s-exp" value="${esc(S.settings.expiry)}"> <button class="sm s" onclick="saveSettings()">speichern</button></div>`;
   el.innerHTML=h;
 }
 let watchUntil=0;
@@ -466,10 +467,37 @@ function photoCell(p,s){const lab=(p.share==='network'?'geteilt · ':'')+(p.owne
 function actionBar(cells){const c=cells.find(x=>x.p.id===selPhoto);if(!c)return '';const {p,s}=c;
   return `<div class="pact"><div>${fmtD(s.date)} · ${esc(p.scene||s.label||'')}${p.status==='used'?' · benutzt in '+esc(p.used_in||'')+(p.free_from?', frei ab '+fmtD(p.free_from):''):''}</div><div class="row">${p.status==='new'?'':`<button class="sm s" onclick="pdec('${s.id}','hold')">diese Serie nicht nutzen</button><button class="sm s" onclick="pdec('${p.id}','use_friday')">Freitagspost</button>`}<button class="sm s" onclick="pdec('${p.id}','delete')">löschen</button><button class="sm" onclick="selPhoto=null;renderPhotos()">schließen</button></div>
   ${p.status==='new'||p.owner?'':`<div class="row" style="margin-top:8px">${p.share==='network'?`<button class="sm s" onclick="pdec('${p.id}','unshare')">Freigabe zurückziehen</button>`:`<button class="sm" onclick="pdec('${p.id}','share')">Für das Netzwerk freigeben</button><button class="sm s" onclick="pdec('${s.id}','share')">ganze Serie freigeben</button>`}</div><div class="q" style="margin:4px 0 0;font-size:12px">${p.share==='network'?'Die anderen Boards bekommen dieses Foto vorgeschlagen, wenn es zu einem Entwurf passt. Es steht dann mit deinem Namen im Post.':'Freigegeben heißt: das System darf es einem anderen von uns unter den Entwurf legen, mit deinem Namen. Du siehst, wenn es genommen wurde. Zurückziehen geht jederzeit.'}</div>`}</div>`}
+function profileHtml(){
+  const m=S.me||{},T=v=>esc(v||''),st=m.style||{},net=(S.network||{}).groups||[];
+  const L=(t,id,v,rows)=>`<label class="hint" style="padding:0;margin-top:10px;display:block">${t}</label>`+(rows?`<textarea id="${id}" rows="${rows}">${T(v)}</textarea>`:`<input type="text" id="${id}" value="${T(v)}">`);
+  const sel=(id,v,opts)=>`<select id="${id}" style="width:auto">${opts.map(([k,l])=>`<option value="${k}"${(v||'')===k?' selected':''}>${l}</option>`).join('')}</select>`;
+  const netH=net.length?net.map(g=>`<div style="font-size:14px;margin-top:4px"><b>${esc(g.group)}</b>${g.members.length?': '+g.members.map(x=>`${esc(x.name)} (${x.shared} Foto${x.shared===1?'':'s'} freigegeben)`).join(', '):': noch niemand sonst'}</div>`).join('')
+    :`<div style="font-size:14px;margin-top:4px">${(m.groups||[]).map(esc).join(', ')||'bni-gilching'}</div>`;
+  return `<div class="card" style="padding:16px"><h2 style="margin:0 0 4px">Dein Netzwerk</h2><div class="q" style="margin:0">Boards mit einer gemeinsamen Gruppe bekommen gegenseitig freigegebene Fotos vorgeschlagen, mit Namen drunter. Andere Gruppen sehen nichts von dir. Gruppen ändert Anton.</div>${netH}
+    <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:14px"><input type="checkbox" id="pf-share" style="width:auto;margin:0" ${m.share_default?'checked':''}> Neue Fotos standardmäßig für das Netzwerk freigeben (der Haken beim Hochladen ist dann schon gesetzt)</label></div>
+  <div class="card" style="padding:16px"><h2 style="margin:0 0 4px">Über dich</h2><div class="q" style="margin:0">Daraus baut das System jeden Entwurf. Was hier nicht steht, darf es nicht behaupten.</div>
+    ${L('Was du machst','pf-role',m.role)}<div class="row" style="margin-top:0"><div style="flex:1">${L('Firma','pf-company',m.company)}</div><div style="flex:1">${L('Website','pf-website',m.website)}</div></div>
+    ${L('Wer deine Posts lesen soll','pf-audience',m.audience)}${L('Was hängen bleiben soll','pf-offer',m.offer)}</div>
+  <div class="card" style="padding:16px"><h2 style="margin:0 0 4px">Themen</h2><div class="q" style="margin:0">Eine Zeile je Thema. Ein neues Thema wird beim nächsten Lauf zu einem Entwurf. Was unter „nie“ steht, kommt in keinem Post vor.</div>
+    ${L('Worüber du schreiben willst','pf-topics',(m.topics||[]).join('\n'),6)}${L('Worüber nie','pf-avoid',(m.avoid||[]).join('\n'),3)}</div>
+  <div class="card" style="padding:16px"><h2 style="margin:0 0 4px">Ton</h2><div class="q" style="margin:0">Drei Regler statt Prompt. Beispielposts, die dir gefallen, lernt das System als Rhythmus, kopiert aber nichts.</div>
+    <div class="row" style="flex-wrap:wrap;align-items:center;font-size:14px"><span>Haltung</span>${sel('pf-register',st.register,[['','wie es passt'],['locker','locker'],['sachlich','sachlich']])}<span>Länge</span>${sel('pf-length',st.length||'mittel',[['kurz','kurz'],['mittel','mittel'],['lang','lang']])}<span>Frage am Ende</span>${sel('pf-question',st.question||'ja',[['ja','ja'],['nein','nein']])}</div>
+    ${L('In deinen Worten: wie du klingen willst','pf-tone',m.tone)}${L('Zwei, drei Posts, die dir gefallen (deine oder fremde), durch Leerzeilen getrennt','pf-examples',m.examples,8)}</div>
+  <div class="card" style="padding:16px"><h2 style="margin:0 0 4px">Fakten</h2><div class="q" style="margin:0">Eine Zeile je Fakt: Leistungen, Orte, Jahre, typische Kunden ohne Namen, belegte Ergebnisse. Nur was hier steht, darf ein Post nutzen.</div>${L('','pf-facts',m.facts,12)}</div>
+  <div class="row" style="position:sticky;bottom:8px;margin-top:4px"><button class="b p" onclick="saveProfile()">Profil speichern</button></div>
+  <div class="card" style="padding:16px;margin-top:14px"><h2 style="margin:0 0 4px">Zugang</h2><div class="row" style="margin-top:6px;flex-wrap:wrap"><input type="password" id="pw1" placeholder="neues Passwort, mindestens 10 Zeichen" style="flex:1;min-width:200px;border:1px solid var(--b);border-radius:8px;padding:9px;font:inherit;font-size:15px"><button class="b s" onclick="changePassword()">Passwort ändern</button><button class="b s" onclick="logout()">Abmelden</button></div></div>`;
+}
+let profileDirty=false;
+function renderProfile(){const el=$('#profile');if(!S.me||!S.me.confirmed){el.innerHTML=`<div class="card" style="padding:16px"><div class="q" style="margin:0">Dein Profil erscheint hier, sobald es bestätigt ist. Das geht im Tab Posts.</div></div>`;return}
+  if(profileDirty&&el.dataset.slug===S.me.slug)return;   // never overwrite what the person is typing
+  el.innerHTML=profileHtml();el.dataset.slug=S.me.slug;el.querySelectorAll('input,textarea,select').forEach(x=>x.addEventListener('input',()=>profileDirty=true))}
+async function saveProfile(){const v=id=>($('#'+id)||{}).value||'';const r=await post({a:'profile_save',role:v('pf-role'),company:v('pf-company'),website:v('pf-website'),audience:v('pf-audience'),offer:v('pf-offer'),topics:v('pf-topics'),avoid:v('pf-avoid'),tone:v('pf-tone'),examples:v('pf-examples'),facts:v('pf-facts'),style:{register:v('pf-register'),length:v('pf-length'),question:v('pf-question')},share_default:$('#pf-share').checked});
+  profileDirty=false;toast(r.ok?'gespeichert, gilt ab dem nächsten Entwurf':'Fehler: '+(r.error||''),4000);load()}
+async function changePassword(){const p=$('#pw1').value;if(p.length<10){toast('mindestens 10 Zeichen');return}const r=await post({a:'password',new:p});toast(r.ok?'Passwort geändert':'Fehler: '+(r.error||''),4000);if(r.ok)$('#pw1').value=''}
 function renderPhotos(){
   const el=$('#photos'); const sm=S.photos.summary||{}; const shoots=S.photos.shoots||[]; const cut=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
   const byId={}; for(const s of shoots) for(const p of (s.photos||[])) byId[p.id]={p,s};
-  let h=`<form id="up" style="margin-bottom:10px"><label class="b p" style="display:block;text-align:center;border-radius:8px;padding:12px;background:var(--c);color:#fff;font-weight:600;cursor:pointer">+ Fotos hinzufügen<input type="file" name="photos[]" accept="image/*" multiple style="display:none" onchange="startUpload(this)"></label><input type="text" name="note" placeholder="Notiz zu diesen Fotos (optional)" style="margin-top:8px"><label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:14px"><input type="checkbox" name="share" value="1" style="width:auto;margin:0"> gleich für das Netzwerk freigeben: die anderen bekommen diese Fotos vorgeschlagen, mit deinem Namen</label></form>`;
+  let h=`<form id="up" style="margin-bottom:10px"><label class="b p" style="display:block;text-align:center;border-radius:8px;padding:12px;background:var(--c);color:#fff;font-weight:600;cursor:pointer">+ Fotos hinzufügen<input type="file" name="photos[]" accept="image/*" multiple style="display:none" onchange="startUpload(this)"></label><input type="text" name="note" placeholder="Notiz zu diesen Fotos (optional)" style="margin-top:8px"><label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:14px"><input type="checkbox" name="share" value="1" style="width:auto;margin:0" ${(S.me||{}).share_default?"checked":""}> gleich für das Netzwerk freigeben: die anderen bekommen diese Fotos vorgeschlagen, mit deinem Namen</label></form>`;
   // 1. the photos already on planned posts, in slot order; tap opens the post
   const next=[...S.cards].sort((a,b)=>a.slot.localeCompare(b.slot)).filter(c=>c.photo&&byId[c.photo]).map(c=>({c,...byId[c.photo]}));
   h+=`<h2>Auf den nächsten Posts · ${next.length}</h2>`;

@@ -50,7 +50,7 @@ Pillars: case = a concrete situation from their work, what was done, what came o
 Rules: posts on their personal profile, in {'German' if de else 'English'}, first person; no audience addressing ("richtet sich an", "für alle, die"); no job search; one angle per topic.
 Already published or planned (do not repeat): {chr(10).join(published()) or '-'}
 Existing inventory topics (do not repeat): {sorted(have) or 'none'}
-
+{('Never, not even in passing (the person ruled these out): ' + '; '.join(who['avoid'])) if who.get('avoid') else ''}
 Produce 8-10 case topics, 5-6 decision topics, 4 trend topics, strongest first within a pillar.
 Answer with one JSON object only: {{"topics": [{{"pillar": "case|decision|trend", "topic": "4-8 words in {'German' if de else 'English'}", "angle": "one sentence, the concrete hook", "source": "profile: <section or fact>", "tags": "3-6 lowercase words"}}]}}
 

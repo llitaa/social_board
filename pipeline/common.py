@@ -44,14 +44,20 @@ def users():
     d = os.path.join(ROOT, "users")
     return sorted(u for u in os.listdir(d) if os.path.isfile(os.path.join(d, u, "token"))) if os.path.isdir(d) else []
 
+def groups_of(cfg):
+    """The groups a board belongs to (04.11.: a list; the old single `group:` still works). A group is who shares with whom."""
+    g = cfg.get("groups") or cfg.get("group") or ["bni-gilching"]
+    if isinstance(g, str): g = [x.strip() for x in g.split(",")]
+    return [x for x in g if x]
+
 def boards():
-    """Every board on this worker: {slug: {"dir": base dir, "lib": library, "mirror": board data mirror, "name": display name}}. Anton = "anton"."""
+    """Every board on this worker: {slug: {"dir": base dir, "lib": library, "mirror": board data mirror, "name": display name, "groups": [...]}}. Anton = "anton"."""
     root = yaml.safe_load(open(os.path.join(ROOT, "config.yaml")))
-    out = {"anton": {"dir": ROOT, "lib": os.path.join(ROOT, "library"), "mirror": os.path.join(ROOT, "board", "data"), "name": "Anton Lytvynenko", "group": root.get("group", "bni-gilching")}}
+    out = {"anton": {"dir": ROOT, "lib": os.path.join(ROOT, "library"), "mirror": os.path.join(ROOT, "board", "data"), "name": "Anton Lytvynenko", "groups": groups_of(root)}}
     for u in users():
         d = os.path.join(ROOT, "users", u); pr = jload(os.path.join(d, "library", "profile.json"), {})
         uc = os.path.join(d, "config.yaml"); ucfg = (yaml.safe_load(open(uc)) or {}) if os.path.isfile(uc) else {}
-        out[u] = {"dir": d, "lib": os.path.join(d, "library"), "mirror": os.path.join(d, "board-data"), "name": pr.get("name") or u, "group": ucfg.get("group", "bni-gilching")}
+        out[u] = {"dir": d, "lib": os.path.join(d, "library"), "mirror": os.path.join(d, "board-data"), "name": pr.get("name") or u, "groups": groups_of(ucfg)}
     return out
 
 def profile():
@@ -64,7 +70,10 @@ def profile():
     ini = "".join(w[0] for w in name.split()[:2]).upper()
     return {"slug": USER, "name": name, "first": first, "initials": ini, "lang": pr.get("lang") or CFG.get("lang", "de"), "default": False,
             "role": pr.get("role", ""), "company": pr.get("company", ""), "website": pr.get("website", ""), "audience": pr.get("audience", ""),
-            "topics": pr.get("topics", []), "confirmed": bool(pr.get("confirmed"))}
+            "topics": pr.get("topics", []), "confirmed": bool(pr.get("confirmed")),
+            # Mein Profil (04.11.): what the person set on the board; draft.py, inventory.py and rules_check.py read it
+            "offer": pr.get("offer", ""), "tone": pr.get("tone", ""), "avoid": pr.get("avoid", []), "examples": pr.get("examples", ""),
+            "style": {"register": "", "length": "mittel", "question": "ja", **(pr.get("style") or {})}, "share_default": bool(pr.get("share_default"))}
 
 def resolve(ref):
     """A path from a CSV: absolute, or 'library/...' (this board's library), else relative to the campaign repo."""

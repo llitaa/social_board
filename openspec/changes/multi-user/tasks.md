@@ -24,6 +24,7 @@
 - [ ] 5.2 Memo and text sharing; a user's own uploads marked "für das Netzwerk" at upload time
 - [ ] 5.3 Measurement per board: time to first draft, proposals offered / taken, posts, inquiries (events.csv)
 - [x] 5.4 German UI for the whole board (du-Form), 03.11. late
-- [x] 5.5 Groups: a board belongs to one group (admin field, users.json, users/<slug>/config.yaml group, root config group); match.py proposes only within the group
+- [x] 5.5 Groups: a board belongs to one or more groups (04.11.: `groups` list in users.json, users/<slug>/config.yaml and root config; admin creates with a comma list and edits per row); match.py proposes only between boards with a common group; `network.json` per board (my groups, members, shared counts)
 - [x] 5.6 Proposal feed on the Post tab ("Für dich gefunden") with Ja / Nein / Post ansehen, badge on the tile; share at upload time (checkbox)
+- [x] 5.8 Profil tab (04.11.): network, about, topics and never-topics, tone (register, length, question at the end, own words, example posts), facts, sharing default, password change. api `profile_save` -> decision `profile_save` -> apply_decisions: profile.json, profile.md, positioning.md (incl. "Nie"), examples.md, new topics straight into the inventory (no model call); draft.py reads register/length/question/examples, rules_check.py length and question per profile, inventory.py never-topics
 - [x] 5.7 Phone layout: nothing in the pipeline column may exceed the screen (long buttons pushed the Published rows off-screen)

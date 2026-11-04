@@ -17,4 +17,4 @@ orthography: de
 photo_sources: []
 publish:
   where: server
-group: bni-gilching
+groups: [bni-gilching]

@@ -19,9 +19,9 @@ def words(t): return {w for w in re.findall(r"[a-zäöüß]{4,}", (t or "").lowe
 def shared_photos():
     """Shared photos of every other board, with the owner's name and the path to the file and thumbnail."""
     out = []
-    me = USER or "anton"; bs = boards(); mine = bs.get(me, {}).get("group", "bni-gilching")
+    me = USER or "anton"; bs = boards(); mine = set(bs.get(me, {}).get("groups", []))
     for slug, b in bs.items():
-        if slug == me or b.get("group", "bni-gilching") != mine: continue   # a group is who shares with whom; other groups never see each other's material
+        if slug == me or not (mine & set(b.get("groups", []))): continue   # a group is who shares with whom; a board may be in several (04.11.); no common group = never
         rows, _ = read_csv(os.path.join(b["lib"], "photos", "index.csv"))
         for r in rows:
             if r.get("share") != "network" or r.get("status") in ("deleted", "hold") or r.get("owner"): continue
@@ -37,7 +37,20 @@ def open_drafts():
         if text: out.append(("-".join(os.path.basename(r["caption_ref"]).split("-")[0:3]), text, r))
     return out
 
+def network():
+    """board-data/network.json for the Profil tab: my groups, who else is in each, how many photos they share (no model call)."""
+    me = USER or "anton"; bs = boards(); out = []
+    for g in bs.get(me, {}).get("groups", []):
+        members = []
+        for slug, b in bs.items():
+            if slug == me or g not in b.get("groups", []): continue
+            rows, _ = read_csv(os.path.join(b["lib"], "photos", "index.csv"))
+            members.append({"name": b["name"], "shared": sum(1 for r in rows if r.get("share") == "network" and r.get("status") not in ("deleted", "hold") and not r.get("owner"))})
+        out.append({"group": g, "members": members})
+    jdump(os.path.join(BOARD_LOCAL, "network.json"), {"groups": out, "ts": datetime.now().isoformat(timespec="minutes")})
+
 def main():
+    network()
     pool = shared_photos(); props = jload(PROP, {})
     if not pool:
         if props: jdump(PROP, props)

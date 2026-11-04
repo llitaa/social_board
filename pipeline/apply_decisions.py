@@ -152,6 +152,26 @@ def main():
                 if "topics" in d: pr["topics"] = [str(x)[:160] for x in (d["topics"] if isinstance(d["topics"], list) else str(d["topics"]).splitlines()) if str(x).strip()][:12]
                 pr["confirmed"] = True; pr["confirmed_at"] = d["ts"][:16]; jdump(pf, pr); jdump(os.path.join(BOARD_LOCAL, "profile.json"), pr)
                 import onboard; onboard.write_facts(pr); log("profile confirmed")
+            elif t == "profile_save":   # Mein Profil (04.11.): the person changed facts, topics, tone or sharing default; new topics go straight into the inventory, no model call
+                pf = os.path.join(LIB, "profile.json"); pr = jload(pf, {}); before = [x.strip().lower() for x in pr.get("topics", [])]
+                for k in ("role", "company", "website", "audience", "offer", "tone", "facts", "words", "examples"):
+                    if k in d: pr[k] = str(d[k])[:8000]
+                for k in ("topics", "avoid"):
+                    if k in d: pr[k] = [str(x).strip()[:160] for x in (d[k] if isinstance(d[k], list) else str(d[k]).splitlines()) if str(x).strip()][:20]
+                if isinstance(d.get("style"), dict): pr["style"] = {k: str(v)[:20] for k, v in d["style"].items() if k in ("register", "length", "question")}
+                if "share_default" in d: pr["share_default"] = bool(d["share_default"])
+                pr["saved_at"] = d["ts"][:16]; jdump(pf, pr); jdump(os.path.join(BOARD_LOCAL, "profile.json"), pr)
+                if pr.get("confirmed"):
+                    import onboard; onboard.write_facts(pr)
+                    new = [x for x in pr.get("topics", []) if x.strip().lower() not in before]
+                    if new:
+                        import inventory as inv_
+                        rows = inv_.load(); have = {r["topic"].lower() for r in rows}
+                        for x in new:
+                            if x.lower() in have: continue
+                            rows.append({"id": f"t{len(rows) + 1:03d}", "pillar": "case", "channel": "personal", "topic": x[:80], "angle": x[:300], "source": "profile: Themen, selbst eingetragen", "tags": "", "status": "unused", "used_in": "", "added": d["ts"][:10]})
+                        inv_.save(rows); log(f"profile: {len(new)} topic(s) added to the inventory")
+                log("profile saved")
             elif t == "proposal":   # a shared photo of another board offered on a card: accept = into this pool + on the card + credit line; decline = remembered
                 pf = os.path.join(BOARD_LOCAL, "proposals.json"); props = jload(pf, {}); p = props.get(d.get("card_id", ""), {})
                 p["state"] = "accept" if d.get("decision") == "accept" else "decline"; p["decided"] = d["ts"][:16]; props[d.get("card_id", "")] = p; jdump(pf, props)
@@ -177,7 +197,7 @@ def main():
                             if ob: append(os.path.join(ob["lib"], "log", "shared-uses.csv"), ["ts", "photo", "used_by", "used_by_name", "card"], {"ts": d["ts"][:16], "photo": row["id"], "used_by": USER or "anton", "used_by_name": profile()["name"], "card": d.get("card_id", "")})
                             log("proposal accepted", d.get("card_id"), row["id"])
                     except Exception as e: log("proposal accept failed", repr(e)[:300])
-            elif t in ("photo", "upload", "memo", "settings", "answer", "profile"):
+            elif t in ("photo", "upload", "memo", "settings", "answer", "profile", "profile_save"):
                 append(os.path.join(LOGDIR, "board-events.csv"), ["ts", "type", "id", "decision", "files", "file", "note", "answer", "expiry", "review", "card_id"],
                        {**d, "files": ",".join(d.get("files", []) or [])})
         done[key] = ok_upto

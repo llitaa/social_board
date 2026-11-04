@@ -4,8 +4,11 @@ names the two sentences, check() verifies they are really in the text. Swiss ort
 import re
 try:
     from common import CFG, profile
-    DEFAULT = profile()["default"]   # Anton's board: AlpiType ban, leadership and AI signals. Another person's board: only the general rules
-except ImportError: CFG = {}; DEFAULT = True
+    _P = profile(); DEFAULT = _P["default"]   # Anton's board: AlpiType ban, leadership and AI signals. Another person's board: only the general rules
+    _ST = _P.get("style") or {}
+except ImportError: CFG = {}; DEFAULT = True; _ST = {}
+MIN_LEN = {"kurz": 300, "mittel": 500, "lang": 500}.get(_ST.get("length", "mittel"), 500)   # Mein Profil: a short-form board may go down to 300 characters
+WANT_Q = _ST.get("question", "ja") != "nein"
 
 def fix_orthography(text, channel):
     return text.replace("ß", "ss") if channel == "personal" and CFG.get("orthography", "ch") == "ch" else text
@@ -40,9 +43,9 @@ def check(text, channel, signals=None, kind=None):
         if not _in(text, (signals or {}).get("ai")): v.append("no AI signal (a sentence with his own agent practice or position on AI in software work; quote it verbatim in signals.ai)")
     if not text.strip().rstrip("#").strip(): v.append("empty")
     body = re.sub(r"(\s*#\w+)+\s*$", "", text.strip())
-    if "?" not in body[-220:]: v.append("no question at the end")
+    if WANT_Q and "?" not in body[-220:]: v.append("no question at the end")
     n = len(body)
-    if n < 500: v.append(f"too short ({n} chars)")
+    if n < MIN_LEN: v.append(f"too short ({n} chars)")
     if n > 2200: v.append(f"too long ({n} chars)")
     return v
 

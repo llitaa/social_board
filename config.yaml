@@ -7,7 +7,7 @@ post_texts: /Users/anton/dev/campaign/local/reports/out
 post_images: /Users/anton/dev/campaign/local/resources/post-images
 legacy_photos: /Users/anton/dev/campaign/local/resources/anton-photos
 library: ./library
-group: bni-gilching        # boards of the same group get each other's shared material proposed (match.py); other groups never
+groups: [bni-gilching]     # boards with a common group get each other's shared material proposed (match.py); a board may be in several; no common group = never
 board:
   ssh_alias: hostinger-alpitype
   remote_dir: ~/domains/alpitype.de/public_html/board

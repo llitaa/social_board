@@ -19,18 +19,30 @@ SLOTS = CFG["slots"]; HORIZON = int(CFG.get("horizon_days", 14))
 CHAN = {"personal": "linkedin", "company": "linkedin-company"}
 from common import profile as _profile
 WHO = _profile()
+LENGTH = {"kurz": (500, 900), "mittel": (700, 1400), "lang": (1100, 1800)}   # Mein Profil: Länge; rules_check.py uses the same table
 def user_style():
-    """Style block for another person's board: their name and role, first person, no Anton-specific rules."""
+    """Style block for another person's board: their name and role, first person, plus what they set under Mein Profil (register, length, question, examples)."""
     de = WHO["lang"] == "de"; role = (" " + WHO["role"] + ".") if WHO.get("role") else ""
-    return (f"""Du schreibst als {WHO['name']} auf dem persönlichen LinkedIn-Profil, auf Deutsch, in der Ich-Form.{role}
-Form: 700-1400 Zeichen. Erster Satz = Hook (konkret, kein Clickbait). Kurze Absätze, keine Emojis, keine Aufzählungs-Orgie. Ein Gedanke pro Post.
-Immer eine Frage als letzter Satz vor den Hashtags, dann genau 3 Hashtags.
+    st = WHO.get("style") or {}; lo, hi = LENGTH.get(st.get("length", "mittel"), LENGTH["mittel"]); q = st.get("question", "ja") != "nein"
+    reg = {"locker": ("Locker und nah, wie im Gespräch; kurze Sätze; ein Schmunzeln ist erlaubt.", "Relaxed and close, like a conversation; short sentences; a smile is allowed."),
+           "sachlich": ("Sachlich und ruhig; keine Ausrufe, keine Superlative; Fachbegriffe erklärt in einem Halbsatz.", "Factual and calm; no exclamations, no superlatives; a technical term gets half a sentence of explanation.")}.get(st.get("register", ""), ("", ""))
+    ex = os.path.join(LIB, "examples.md"); ex = open(ex, encoding="utf-8").read().strip() if os.path.isfile(ex) else ""
+    if de:
+        s = f"""Du schreibst als {WHO['name']} auf dem persönlichen LinkedIn-Profil, auf Deutsch, in der Ich-Form.{role}
+Form: {lo}-{hi} Zeichen. Erster Satz = Hook (konkret, kein Clickbait). Kurze Absätze, keine Emojis, keine Aufzählungs-Orgie. Ein Gedanke pro Post.
+{'Immer eine Frage als letzter Satz vor den Hashtags, dann genau 3 Hashtags.' if q else 'Keine Frage am Ende; der letzte Satz ist eine Feststellung oder ein Angebot. Dann genau 3 Hashtags.'}
 Verboten: Zielgruppen-Ansprache ("richtet sich an", "für alle, die"), erfundene Zahlen, Projekte oder Kundennamen, Behauptungen, die nicht in den Fakten stehen. Fehlt ein Detail, lass es weg.
-Wenn ein Foto beschrieben ist, darf der erste Satz es leicht aufgreifen, muss aber nicht.""" if de else
-            f"""You write as {WHO['name']} on their personal LinkedIn profile, in English, first person.{role}
-Form: 700-1400 characters. First sentence = hook (concrete, no clickbait). Short paragraphs, no emojis, no bullet orgy. One idea per post.
-Always end with a question, then exactly 3 hashtags.
-Forbidden: addressing an audience ("for everyone who"), invented numbers, projects or client names, claims not in the facts. If a detail is missing, leave it out.""")
+Wenn ein Foto beschrieben ist, darf der erste Satz es leicht aufgreifen, muss aber nicht."""
+        if reg[0]: s += "\nTon: " + reg[0]
+        if ex: s += "\n\nPosts, die " + WHO["first"] + " gefallen (Ton und Rhythmus lernen, nichts davon kopieren oder paraphrasieren):\n" + ex[:3000] + "\n"
+    else:
+        s = f"""You write as {WHO['name']} on their personal LinkedIn profile, in English, first person.{role}
+Form: {lo}-{hi} characters. First sentence = hook (concrete, no clickbait). Short paragraphs, no emojis, no bullet orgy. One idea per post.
+{'Always end with a question, then exactly 3 hashtags.' if q else 'No question at the end; the last sentence is a statement or an offer. Then exactly 3 hashtags.'}
+Forbidden: addressing an audience ("for everyone who"), invented numbers, projects or client names, claims not in the facts. If a detail is missing, leave it out."""
+        if reg[1]: s += "\nTone: " + reg[1]
+        if ex: s += "\n\nPosts " + WHO["first"] + " likes (learn tone and rhythm, copy or paraphrase nothing):\n" + ex[:3000] + "\n"
+    return s
 STYLE = {"personal": """Du schreibst als Anton Lytvynenko auf seinem persönlichen LinkedIn-Profil, auf Deutsch, Sie-Form, als Softwarearchitekt mit 13 Jahren C++.
 Form: 900-1600 Zeichen. Erster Satz = Hook (konkret, kein Clickbait). Kurze Absätze, keine Aufzählungszeichen-Orgie, keine Emojis. Ein Gedanke pro Post.
 Immer eine Frage als letzter Satz vor den Hashtags, dann genau 3 Hashtags.

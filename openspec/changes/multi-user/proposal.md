@@ -12,6 +12,8 @@ Anton's content system worked for one person. Since 03.11.2026 a second person (
 - Matching: `match.py` offers at most one shared photo of another board under an open draft (word overlap shortlist, one small model call per card); "Ja, nehmen" copies it into the pool, puts it on the card and adds "Foto: <owner>"; the owner sees the use on their board. "Nein" or "nothing fits" is remembered.
 - Groups: every board has a group (default bni-gilching); sharing and proposals happen only inside a group. A second chapter or a client team is a second group, same code.
 - Board UI in German, du-Form, for everyone (03.11. late); the admin page too.
+- Groups (04.11.): a board is in one or more groups; only boards with a common group get each other's shared material. Admin sets them at creation and per row later; the worker carries them into `users/<slug>/config.yaml`.
+- Profil tab (04.11.): the person shapes the model without seeing a prompt: facts, topics, never-topics, tone as three choices plus own words and example posts, sharing default, password. Saved as one decision; the worker rewrites profile.md, positioning.md and examples.md and puts new topics into the inventory.
 - Publishing per board: `server/publish.php` uses `linkedin-<slug>.json`; without a token the card says "post it yourself" (Copy text) as before.
 
 ## Decisions taken (03.11.2026)

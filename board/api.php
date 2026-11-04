@@ -125,7 +125,9 @@ switch ($a) {
     $props = jread("$D/proposals.json", []); $pov = jread("$D/overlay.json", [])['proposals'] ?? [];   // shared photos offered on cards (match.py); a tap here shows before the worker folds it
     foreach ($props as $cid => &$pp) { if (fresh($pov[$cid] ?? null)) $pp['state'] = $pov[$cid]['state']; } unset($pp);
     $profile_pending = is_file("$D/uploads/profile/request.json");
-    out(['me' => $me, 'proposals' => $props, 'profile_pending' => $profile_pending, 'health' => $health, 'cards' => $cards, 'pipeline' => $pipe, 'queue' => today_queue(), 'photos' => $photos, 'pending' => $pending, 'memos' => $memos, 'settings' => settings(), 'messages' => $msg, 'now' => date('c'), 'build' => (int)filemtime(__DIR__ . '/index.php')]);   // build: the page reloads itself after a deploy
+    $net = jread("$D/network.json", []);   // my groups, who else is in them, how many photos they share (match.py, Mein Profil)
+    if ($me) { $home = $_SERVER['HOME'] ?? (getenv('HOME') ?: dirname(__DIR__, 5)); $ri = jread("$home/board-worker/users.json", [])[$me['slug']] ?? []; $g = $ri['groups'] ?? ($ri['group'] ?? null); $me['groups'] = is_string($g) ? [$g] : ($g ?: ['bni-gilching']); }
+    out(['me' => $me, 'network' => $net, 'proposals' => $props, 'profile_pending' => $profile_pending, 'health' => $health, 'cards' => $cards, 'pipeline' => $pipe, 'queue' => today_queue(), 'photos' => $photos, 'pending' => $pending, 'memos' => $memos, 'settings' => settings(), 'messages' => $msg, 'now' => date('c'), 'build' => (int)filemtime(__DIR__ . '/index.php')]);   // build: the page reloads itself after a deploy
 
   case 'decide': // post card: post (now) | schedule (when) | change (note) | skip | posted | unschedule | photo_next
     $id = (string)($body['card_id'] ?? ''); $dec = (string)($body['decision'] ?? '');
@@ -261,6 +263,15 @@ switch ($a) {
     foreach (['role','company','website','audience','offer','tone','facts','words'] as $k) if (isset($body[$k])) { $v = trim((string)$body[$k]); $d[$k] = function_exists('mb_substr') ? mb_substr($v, 0, 6000) : substr($v, 0, 6000); $pr[$k] = $d[$k]; }
     if (isset($body['topics'])) { $t = array_values(array_filter(array_map('trim', is_array($body['topics']) ? $body['topics'] : explode("\n", (string)$body['topics'])))); $d['topics'] = array_slice($t, 0, 12); $pr['topics'] = $d['topics']; }
     $pr['confirmed'] = true; $pr['confirmed_at'] = date('c'); jwrite("$D/profile.json", $pr); decide($d); out(['ok' => true]);
+
+  case 'profile_save': // Mein Profil (04.11.): facts, topics, never-topics, tone, examples, sharing default; profile.json here at once, the worker writes facts and positioning (apply_decisions.py)
+    if (!auth_user()) out(['error' => 'no owner']);
+    $pr = jread("$D/profile.json", []); $d = ['type' => 'profile_save']; $cut = fn($v, $n) => function_exists('mb_substr') ? mb_substr($v, 0, $n) : substr($v, 0, $n);
+    foreach (['role','company','website','audience','offer','tone','facts','words','examples'] as $k) if (isset($body[$k])) { $d[$k] = $cut(trim((string)$body[$k]), 8000); $pr[$k] = $d[$k]; }
+    foreach (['topics','avoid'] as $k) if (isset($body[$k])) { $t = array_values(array_filter(array_map(fn($x) => $cut(trim((string)$x), 160), is_array($body[$k]) ? $body[$k] : explode("\n", (string)$body[$k])))); $d[$k] = array_slice($t, 0, 20); $pr[$k] = $d[$k]; }
+    if (isset($body['style']) && is_array($body['style'])) { $st = []; foreach (['register','length','question'] as $k) $st[$k] = $cut((string)($body['style'][$k] ?? ''), 20); $d['style'] = $st; $pr['style'] = $st; }
+    if (isset($body['share_default'])) { $d['share_default'] = (bool)$body['share_default']; $pr['share_default'] = $d['share_default']; }
+    $pr['saved_at'] = date('c'); jwrite("$D/profile.json", $pr); decide($d); out(['ok' => true]);
 
   case 'proposal': // a shared photo offered on a card: accept | decline (apply_decisions.py puts it on the card with a credit line)
     $id = preg_replace('/[^\w-]/', '', (string)($body['card_id'] ?? '')); $dec = ($body['decision'] ?? '') === 'accept' ? 'accept' : 'decline';

@@ -35,18 +35,20 @@ function copy_code(string $src, string $dst): void {
   foreach (scandir($src) as $f) { if ($f === '.' || $f === '..' || $f === 'data' || $f === 'admin') continue; $s = "$src/$f"; $d = "$dst/$f";
     if (is_dir($s)) { @mkdir($d, 0755, true); copy_code($s, $d); } else copy($s, $d); }
 }
+function groups_in(string $s): array { $g = []; foreach (preg_split('/[,\s]+/', strtolower($s)) as $x) { $x = preg_replace('/[^a-z0-9-]/', '', $x); if ($x !== '') $g[] = $x; } return array_values(array_unique($g)) ?: ['bni-gilching']; }
+function groups_of(array $i): array { $g = $i['groups'] ?? ($i['group'] ?? null); if (is_string($g)) $g = [$g]; return $g ?: ['bni-gilching']; }
 function slugify(string $n): string { $s = strtolower(iconv('UTF-8', 'ASCII//TRANSLIT', $n) ?: $n); $s = preg_replace('/[^a-z0-9]+/', '-', $s); return trim($s, '-') ?: 'board'; }
 $do = $_POST['do'] ?? '';
 if ($do === 'create') {
   $name = trim((string)($_POST['name'] ?? '')); $lang = ($_POST['lang'] ?? 'de') === 'en' ? 'en' : 'de'; $slug = trim((string)($_POST['slug'] ?? '')) ?: slugify($name);
-  $group = preg_replace('/[^a-z0-9-]/', '', strtolower(trim((string)($_POST['group'] ?? '')))) ?: 'bni-gilching';   // boards share material only within their group
+  $groups = groups_in((string)($_POST['groups'] ?? ''));   // boards share material only within a common group; several allowed (04.11.)
   if ($name === '') $err = 'Name fehlt.'; elseif (!preg_match('/^[a-z0-9][a-z0-9-]{1,30}$/', $slug)) $err = 'Kurzname: Kleinbuchstaben, Ziffern, Bindestrich.'; elseif (isset($reg[$slug])) $err = "$slug gibt es schon."; elseif (!is_dir("$W/code") || !is_file("$W/code/index.php")) $err = 'Kein Code unter ~/board-worker/code: auf dem Mac python3 pipeline/users.py sync.';
   else {
     $token = substr(strtr(base64_encode(random_bytes(24)), '+/', 'xy'), 0, 32); $pw = substr(strtr(base64_encode(random_bytes(9)), '+/', 'ab'), 0, 12); $dir = "$BOARD/$token";
     foreach (['decisions','uploads/photos','uploads/memos','uploads/profile','queue','img'] as $sub) @mkdir("$dir/data/$sub", 0755, true);   // the worker pulls these before the first API call
     copy_code("$W/code", $dir);
     jw("$dir/data/auth.json", ['slug' => $slug, 'name' => $name, 'lang' => $lang, 'hash' => password_hash($pw, PASSWORD_DEFAULT), 'created' => date('c'), 'must_change' => true]);
-    $reg[$slug] = ['name' => $name, 'lang' => $lang, 'group' => $group, 'token' => $token, 'created' => date('c')]; jw("$W/users.json", $reg);
+    $reg[$slug] = ['name' => $name, 'lang' => $lang, 'groups' => $groups, 'token' => $token, 'created' => date('c')]; jw("$W/users.json", $reg);
     $msg = "<div class=\"ok\">Board für <b>" . h($name) . "</b> angelegt. Link und Startpasswort, nur jetzt sichtbar:<code>$URL$token/</code><code>" . h($pw) . "</code>Beim ersten Anmelden wählt die Person ein eigenes Passwort. Der Mac legt users/$slug/ beim nächsten Lauf an (spätestens in 10 Minuten); bis dahin zeigt das Board „waiting for the Mac“.</div>";
   }
 }
@@ -54,6 +56,10 @@ if ($do === 'reset' && isset($reg[$_POST['slug'] ?? ''])) {
   $slug = $_POST['slug']; $f = "$BOARD/{$reg[$slug]['token']}/data/auth.json"; $a = jr($f, []); $pw = substr(strtr(base64_encode(random_bytes(9)), '+/', 'ab'), 0, 12);
   $a['hash'] = password_hash($pw, PASSWORD_DEFAULT); $a['must_change'] = true; jw($f, $a); @unlink("$BOARD/{$reg[$slug]['token']}/data/sessions.json");
   $msg = "<div class=\"ok\">Neues Startpasswort für <b>" . h($reg[$slug]['name']) . "</b>:<code>" . h($pw) . "</code>Alle Anmeldungen dieses Boards sind beendet.</div>";
+}
+if ($do === 'groups' && isset($reg[$_POST['slug'] ?? ''])) {   // the Mac's users.py sync carries the new groups into users/<slug>/config.yaml within 10 minutes
+  $slug = $_POST['slug']; $reg[$slug]['groups'] = groups_in((string)($_POST['groups'] ?? '')); unset($reg[$slug]['group']); jw("$W/users.json", $reg);
+  $msg = '<div class="ok">' . h($reg[$slug]['name']) . ' ist jetzt in: <b>' . h(implode(', ', $reg[$slug]['groups'])) . '</b>. Gilt nach dem nächsten Lauf des Macs.</div>';
 }
 if (($do === 'disable' || $do === 'enable') && isset($reg[$_POST['slug'] ?? ''])) {
   $slug = $_POST['slug']; $f = "$BOARD/{$reg[$slug]['token']}/data/auth.json"; $a = jr($f, []); $a['disabled'] = $do === 'disable'; jw($f, $a);
@@ -63,12 +69,13 @@ if (($do === 'disable' || $do === 'enable') && isset($reg[$_POST['slug'] ?? ''])
 // --- page
 $rows = '';
 foreach ($reg as $slug => $i) {
-  $rows .= '<tr><td><b>' . h($i['name'] ?? '') . '</b><br><span style="color:#5a6b7a">' . h($slug) . ' · ' . h($i['lang'] ?? 'de') . ' · ' . h($i['group'] ?? 'bni-gilching') . ' · seit ' . h(substr((string)($i['created'] ?? ''), 0, 10)) . (!empty($i['disabled']) ? ' · <b>gesperrt</b>' : '') . '</span></td>'
+  $rows .= '<tr><td><b>' . h($i['name'] ?? '') . '</b><br><span style="color:#5a6b7a">' . h($slug) . ' · ' . h($i['lang'] ?? 'de') . ' · seit ' . h(substr((string)($i['created'] ?? ''), 0, 10)) . (!empty($i['disabled']) ? ' · <b>gesperrt</b>' : '') . '</span></td>'
+        . '<td><form method="post" style="display:inline"><input type="hidden" name="slug" value="' . h($slug) . '"><input type="text" name="groups" value="' . h(implode(', ', groups_of($i))) . '" style="width:170px" title="Gruppen, Komma"> <button class="s" name="do" value="groups">Gruppen speichern</button></form></td>'
         . '<td><a href="' . h($URL . $i['token']) . '/" target="_blank">Board öffnen</a></td>'
         . '<td><form method="post" style="display:inline"><input type="hidden" name="slug" value="' . h($slug) . '"><button class="s" name="do" value="reset" onclick="return confirm(\'Startpasswort neu setzen? Die Person wird abgemeldet.\')">Passwort neu</button> '
         . '<button class="s" name="do" value="' . (!empty($i['disabled']) ? 'enable">Freigeben' : 'disable" onclick="return confirm(\'Board sperren?\')">Sperren') . '</button></form></td></tr>';
 }
 page('<h1>Board Admin</h1><p>Ein Board je Person: eigener Link, eigenes Passwort, eigene Inhalte. Anton: dieser Link bleibt wie bisher, ohne Passwort.</p>' . ($err ? "<div class=\"e\">$err</div>" : '') . $msg
-   . '<h2>Neues Board</h2><form method="post"><input type="hidden" name="do" value="create"><input type="text" name="name" placeholder="Vor- und Nachname" required style="width:260px"><input type="text" name="slug" placeholder="Kurzname (optional)" style="width:180px"><select name="lang"><option value="de">deutsch</option><option value="en">english</option></select><input type="text" name="group" placeholder="Gruppe" value="bni-gilching" style="width:150px"><button>Anlegen</button></form><p style="font-size:13px">Gruppe: Boards derselben Gruppe bekommen gegenseitig freigegebenes Material vorgeschlagen, andere nicht. Antons Board gehört zu bni-gilching.</p>'
-   . '<h2>Boards · ' . count($reg) . '</h2>' . ($rows ? "<table><tr><th>Wer</th><th>Link</th><th></th></tr>$rows</table>" : '<p>noch keins</p>')
+   . '<h2>Neues Board</h2><form method="post"><input type="hidden" name="do" value="create"><input type="text" name="name" placeholder="Vor- und Nachname" required style="width:260px"><input type="text" name="slug" placeholder="Kurzname (optional)" style="width:180px"><select name="lang"><option value="de">deutsch</option><option value="en">english</option></select><input type="text" name="groups" placeholder="Gruppen, Komma" value="bni-gilching" style="width:200px"><button>Anlegen</button></form><p style="font-size:13px">Gruppen: Boards mit einer gemeinsamen Gruppe bekommen gegenseitig freigegebenes Material vorgeschlagen, andere nicht. Ein Board kann in mehreren Gruppen sein (Komma). Antons Board gehört zu bni-gilching; seine Gruppen stehen in config.yaml.</p>'
+   . '<h2>Boards · ' . count($reg) . '</h2>' . ($rows ? "<table><tr><th>Wer</th><th>Gruppen</th><th>Link</th><th></th></tr>$rows</table>" : '<p>noch keins</p>')
    . '<p style="margin-top:24px"><form method="post"><button class="s" name="do" value="logout">Abmelden</button></form></p>');
