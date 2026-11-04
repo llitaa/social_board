@@ -78,7 +78,8 @@ def main():
     plan, _ = read_csv(CFG["content_plan"]); today = date.today(); horizon = today + timedelta(days=int(CFG.get("horizon_days", 14)))
     slots = [r for r in plan if r["channel"].startswith("linkedin") and r["status"] in ("draft", "approved", "scheduled", "change") and today.isoformat() <= (r.get("planned") or "")[:10] <= horizon.isoformat()]
     fresh_board = bool(USER) and not profile().get("confirmed")   # before the profile is confirmed there is nothing to fill or to draw from
-    if len(slots) < 4 and not fresh_board: issues.append({"what": "slot filling", "since": today.isoformat(), "times": 1, "log": f"only {len(slots)} posts planned in the next 14 days", "fix": "check library/log/draft.out, inventory.csv (unused topics) and the photo pool"})
+    expected = sum(len((s.get("days") or [])) for s in CFG.get("slots", {}).values()) * 2   # what the board's own slot config fills in 14 days (a one-post-a-week board: 2)
+    if len(slots) < min(4, expected) and not fresh_board: issues.append({"what": "slot filling", "since": today.isoformat(), "times": 1, "log": f"only {len(slots)} posts planned in the next 14 days", "fix": "check library/log/draft.out, inventory.csv (unused topics) and the photo pool"})
     stuck = [r for r in plan if r["status"] == "change" and "[redraft failed" in r.get("notes", "")]
     for r in stuck: issues.append({"what": "notes → redraft", "since": today.isoformat(), "times": 1, "log": r["notes"][:160], "fix": "decide the card again or rephrase the note"})
     li = linkedin()
