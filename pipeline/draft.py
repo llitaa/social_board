@@ -265,11 +265,12 @@ def draft_one(dt, channel, plan, idx, memo=None, topic=None):
         if not cands and WHO["default"]: log("no eligible photo for", slot_day); return None
         photo = cands[0] if cands else None   # another person's board may have no photos yet: the post goes out as text (no graphic, no stock)
     ex = examples(channel)
-    material = f"Voice memo (Anton's own words, keep his thought, clean spelling and structure only, add nothing he did not say):\n{memo[1]}" if memo else \
-               ((f"Antons eigener Satz, wörtlich (er ist der erste Satz des Posts und die Karten-Headline; baue den Post darum, mit einem konkreten Beispiel aus seinen Fakten; ist der Satz auf Englisch, übersetze ihn sinntreu ins Deutsche und nimm die Übersetzung als Hook und als card.headline):\n{topic['angle']}" if len(topic['angle']) <= 95 else
-                 f"Antons Gedanke, als Sprachmemo wörtlich transkribiert (Füllwörter und Hörfehler möglich). Er will daraus EINEN Satz: destilliere seinen Gedanken in einen Satz in seinen Worten (max. 80 Zeichen, keine Floskel), der ist der erste Satz des Posts und card.headline; baue den Post darum, mit einem konkreten Beispiel aus seinen Fakten:\n{topic['angle']}")
+    RAW = {"@@MEMO@@": memo[1] if memo else "", "@@ANGLE@@": topic["angle"] if topic else ""}   # verbatim material: inserted after the name replacement for other people's boards
+    material = f"Voice memo (Anton's own words, keep his thought, clean spelling and structure only, add nothing he did not say):\n@@MEMO@@" if memo else \
+               ((f"Antons eigener Satz, wörtlich (er ist der erste Satz des Posts und die Karten-Headline; baue den Post darum, mit einem konkreten Beispiel aus seinen Fakten; ist der Satz auf Englisch, übersetze ihn sinntreu ins Deutsche und nimm die Übersetzung als Hook und als card.headline):\n@@ANGLE@@" if len(topic['angle']) <= 95 else
+                 f"Antons Gedanke, als Sprachmemo wörtlich transkribiert (Füllwörter und Hörfehler möglich). Er will daraus EINEN Satz: destilliere seinen Gedanken in einen Satz in seinen Worten (max. 80 Zeichen, keine Floskel), der ist der erste Satz des Posts und card.headline; baue den Post darum, mit einem konkreten Beispiel aus seinen Fakten:\n@@ANGLE@@")
                 + f"\nQuelle: {topic['source']}\nPillar: thought" if pillar == "thought" else
-                f"Topic: {topic['topic']}\nAngle: {topic['angle']}\nSource: {topic['source']}\nPillar: {pillar} = {inv.PILLARS[pillar]}")
+                f"Topic: {topic['topic']}\nAngle: @@ANGLE@@\nSource: {topic['source']}\nPillar: {pillar} = {inv.PILLARS[pillar]}")
     facts = inv.cv_text() if channel == "personal" else open(os.path.expanduser(CFG["company_context"]), encoding="utf-8").read()
     style = STYLE[channel] if WHO["default"] else user_style()
     img = "" if (not photo and not WHO["default"]) else f"\nPhoto that will be posted with the text: {photo['scene'] or photo['note'] or 'Anton, ' + photo['tags']}\n" if photo else \
@@ -295,6 +296,7 @@ Facts you may use (nothing else):
 Answer with one JSON object only: {{"text": "the full post incl. hashtags, newlines as \\n"{', "graphic": {"eyebrow": "", "title": "", "lines": [""], "footer": ""}' if channel == 'company' else (', "graphic": {"eyebrow": "", "title": "", "lines": [""], "footer": ""}' if graphic_post else ', "card": {"kicker": "2-3 words, the field (e.g. Legacy C++)", "headline": "the one sentence of the post that should stand under the photo, max 70 characters"}') + ', "signals": {"lead": "the sentence of the post that shows him leading or deciding, copied verbatim", "ai": "the sentence that shows his own AI practice or position, copied verbatim"}'}{EDITORIAL_JSON}}}"""
     if not WHO["default"]:   # another person's board: the prompt's wording about Anton (memo, signals, examples) speaks of them instead
         f = WHO["first"]; prompt = prompt.replace("Anton's", f"{f}'s").replace("Antons", f"{f}s").replace("Anton", f).replace("Sie-Form", "Ich-Form")
+    for k, v in RAW.items(): prompt = prompt.replace(k, v)
     d = llm_json("draft", prompt); text = rules_check.fix_orthography(d.get("text", "").strip(), channel)
     v = rules_check.check(text, channel, d.get("signals"))
     if v:

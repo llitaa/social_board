@@ -8,7 +8,7 @@ from datetime import datetime
 from common import LIB, BOARD_LOCAL, p, log
 
 MEM = os.path.join(LIB, "memos"); INDEX = os.path.join(MEM, "index.csv")
-FIELDS = ["id", "file", "recorded", "seconds", "words", "status", "used_in", "note"]
+FIELDS = ["id", "file", "recorded", "seconds", "words", "status", "used_in", "note", "share"]   # share: network = offered to the other boards (04.11.)
 MODEL = p("pipeline", "models", "ggml-small.bin")
 WHISPER = shutil.which("whisper-cli") or shutil.which("whisper-cpp") or "/opt/homebrew/bin/whisper-cli"
 

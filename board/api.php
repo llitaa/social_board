@@ -59,6 +59,7 @@ function overlay_pipeline(array $pipe): array {   // posts Anton logged as publi
     foreach (['impressions', 'reactions', 'comments'] as $k) if (isset($st[$k]) && $st[$k] !== '') $p[$k] = $st[$k];
     $p['numbers_at'] = substr((string)$st['ts'], 0, 16);
   } unset($p);
+  foreach ($pipe['memos'] ?? [] as &$m) { $st = $ov['memos'][$m['id']] ?? null; if (fresh($st)) $m['share'] = $st['share']; } unset($m);   // a memo shared here shows before the Mac folds it (04.11.)
   // S4: proposals Anton already confirmed or dropped here disappear at once; S3: a typed week shows before the Mac folds it in
   $pipe['inbound_proposed'] = array_values(array_filter($pipe['inbound_proposed'] ?? [], fn($q) => !fresh($ov['inbound'][$q['id']] ?? null)));
   $pipe['profile_weekly'] = $pipe['profile_weekly'] ?? [];
@@ -297,6 +298,10 @@ switch ($a) {
     $id = preg_replace('/[^\w#-]/', '', (string)($body['card_id'] ?? '')); $dec = ($body['decision'] ?? '') === 'accept' ? 'accept' : 'decline';   // card id, or card id + "#t" for a text proposal (04.11.)
     $props = jread("$D/proposals.json", []); if ($id === '' || empty($props[$id])) out(['error' => 'unknown proposal']);
     set_overlay('proposals', $id, ['state' => $dec]); decide(['type' => 'proposal', 'card_id' => $id, 'decision' => $dec, 'kind' => $props[$id]['kind'] ?? 'photo', 'photo' => $props[$id]['photo'] ?? '', 'owner' => $props[$id]['owner'] ?? '']); out(['ok' => true]);
+
+  case 'memo_share': // a voice memo offered to the other boards (04.11.): share | unshare; apply_decisions.py writes memos/index.csv, match.py reads it
+    $dec = ($body['decision'] ?? '') === 'share' ? 'share' : 'unshare'; $id = (string)($body['id'] ?? ''); if ($id === '' || !preg_match('/^[\w.\-]+$/', $id)) out(['error' => 'bad request']);
+    set_overlay('memos', $id, ['share' => $dec === 'share' ? 'network' : '']); decide(['type' => 'memo_share', 'id' => $id, 'decision' => $dec]); out(['ok' => true]);
 
   case 'password': // the person changes their own password (auth.php); ends all other sessions of this board
     $r = auth_set_password((string)($body['new'] ?? '')); if ($r !== '') out(['error' => $r]); auth_login((string)$body['new']); out(['ok' => true]);

@@ -1,0 +1,34 @@
+{
+ "id": "li-post-15",
+ "channel": "personal",
+ "pillar": "network",
+ "topic": "net-anton:post:li-post-12",
+ "memo": "",
+ "photo": "",
+ "neighbour_shoots": [],
+ "model": "claude-opus-5-5",
+ "created": "2026-11-04T20:47:14",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "Ortho-K Beratung",
+  "headline": "Bye Brille ist erst ein Wunsch."
+ },
+ "signals": {
+  "lead": "Das passt nicht bei jedem Auge, und das sage ich dann auch so.",
+  "ai": "Anton Lytvynenko hat neulich geschrieben, dass „Wir haben einen KI-Use-Case“ meistens ein Wunsch ist."
+ },
+ "editorial": {
+  "reader": "Erwachsene mit Brille oder Tageslinsen, die schon länger an Nachtlinsen denken, aber nicht wissen, ob sie überhaupt in Frage kommen.",
+  "insight": "Der Wunsch ohne Brille zu leben wird erst entscheidbar, wenn Sehproblem, Eignung der Nachtlinse und Alltag geklärt sind – genau das leistet die kostenlose Beratung.",
+  "discussion_reason": "Leser können sagen, an welchem der drei Punkte sie selbst hängen, oder widersprechen, dass man vor der Beratung schon alles wissen müsse.",
+  "situation": "beide"
+ },
+ "credit": "Anton Lytvynenko",
+ "network": {
+  "owner": "anton",
+  "kind": "post",
+  "item": "li-post-12",
+  "why": "Antons Satz, dass ein KI-Wunsch erst mit Problem, Lösung und Umgebung zum Use Case wird, passt zu deinem Thema, was die Beratung in 24 Stunden prüft: Auch „Bye Brille“ ist zuerst ein Wunsch."
+ }
+}

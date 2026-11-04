@@ -211,6 +211,13 @@ def main():
                             if ob: append(os.path.join(ob["lib"], "log", "shared-uses.csv"), ["ts", "photo", "used_by", "used_by_name", "card"], {"ts": d["ts"][:16], "photo": row["id"], "used_by": USER or "anton", "used_by_name": profile()["name"], "card": cid})
                             log("proposal accepted", cid, row["id"])
                     except Exception as e: log("proposal accept failed", repr(e)[:300])
+            elif t == "memo_share":   # a memo offered to the other boards (04.11.): memos/index.csv share = network; match.py reads it
+                mf = os.path.join(LIB, "memos", "index.csv"); mrows, mfields = read_csv(mf)
+                mfields = list(mfields) + (["share"] if "share" not in mfields else [])
+                for m in mrows:
+                    m.setdefault("share", "")
+                    if m.get("id") == d.get("id"): m["share"] = "network" if d.get("decision") == "share" else ""
+                write_csv(mf, mrows, mfields); log("memo share", d.get("id"), d.get("decision"))
             elif t in ("photo", "upload", "memo", "settings", "answer", "profile", "profile_save", "invite", "team"):
                 append(os.path.join(LOGDIR, "board-events.csv"), ["ts", "type", "id", "decision", "files", "file", "note", "answer", "expiry", "review", "card_id"],
                        {**d, "files": ",".join(d.get("files", []) or [])})

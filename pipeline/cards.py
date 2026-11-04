@@ -100,7 +100,7 @@ def main():
                       "note": board_note(r.get("notes", "")), "updated": r.get("notes", "").startswith("[redraft ") and "applied" in r.get("notes", "")[:40],
                       "failed": r.get("notes", "").startswith("[redraft failed"), "versions": len(meta.get("versions", [])),
                       "photo": meta.get("photo", ""), "photo_scene": meta.get("photo", "") and next((p.get("scene", "") for p in photos if p["id"] == meta.get("photo")), ""),
-                      "editorial": meta.get("editorial") or {}})
+                      "editorial": meta.get("editorial") or {}, "credit": meta.get("credit", "")})
     upcoming.sort(key=lambda u: u["when"])   # only slots that have a draft; empty slots are filled by draft.py, never listed
     # published: posts-log rows that really went out (plan says posted, or the log note says so, or numbers exist)
     plog, _ = read_csv(CFG["posts_log"]); posted_ids = {card_id(r) for r in rows if r["status"] == "posted"}
@@ -131,7 +131,7 @@ def main():
     mv = []
     for m in reversed(recent[-8:]):
         u = m.get("used_in", ""); topic = u if u.startswith("t") else ""; post = topic_post.get(u, "") if topic else (u if u.startswith("li-") else "")
-        mv.append({"id": m["id"], "recorded": m["recorded"], "words": m["words"], "status": m["status"], "topic": topic, "post": post,
+        mv.append({"id": m["id"], "recorded": m["recorded"], "words": m["words"], "status": m["status"], "topic": topic, "post": post, "share": m.get("share", ""),
                    "when": when_of.get(post, ""), "post_status": status_of.get(post, ""), "note": m.get("note", "")})
     # qualified business conversations (F5): ~/dev/campaign/inbound-log.csv, written by Anton in the weekly review; the board shows the last five, read-only
     ib_path = os.path.expanduser(CFG.get("inbound_log", "~/dev/campaign/inbound-log.csv"))
