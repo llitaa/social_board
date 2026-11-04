@@ -13,6 +13,7 @@ Anton's content system worked for one person. Since 03.11.2026 a second person (
 - Groups: every board has a group (default bni-gilching); sharing and proposals happen only inside a group. A second chapter or a client team is a second group, same code.
 - Board UI in German, du-Form, for everyone (03.11. late); the admin page too.
 - Groups (04.11.): a board is in one or more groups; only boards with a common group get each other's shared material. Admin sets them at creation and per row later; the worker carries them into `users/<slug>/config.yaml`.
+- Invitations (04.11.): any board invites a person in two taps (name, team). The server creates the board at once, the inviter sends link and start password by WhatsApp or mail. A new team name makes a new team with the inviter in it. The admin page stays for resets and locks.
 - Profil tab (04.11.): the person shapes the model without seeing a prompt: facts, topics, never-topics, tone as three choices plus own words and example posts, sharing default, password. Saved as one decision; the worker rewrites profile.md, positioning.md and examples.md and puts new topics into the inventory.
 - Publishing per board: `server/publish.php` uses `linkedin-<slug>.json`; without a token the card says "post it yourself" (Copy text) as before.
 

@@ -53,7 +53,8 @@ def groups_of(cfg):
 def boards():
     """Every board on this worker: {slug: {"dir": base dir, "lib": library, "mirror": board data mirror, "name": display name, "groups": [...]}}. Anton = "anton"."""
     root = yaml.safe_load(open(os.path.join(ROOT, "config.yaml")))
-    out = {"anton": {"dir": ROOT, "lib": os.path.join(ROOT, "library"), "mirror": os.path.join(ROOT, "board", "data"), "name": "Anton Lytvynenko", "groups": groups_of(root)}}
+    reg = jload(os.path.join(ROOT, "users", ".registry.json"), {})   # host registry copy (users.py sync); the registry wins for groups, config.yaml is the fallback
+    out = {"anton": {"dir": ROOT, "lib": os.path.join(ROOT, "library"), "mirror": os.path.join(ROOT, "board", "data"), "name": "Anton Lytvynenko", "groups": groups_of(reg.get("anton") or root)}}
     for u in users():
         d = os.path.join(ROOT, "users", u); pr = jload(os.path.join(d, "library", "profile.json"), {})
         uc = os.path.join(d, "config.yaml"); ucfg = (yaml.safe_load(open(uc)) or {}) if os.path.isfile(uc) else {}

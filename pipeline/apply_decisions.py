@@ -197,7 +197,7 @@ def main():
                             if ob: append(os.path.join(ob["lib"], "log", "shared-uses.csv"), ["ts", "photo", "used_by", "used_by_name", "card"], {"ts": d["ts"][:16], "photo": row["id"], "used_by": USER or "anton", "used_by_name": profile()["name"], "card": d.get("card_id", "")})
                             log("proposal accepted", d.get("card_id"), row["id"])
                     except Exception as e: log("proposal accept failed", repr(e)[:300])
-            elif t in ("photo", "upload", "memo", "settings", "answer", "profile", "profile_save"):
+            elif t in ("photo", "upload", "memo", "settings", "answer", "profile", "profile_save", "invite", "team"):
                 append(os.path.join(LOGDIR, "board-events.csv"), ["ts", "type", "id", "decision", "files", "file", "note", "answer", "expiry", "review", "card_id"],
                        {**d, "files": ",".join(d.get("files", []) or [])})
         done[key] = ok_upto

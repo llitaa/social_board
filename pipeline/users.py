@@ -75,9 +75,11 @@ def deploy_code_copy():
     ssh("mkdir -p ~/board-worker/code ~/board-worker/code/admin")
     subprocess.run(["rsync", "-az", "--delete", "--exclude", "data/", board + "/", f"{ALIAS}:~/board-worker/code/"], check=True, timeout=120)
     subprocess.run(["rsync", "-az", "--delete", "--exclude", "data/", os.path.join(board, "admin") + "/", f"{ALIAS}:{REMOTE}/admin/"], check=True, timeout=120)
+    subprocess.run(["scp", "-q", os.path.join(board, "boards.php"), f"{ALIAS}:{REMOTE}/boards.php"], check=True, timeout=60)   # the admin page requires ../boards.php
 
 def sync():
     reg = registry(); n = 0
+    jdump(os.path.join(UDIR, ".registry.json"), reg)   # local copy: common.boards() reads Anton's groups from it (the board's Profil tab edits them on the host)
     for slug, info in reg.items():
         if slug == "anton" or not info.get("token") or info.get("disabled"): continue
         ensure_local(slug, info); n += 1

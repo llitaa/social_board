@@ -44,3 +44,4 @@ users/*/library/log/
 config.local.admin.txt
 config.local.krickl.txt
 users-archive/
+users/.registry.json

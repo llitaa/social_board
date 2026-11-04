@@ -5,7 +5,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 date_default_timezone_set('Europe/Berlin');
 $D = __DIR__ . '/data';
-require __DIR__ . '/auth.php';
+require __DIR__ . '/auth.php'; require __DIR__ . '/boards.php';
 $a0 = $_GET['a'] ?? $_POST['a'] ?? '';
 if (!in_array($a0, ['ping', 'tick'], true) && !auth_check()) { http_response_code(401); echo json_encode(['error' => 'login']); exit; }   // a person's board: session cookie or nothing; ping (change stamp) and tick (publisher) carry no data and stay open for the worker
 foreach (['decisions','uploads/photos','uploads/memos','uploads/profile','queue','img'] as $p) { if (!is_dir("$D/$p")) mkdir("$D/$p", 0755, true); }
@@ -125,9 +125,11 @@ switch ($a) {
     $props = jread("$D/proposals.json", []); $pov = jread("$D/overlay.json", [])['proposals'] ?? [];   // shared photos offered on cards (match.py); a tap here shows before the worker folds it
     foreach ($props as $cid => &$pp) { if (fresh($pov[$cid] ?? null)) $pp['state'] = $pov[$cid]['state']; } unset($pp);
     $profile_pending = is_file("$D/uploads/profile/request.json");
-    $net = jread("$D/network.json", []);   // my groups, who else is in them, how many photos they share (match.py, Mein Profil)
-    if ($me) { $home = $_SERVER['HOME'] ?? (getenv('HOME') ?: dirname(__DIR__, 5)); $ri = jread("$home/board-worker/users.json", [])[$me['slug']] ?? []; $g = $ri['groups'] ?? ($ri['group'] ?? null); $me['groups'] = is_string($g) ? [$g] : ($g ?: ['bni-gilching']); }
-    out(['me' => $me, 'network' => $net, 'proposals' => $props, 'profile_pending' => $profile_pending, 'health' => $health, 'cards' => $cards, 'pipeline' => $pipe, 'queue' => today_queue(), 'photos' => $photos, 'pending' => $pending, 'memos' => $memos, 'settings' => settings(), 'messages' => $msg, 'now' => date('c'), 'build' => (int)filemtime(__DIR__ . '/index.php')]);   // build: the page reloads itself after a deploy
+    $self = boards_self(auth_user()); $net = boards_network($self, jread("$D/network.json", []));   // my groups, who else is in them (registry, immediate), how many photos they share (match.py)
+    if ($me) $me['groups'] = $self['groups'];
+    $inv = jread("$D/invites.json", []); $BD = dirname(__DIR__);
+    foreach ($inv as &$iv) { $au = jread("$BD/{$iv['token']}/data/auth.json", []); $iv['state'] = !empty($au['disabled']) ? 'gesperrt' : (empty($au['must_change']) && !empty($au['changed']) ? 'angemeldet' : 'wartet auf erste Anmeldung'); unset($iv['token']); } unset($iv);
+    out(['me' => $me, 'board' => $self, 'network' => $net, 'invites' => $inv, 'proposals' => $props, 'profile_pending' => $profile_pending, 'health' => $health, 'cards' => $cards, 'pipeline' => $pipe, 'queue' => today_queue(), 'photos' => $photos, 'pending' => $pending, 'memos' => $memos, 'settings' => settings(), 'messages' => $msg, 'now' => date('c'), 'build' => (int)filemtime(__DIR__ . '/index.php')]);   // build: the page reloads itself after a deploy
 
   case 'decide': // post card: post (now) | schedule (when) | change (note) | skip | posted | unschedule | photo_next
     $id = (string)($body['card_id'] ?? ''); $dec = (string)($body['decision'] ?? '');
@@ -263,6 +265,24 @@ switch ($a) {
     foreach (['role','company','website','audience','offer','tone','facts','words'] as $k) if (isset($body[$k])) { $v = trim((string)$body[$k]); $d[$k] = function_exists('mb_substr') ? mb_substr($v, 0, 6000) : substr($v, 0, 6000); $pr[$k] = $d[$k]; }
     if (isset($body['topics'])) { $t = array_values(array_filter(array_map('trim', is_array($body['topics']) ? $body['topics'] : explode("\n", (string)$body['topics'])))); $d['topics'] = array_slice($t, 0, 12); $pr['topics'] = $d['topics']; }
     $pr['confirmed'] = true; $pr['confirmed_at'] = date('c'); jwrite("$D/profile.json", $pr); decide($d); out(['ok' => true]);
+
+  case 'invite': // any board invites a person (04.11.): a new board in one of my teams or in a new team; link + start password come back once, the inviter sends them
+    $self = boards_self(auth_user()); $name = trim((string)($body['name'] ?? '')); $lang = ($body['lang'] ?? 'de') === 'en' ? 'en' : 'de';
+    $team = boards_group_in((string)($body['team'] ?? ''))[0] ?? ''; if ($team === '') out(['error' => 'Team fehlt']);
+    $inv = jread("$D/invites.json", []); if (count(array_filter($inv, fn($x) => substr((string)$x['ts'], 0, 10) === date('Y-m-d'))) >= 20) out(['error' => 'heute schon 20 Einladungen, morgen weiter']);
+    $r = boards_create($name, $lang, [$team], $self['slug']); if (isset($r['error'])) out(['error' => $r['error']]);
+    $reg = boards_registry(); if (isset($reg[$self['slug']]) && !in_array($team, boards_groups($reg[$self['slug']]), true)) { $reg[$self['slug']]['groups'] = array_values(array_unique(array_merge(boards_groups($reg[$self['slug']]), [$team]))); unset($reg[$self['slug']]['group']); boards_save($reg); }   // a new team: I am in it too
+    $inv[] = ['ts' => date('c'), 'name' => $name, 'slug' => $r['slug'], 'team' => $team, 'token' => $r['token']]; jwrite("$D/invites.json", $inv);
+    decide(['type' => 'invite', 'name' => $name, 'slug' => $r['slug'], 'team' => $team]);
+    $first = explode(' ', $name)[0]; $my = explode(' ', $self['name'])[0];
+    $text = "Hallo $first, hier ist dein Board: {$r['url']}\nStartpasswort: {$r['pw']}\nBeim ersten Öffnen wählst du dein eigenes Passwort. Dann Website eintragen, drei Sätze zu dir, fertig. Der erste Entwurf kommt von selbst, nichts geht ohne dich raus.\nGrüße, $my";
+    out(['ok' => true, 'url' => $r['url'], 'pw' => $r['pw'], 'slug' => $r['slug'], 'team' => $team, 'text' => $text]);
+
+  case 'team': // join a new or existing team, or leave one (04.11.); the worker carries it into config.yaml within 10 minutes
+    $self = boards_self(auth_user()); $team = boards_group_in((string)($body['team'] ?? ''))[0] ?? ''; if ($team === '') out(['error' => 'Teamname: Kleinbuchstaben, Ziffern, Bindestrich']);
+    $reg = boards_registry(); if (!isset($reg[$self['slug']])) out(['error' => 'Board nicht registriert']); $g = boards_groups($reg[$self['slug']]);
+    if (($body['do'] ?? 'join') === 'leave') { $g = array_values(array_diff($g, [$team])); if (!$g) out(['error' => 'das letzte Team bleibt']); } else $g = array_values(array_unique(array_merge($g, [$team])));
+    $reg[$self['slug']]['groups'] = $g; unset($reg[$self['slug']]['group']); boards_save($reg); decide(['type' => 'team', 'do' => $body['do'] ?? 'join', 'team' => $team]); out(['ok' => true, 'groups' => $g]);
 
   case 'profile_save': // Mein Profil (04.11.): facts, topics, never-topics, tone, examples, sharing default; profile.json here at once, the worker writes facts and positioning (apply_decisions.py)
     if (!auth_user()) out(['error' => 'no owner']);
