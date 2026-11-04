@@ -18,3 +18,5 @@ photo_sources: []
 publish:
   where: server
 groups: [bni-gilching]
+match:
+  strict: false   # pilot (04.11.): the text matcher proposes a real bridge instead of waiting for the perfect fit; the person decides with Ja/Nein

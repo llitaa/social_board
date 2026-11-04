@@ -48,8 +48,8 @@ fi
 mstep onboard    $P pipeline/onboard.py        # a user's website or document -> profile proposal (one call); nothing to do for Anton
 mstep redraft    $P pipeline/redraft.py
 step publish     $P pipeline/publish.py
-[ "$MODE" = full ] && mstep draft $P pipeline/draft.py
-mstep match      $P pipeline/match.py          # shared material of the other boards that fits an open draft -> proposal on the card
+[ "$MODE" = full ] && step  draft $P pipeline/draft.py   # gates itself: llm.auto, process.py, or a waiting memo (llm.memo_auto)
+step  match      $P pipeline/match.py          # shared material of the other boards that fits an open draft -> proposal on the card; gates itself (llm.auto, process.py or llm.match_auto)
 step cards       $P pipeline/cards.py
 step health      $P pipeline/health.py
 step push        $P pipeline/board_sync.py push

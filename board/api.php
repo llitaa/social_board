@@ -294,9 +294,9 @@ switch ($a) {
     $pr['saved_at'] = date('c'); jwrite("$D/profile.json", $pr); decide($d); out(['ok' => true]);
 
   case 'proposal': // a shared photo offered on a card: accept | decline (apply_decisions.py puts it on the card with a credit line)
-    $id = preg_replace('/[^\w-]/', '', (string)($body['card_id'] ?? '')); $dec = ($body['decision'] ?? '') === 'accept' ? 'accept' : 'decline';
+    $id = preg_replace('/[^\w#-]/', '', (string)($body['card_id'] ?? '')); $dec = ($body['decision'] ?? '') === 'accept' ? 'accept' : 'decline';   // card id, or card id + "#t" for a text proposal (04.11.)
     $props = jread("$D/proposals.json", []); if ($id === '' || empty($props[$id])) out(['error' => 'unknown proposal']);
-    set_overlay('proposals', $id, ['state' => $dec]); decide(['type' => 'proposal', 'card_id' => $id, 'decision' => $dec, 'photo' => $props[$id]['photo'] ?? '', 'owner' => $props[$id]['owner'] ?? '']); out(['ok' => true]);
+    set_overlay('proposals', $id, ['state' => $dec]); decide(['type' => 'proposal', 'card_id' => $id, 'decision' => $dec, 'kind' => $props[$id]['kind'] ?? 'photo', 'photo' => $props[$id]['photo'] ?? '', 'owner' => $props[$id]['owner'] ?? '']); out(['ok' => true]);
 
   case 'password': // the person changes their own password (auth.php); ends all other sessions of this board
     $r = auth_set_password((string)($body['new'] ?? '')); if ($r !== '') out(['error' => $r]); auth_login((string)$body['new']); out(['ok' => true]);

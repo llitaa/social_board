@@ -1,0 +1,15 @@
+Die KI antwortet manchmal unter meiner Frage, manchmal darüber.
+
+Bei der Arbeit mit Coding-Agents sehe ich zwei Grenzen. Die erste kennt jeder: Kann das Modell überhaupt umsetzen, was ich will? Die zweite fällt seltener auf: Erkennt es, was ich eigentlich will?
+
+Unter der Frage liegt die Halluzination. Ich bitte um eine Änderung in einer grossen Legacy-C++-Codebasis, und der Agent liefert eine Funktion, die es nicht gibt, oder einen Umbau, der am Kern vorbeigeht. Das Modell hat etwas anderes verstanden, als ich gemeint habe, und die Antwort sieht trotzdem überzeugend aus.
+
+Über der Frage liegt das Gegenteil. Ich frage, wie genau ich etwas umsetze, und bekomme zuerst die Frage zurück, wozu. Welches Ziel trägt der Umbau, wer wartet den Code danach, was lassen wir weg. Der Agent zieht mich eine Ebene höher, auf die Entscheidung, die ich übersprungen hatte. Das bekomme ich manchmal geschenkt, und oft ist es der wertvollste Teil der Antwort.
+
+Beides hat dieselbe Ursache: Der Fokus der KI liegt ausserhalb meines Fokus. Ob das schadet oder hilft, sieht man der Antwort nicht an. Das entscheidet, wer sie liest.
+
+Ich habe deshalb für mich eine Regel eingeführt: Bevor ich eine Antwort übernehme, ordne ich sie ein. Was unter meiner Frage liegt, wird geprüft, bevor eine Zeile davon in den Code geht. Was darüber liegt, nehme ich ernst, auch wenn es unbequem ist. Erst dann geht es um die Umsetzung.
+
+Wann hat eine KI Ihnen zuletzt eine bessere Frage gestellt als Sie ihr?
+
+#KIEntwicklung #Softwarearchitektur #Führung

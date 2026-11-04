@@ -1,0 +1,29 @@
+{
+ "id": "li-post-41",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t080",
+ "memo": "",
+ "photo": "lchingtreffen3",
+ "neighbour_shoots": [
+  "2025-04-14_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-11-04T19:31:43",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "KI-Praxis",
+  "headline": "Die KI antwortet manchmal unter meiner Frage, manchmal darüber."
+ },
+ "signals": {
+  "lead": "Ich habe deshalb für mich eine Regel eingeführt: Bevor ich eine Antwort übernehme, ordne ich sie ein.",
+  "ai": "Der Agent zieht mich eine Ebene höher, auf die Entscheidung, die ich übersprungen hatte."
+ },
+ "editorial": {
+  "reader": "Leiter Softwareentwicklung, dessen Team Coding-Agents nutzt und der wissen will, welche Agent-Antworten man übernehmen darf",
+  "insight": "Halluzination und hilfreiche Gegenfrage haben dieselbe Ursache: Der Fokus der KI liegt ausserhalb des eigenen; ob das schadet oder hilft, entscheidet der Leser der Antwort",
+  "discussion_reason": "Ob eine KI wirklich strategisch weiterhilft oder ob die Gegenfrage nur Zufall ist, den man sich schönredet",
+  "situation": "2"
+ }
+}

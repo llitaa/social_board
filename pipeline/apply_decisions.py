@@ -172,15 +172,29 @@ def main():
                             rows.append({"id": f"t{len(rows) + 1:03d}", "pillar": "case", "channel": "personal", "topic": x[:80], "angle": x[:300], "source": "profile: Themen, selbst eingetragen", "tags": "", "status": "unused", "used_in": "", "added": d["ts"][:10]})
                         inv_.save(rows); log(f"profile: {len(new)} topic(s) added to the inventory")
                 log("profile saved")
-            elif t == "proposal":   # a shared photo of another board offered on a card: accept = into this pool + on the card + credit line; decline = remembered
-                pf = os.path.join(BOARD_LOCAL, "proposals.json"); props = jload(pf, {}); p = props.get(d.get("card_id", ""), {})
-                p["state"] = "accept" if d.get("decision") == "accept" else "decline"; p["decided"] = d["ts"][:16]; props[d.get("card_id", "")] = p; jdump(pf, props)
-                if p["state"] == "accept" and p.get("file") and os.path.isfile(p["file"]):
+            elif t == "proposal":   # shared material of another board offered on a card (match.py): a photo (key = card id) or a thought from a post, website or memo (key = card id + "#t"); accept = on the card / as a sentence in the text, with a credit line; decline = remembered
+                key = d.get("card_id", ""); cid = key.split("#")[0]
+                pf = os.path.join(BOARD_LOCAL, "proposals.json"); props = jload(pf, {}); p = props.get(key, {})
+                p["state"] = "accept" if d.get("decision") == "accept" else "decline"; p["decided"] = d["ts"][:16]; props[key] = p; jdump(pf, props)
+                if p["state"] == "accept" and p.get("kind") == "text":
+                    try:
+                        pr_ = next((r for r in plan if r.get("caption_ref") and "-".join(os.path.basename(r["caption_ref"]).split("-")[0:3]) == cid), None)
+                        tp = resolve(pr_.get("caption_ref", "")) if pr_ else ""; txt = open(tp, encoding="utf-8").read().rstrip() if tp and os.path.isfile(tp) else ""
+                        line = (p.get("line") or "").strip(); credit = f"Gedanke von {p.get('owner_name', '')}" + (f": {p['url']}" if p.get("url") else "")
+                        if pr_ and txt and line and line not in txt:
+                            m = re.search(r"(\n\s*#\w[\w\s#]*)$", txt); body = txt[:m.start()].rstrip() if m else txt; tail = txt[m.start():].lstrip("\n") if m else ""
+                            write_edit(pr_, body + "\n\n" + line + "\n\n" + credit + ("\n" + tail if tail else "\n"), d["ts"])
+                            pr_["notes"] = f"[board {d['ts'][:16]} shared text {p.get('item', '')} von {p.get('owner_name', '')}] " + pr_.get("notes", ""); changed_plan = True
+                            ob = boards().get(p.get("owner", ""), {})
+                            if ob: append(os.path.join(ob["lib"], "log", "shared-uses.csv"), ["ts", "photo", "used_by", "used_by_name", "card"], {"ts": d["ts"][:16], "photo": "Text: " + (p.get("title") or "")[:60], "used_by": USER or "anton", "used_by_name": profile()["name"], "card": cid})
+                            log("text proposal accepted", cid, p.get("item"))
+                    except Exception as e: log("text proposal accept failed", repr(e)[:300])
+                elif p["state"] == "accept" and p.get("file") and os.path.isfile(p["file"]):
                     try:
                         import photo_index as ph
                         row = ph.ingest(p["file"], note=f"von {p.get('owner_name', '')}", status="ready", copy=True, src="shared")
                         if not row: row = next((x for x in ph.read_index() if os.path.basename(x["file"]) == os.path.basename(p["file"])), None)
-                        pr_ = next((r for r in plan if r.get("caption_ref") and "-".join(os.path.basename(r["caption_ref"]).split("-")[0:3]) == d.get("card_id")), None)
+                        pr_ = next((r for r in plan if r.get("caption_ref") and "-".join(os.path.basename(r["caption_ref"]).split("-")[0:3]) == cid), None)
                         if row and pr_:
                             rows = ph.read_index()
                             for x in rows:
@@ -194,8 +208,8 @@ def main():
                                 write_edit(pr_, new, d["ts"])
                             pr_["notes"] = f"[board {d['ts'][:16]} shared photo {row['id']} von {p.get('owner_name', '')}] " + pr_.get("notes", ""); changed_plan = True
                             ob = boards().get(p.get("owner", ""), {})
-                            if ob: append(os.path.join(ob["lib"], "log", "shared-uses.csv"), ["ts", "photo", "used_by", "used_by_name", "card"], {"ts": d["ts"][:16], "photo": row["id"], "used_by": USER or "anton", "used_by_name": profile()["name"], "card": d.get("card_id", "")})
-                            log("proposal accepted", d.get("card_id"), row["id"])
+                            if ob: append(os.path.join(ob["lib"], "log", "shared-uses.csv"), ["ts", "photo", "used_by", "used_by_name", "card"], {"ts": d["ts"][:16], "photo": row["id"], "used_by": USER or "anton", "used_by_name": profile()["name"], "card": cid})
+                            log("proposal accepted", cid, row["id"])
                     except Exception as e: log("proposal accept failed", repr(e)[:300])
             elif t in ("photo", "upload", "memo", "settings", "answer", "profile", "profile_save", "invite", "team"):
                 append(os.path.join(LOGDIR, "board-events.csv"), ["ts", "type", "id", "decision", "files", "file", "note", "answer", "expiry", "review", "card_id"],

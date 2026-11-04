@@ -1,0 +1,15 @@
+Kleine Softwarefirmen müssen fertige Produkte liefern, keine Stunden.
+
+Ich frage andere Unternehmer gerade oft, wohin sich ihre Branche bewegt. Auch an Tischen wie diesem, bei Kaffee und kurzen Präsentationen. Bei Software-Dienstleistern höre ich zwei Muster.
+
+Die grossen Häuser haben Zugang zu vielen Kunden. Sie können sich über ihre Grösse neu ausrichten: Cloud, AWS, KI-Programme für Konzerne.
+
+Die kleineren leben von Stammkunden. Die kamen meist über Zufall oder persönliche Kontakte. Das trägt, solange es trägt, aber es skaliert nicht. Wer einen grossen Kunden verliert, merkt schnell, dass Stundenverkauf kein Wachstumsmodell ist.
+
+Ich glaube, die kleineren müssen etwas anderes verkaufen: ein fertiges Ergebnis mit klarer Grenze. Bei einem Halbleiterhersteller habe ich zwei Desktop-Anwendungen für die Verifikation von Chip-Designs verantwortet. Die Architektur habe ich so festgelegt, dass andere Entwickler sie später ohne mich warten können. Der Wert lag nicht in meinen Stunden, sondern darin, dass das Werkzeug ohne mich weiterlebt.
+
+Den nächsten Markt dafür sehe ich bei internen KI-Systemen: RAG, also das Anbinden eigener Dokumente an ein Modell, und das Gedächtnis solcher Systeme. Die Erwartung dort ist Produktion, nicht Demo. Was ein Modell leisten kann, beginnt erst dort, wo die Wahrheit dokumentiert ist. In meiner eigenen Arbeit mit Agents kostet genau das die Zeit: nicht die Antwort, sondern die Prüfung, ob sie stimmt. Wer pflegt die Dokumente, wer prüft, wer haftet, wenn das System falsch erinnert? Das ist Produktarbeit, keine Stundenleistung.
+
+Kaufen Sie bei Ihrem Softwarepartner heute noch Stunden oder schon ein Ergebnis?
+
+#Softwareentwicklung #KI #Softwarearchitektur

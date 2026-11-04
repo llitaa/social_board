@@ -1,5 +1,40 @@
 {
  "name": "Andreas Bentele-Krickl",
  "lang": "de",
- "confirmed": false
+ "confirmed": true,
+ "role": "Bietet individuell angepasste Ortho-K-Nachtlinsen (Orthokeratologie) an, die nachts getragen werden, damit man tagsüber ohne Brille oder Kontaktlinsen klar sieht – über das eyefriends-Netzwerk aus Opt",
+ "company": "Eyefriends",
+ "website": "https://eyefriends.de",
+ "audience": "Kurz- oder Weitsichtige Erwachsene sowie Eltern kurzsichtiger Kinder und Jugendlicher, die ihrer Brille oder ihren Tageslinsen überdrüssig sind, aber keine Laser-OP wollen; außerdem Optiker und Augenärzte, die Ortho-K anbieten möchten.",
+ "offer": "Der Leser soll verstehen, wie Nachtlinsen funktionieren, und einen kostenlosen, unverbindlichen Beratungstermin vereinbaren.",
+ "topics": [
+  "Bye Brille: Warum Brillen im Winter beschlagen, im Sommer rutschen und beim Sport stören",
+  "Bye Linse: Trockene Augen am Nachmittag bei Bildschirmarbeit und Klimaanlage vermeiden",
+  "Bye Laser: Dieselbe Freiheit ohne Skalpell, vollständig reversibel",
+  "Was ist Orthokeratologie? Hornhaut wird über Nacht sanft geformt, ohne dauerhaften Eingriff",
+  "Nachtlinsen für Kinder und Jugendliche: für wen sie geeignet sind",
+  "Der Weg zur Nachtlinse in fünf Schritten: von der Vermessung bis zur Anpassung beim Optiker",
+  "Fertigung in der Schweiz: maßgeschneiderte Linsen mit hoher Präzision",
+  "Preismodelle: Abo ab 78 € im Monat oder einmaliger Kauf, inklusive Anpassung und Nachsorge",
+  "Trägerstimmen: Basketballspieler und Alltagsträgerin über ihre Erfahrung",
+  "Geschichte der Ortho-K: von den 1960ern über sauerstoffdurchlässige Materialien bis 2002 in Deutschland"
+ ],
+ "tone": "Persönlich und ansprechend, in der Du-Form; ruhig, klar und alltagsnah, mit kurzen Schlagworten wie „Bye Brille“.",
+ "facts": "Eyefriends bietet Ortho-K-Nachtlinsen an: individuell angepasste Kontaktlinsen, die nachts getragen werden.\nDie Linsen formen die Hornhaut sanft, sodass man tagsüber ohne Brille oder Linsen auskommt.\nOrtho-K korrigiert die Sehschwäche über Nacht, ohne dauerhaften Eingriff.\nAngegeben sind 95 % Erfolgsquote bei korrekter Anwendung.\nAngegeben sind 15+ Jahre Erfahrung in der Ortho-K-Anpassung.\nTypischer Korrekturbereich: −8,5 bis +3,0 Dioptrien.\nAstigmatismus (Hornhautverkrümmung) cyl: −2,0 bis −3,50 dpt, im Einzelfall auch höher.\nNachtlinsen gelten als vollständig reversibel und risikoarm; auch für Kinder und Jugendliche geeignet.\nAblauf: Optiker oder Augenarzt wählen und online buchen, Augen vermessen, Daten übermitteln und Fertigung, Versand an den Optiker, Abholung und Anpassung.\nDie Produktion der Linsen erfolgt in der Schweiz.\nDie Linsen werden direkt an den Optiker oder Arzt geliefert.\nPremium: 78 € monatlich, inklusive Anpassung und Nachsorge, ein Kontrolltermin zur Nachsorge.\nPremium plus (empfohlen): 98 € monatlich, zusätzlich 2× Ersatzlinse inklusive Versicherung.\nPremium (Multifokal): 108 € monatlich, für −8,5 bis +1,5 dpt, Addition (Lesestärke) +0,5 bis +3,0 dpt.\nZahlung wahlweise monatlich im Abo oder als einmaliger Kauf.\nBeratungstermin ist unverbindlich und kostenlos; Rückmeldung innerhalb von 24 Stunden mit Prüfung von Eignung, Alltag und passendem Modell.\nBereits 56 Partner an 42 Standorten.\nOrtho-K ist seit 2002 in Deutschland verfügbar; Grundlagen reichen bis in die 1960er zurück, sichere Nachtnutzung durch hoch sauerstoffdurchlässige Materialien seit den 1990ern.\nTrägerstimmen: Sarah M. (München, Trägerin seit 2 Jahren) und Thomas K. (Heidelberg, Träger seit 1 Jahr, Basketballspieler).\nBeschriebene Vorteile: kein Beschlagen, kein Rutschen, keine trockenen Augen am Nachmittag, kein Einsetzen tagsüber.",
+ "uncertain": [
+  "Der Name Andreas Bentele-Krickl kommt im Material nirgends vor; seine Rolle (Gründer, Optiker, Vertrieb o. Ä.) ist unklar.",
+  "Die Website-Adresse ist nicht genannt, nur der Seitentitel „Eyefriends — Ortho-K Nachtlinsen“.",
+  "Der Text wirkt wie ein Website-Entwurf („Leitidee dieses Entwurfs“, „In Zusammenarbeit mit Allianz Generalvertretung Regine Fruhmann“); unklar, ob die Angaben final und belegt sind.",
+  "Die Quelle der 95 % Erfolgsquote und die Bedeutung von „15+ Jahre Erfahrung“ (Firma oder Person) sind nicht belegt.",
+  "Die Antworten der FAQ (z. B. Dauer der klaren Sicht, Tragefrequenz) stehen nicht im Material.",
+  "Unklar, ob Andreas selbst Optiker ist oder Partner im Netzwerk; ebenso, ob er Endkunden, Optiker oder beide ansprechen will.",
+  "Die Zielgruppe Optiker/Augenärzte ist nur indirekt aus dem Partnernetzwerk abgeleitet, nicht ausdrücklich genannt.",
+  "Es gibt keine eigenen Worte von Andreas; der Ton ist nur aus dem Website-Text abgeleitet.",
+  "Unklar, welche Rolle die genannten Partner (Allianz-Generalvertretung, Mediadorf, Lenzbox u. a.) spielen und ob sie in Posts erwähnt werden sollen.",
+  "Die Preisangaben und Laufzeiten des Abos (Mindestlaufzeit, Kündigung) sind nicht genannt."
+ ],
+ "words": "",
+ "proposed": "2026-11-04T19:19",
+ "confirmed_at": "2026-11-04T19:20",
+ "confirm_note": "Vorschlag aus der Website eyefriends.de, am 04.11. von Anton für die Demo bestätigt. Andreas korrigiert Rolle, Fakten und Themen im Profil-Tab."
 }

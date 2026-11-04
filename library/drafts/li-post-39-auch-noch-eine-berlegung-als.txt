@@ -1,0 +1,15 @@
+Per Sprache bin ich launisch. Das System muss das überleben.
+
+Ich sehe gerade oft Second-Brain-Dashboards: Ein Entwickler zeigt, wie er mehrere Projekte per Sprache steuert. Das sieht gut aus. Nur beantwortet das Dashboard nicht die Frage, ob das System mich richtig verstanden hat.
+
+Wer spricht, vergisst, was er gestern gesagt hat. Heute ist etwas Priorität, morgen widerspreche ich mir. Irgendwann muss ich prüfen, was das System daraus gemacht hat. Dafür braucht es Struktur und Nachvollziehbarkeit: Was gilt jetzt, was gilt nur für heute, was hat sich geändert?
+
+Das Muster kenne ich lange vor KI. In der Vermessungssoftware lagen Anforderungen und Umsetzung immer wieder auseinander, weil Anforderungen unvollständig ankamen. Ich habe damals Arbeitspakete strukturiert und mit Prototypen geklärt, was gemeint war. Der Schutz lag im Prozess, nicht im Gedächtnis der Beteiligten.
+
+Bei Agents gilt dasselbe, nur schneller. Ich denke deshalb nicht in einem Gehirn, sondern in Systemen mit isolierten Aufgaben. In meiner Arbeit mit Coding-Agents in Legacy-C++ bekommt jede Aufgabe ihren eigenen, abgegrenzten Kontext und eine Abnahme. Was darüber hinausgeht, sind geteilte Daten, kein zweites Gehirn.
+
+Ein gut gebautes Projekt ist ohnehin schon ein Teil dieses Gehirns. Es muss den Nutzer aushalten, auch den, der sich jeden Morgen neu entscheidet.
+
+Woran erkennen Sie bei Ihrem System, dass es Sie richtig verstanden hat?
+
+#KIEntwicklung #Softwarearchitektur #Systemdesign

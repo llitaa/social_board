@@ -17,6 +17,8 @@ photo_sources:            # scanned for camera photos with a face; copies go to 
 photo_reuse_days: 90      # a used photo is eligible again after this many days
 photo_fresh_months: 24    # older photos are picked only when nothing newer is eligible
 llm:
+  memo_auto: true         # 04.11. (Anton: "my memos never processed"): a waiting voice memo wakes draft.py in the background chain; no memo, no call
+  match_auto: true        # 04.11.: the one exception on Anton's board: match.py (shared material of the network under a draft) may call the model in the background; small calls, the demo needs it
   auto: false             # false (Anton, 26.10.): the background chain makes NO model calls; drafts, redrafts, learning and photo tags wait until `python3 pipeline/process.py` is run in a terminal. true = as before, every 10 min
   backend: claude-p       # claude-p = `claude -p` on the subscription; api = Anthropic API (ANTHROPIC_API_KEY)
   claude: ''              # path of the claude CLI when it is not on the worker's PATH (launchd/cron); empty = search the usual places
@@ -45,3 +47,5 @@ cv_pdf: ~/dev/career/cv/Anton_Lytvynenko_CV_EN.pdf
 company_context: ~/.claude/alpitype/company-context.md
 logo: ~/.claude/templates/alpitype-logo-color-transparent.png
 chrome: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+match:
+  strict: false   # pilot (04.11.): the text matcher proposes a real bridge instead of waiting for the perfect fit; the person decides with Ja/Nein

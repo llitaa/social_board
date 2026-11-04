@@ -1,0 +1,27 @@
+{
+ "id": "li-post-13",
+ "channel": "personal",
+ "pillar": "case",
+ "topic": "t001",
+ "memo": "",
+ "photo": "",
+ "neighbour_shoots": [],
+ "model": "claude-opus-5-5",
+ "created": "2026-11-04T19:21:44",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "Ortho-K im Sport",
+  "headline": "Für Thomas heißt das im Spiel: kein Rutschen, kein Beschlagen, nichts im Auge."
+ },
+ "signals": {
+  "lead": "Ob Nachtlinsen zu deinen Augen und deinem Alltag passen, klären wir in einem kostenlosen, unverbindlichen Beratungstermin.",
+  "ai": ""
+ },
+ "editorial": {
+  "reader": "Kurzsichtiger Erwachsener, der regelmäßig Hallen- oder Mannschaftssport macht und dort mit Brille oder Tageslinsen kämpft.",
+  "insight": "Nachtlinsen lösen das Sport-Problem nicht durch eine bessere Sehhilfe im Spiel, sondern dadurch, dass während des Spiels gar keine Sehhilfe mehr nötig ist.",
+  "discussion_reason": "Leser können aus ihrer eigenen Sportart berichten, wo Brille oder Tageslinse am meisten stört.",
+  "situation": "beide"
+ }
+}

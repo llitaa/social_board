@@ -1,0 +1,29 @@
+{
+ "id": "li-post-40",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t079",
+ "memo": "",
+ "photo": "lchingtreffen2",
+ "neighbour_shoots": [
+  "2025-04-14_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-11-04T19:31:10",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "Softwarebranche",
+  "headline": "Kleine Softwarefirmen müssen fertige Produkte liefern, keine Stunden."
+ },
+ "signals": {
+  "lead": "Die Architektur habe ich so festgelegt, dass andere Entwickler sie später ohne mich warten können.",
+  "ai": "In meiner eigenen Arbeit mit Agents kostet genau das die Zeit: nicht die Antwort, sondern die Prüfung, ob sie stimmt."
+ },
+ "editorial": {
+  "reader": "Geschäftsführer eines kleinen Softwarehauses, dem ein Stammkunde weggebrochen ist, oder Entwicklungsleiter, der ein internes KI-Werkzeug extern vergeben will",
+  "insight": "Kleine Dienstleister wachsen nicht über mehr Stunden, sondern über abgegrenzte, übergabefähige Produkte; interne KI-Systeme mit eigenem Dokumentenbestand sind der nächste solche Markt, und dort entscheidet die Prüfung, nicht das Modell",
+  "discussion_reason": "Ob Stundenverkauf für kleine Firmen wirklich ausläuft oder ob persönliche Stammkundenbeziehungen gerade jetzt mehr wert sind",
+  "situation": "beide"
+ }
+}

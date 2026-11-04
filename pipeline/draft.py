@@ -336,10 +336,19 @@ Answer with one JSON object only: {{"text": "the full post incl. hashtags, newli
     log(f"drafted {cid} {channel} {dt:%a %d.%m. %H:%M} pillar={pillar} photo={photo['id'] if photo else '-'}")
     return row
 
+def memos_waiting():
+    """A memo that is not a post yet: status new, or a phrase whose thought topic is still unused."""
+    memos, _ = read_csv(os.path.join(LIB, "memos", "index.csv")); inv, _ = read_csv(os.path.join(LIB, "inventory.csv"))
+    unused = {r["id"] for r in inv if r.get("status") == "unused"}
+    return any(m.get("status") == "new" or (m.get("status") == "phrase" and m.get("used_in") in unused) for m in memos)
+
 def main(limit=8):
     plan, fields = read_csv(CFG["content_plan"]); today = date.today()
     idx = {r["id"]: r for r in ph.read_index()}
     file_phrases()
+    from llm import allowed
+    if (CFG.get("llm") or {}).get("memo_auto") and memos_waiting(): os.environ["LLM_INTERACTIVE"] = "1"   # Anton 04.11.: a waiting memo may wake the drafting step in the background; without a memo the step still waits for process.py
+    if not allowed(): log("drafts wait for process.py (config llm.auto false, no memo waiting)"); return
     draft_thoughts(plan, fields, idx)
     slots = open_slots(plan, today)
     if not slots: log("all slots filled"); return

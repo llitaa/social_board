@@ -1,0 +1,29 @@
+{
+ "id": "li-post-39",
+ "channel": "personal",
+ "pillar": "thought",
+ "topic": "t078",
+ "memo": "",
+ "photo": "lchingtreffen1",
+ "neighbour_shoots": [
+  "2025-04-14_shoot"
+ ],
+ "model": "claude-opus-5-5",
+ "created": "2026-11-04T19:30:31",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "KI-Systeme",
+  "headline": "Per Sprache bin ich launisch. Das System muss das überleben."
+ },
+ "signals": {
+  "lead": "Ich habe damals Arbeitspakete strukturiert und mit Prototypen geklärt, was gemeint war.",
+  "ai": "In meiner Arbeit mit Coding-Agents in Legacy-C++ bekommt jede Aufgabe ihren eigenen, abgegrenzten Kontext und eine Abnahme."
+ },
+ "editorial": {
+  "reader": "Engineering Manager, der gerade überlegt, ob ein sprachgesteuertes Agent-Dashboard die Arbeit seines Teams ordnen kann",
+  "insight": "Nicht das Modell muss den Nutzer verstehen, sondern das System muss den launischen Nutzer überleben: isolierte Aufgaben mit Abnahme statt eines zentralen Second Brain",
+  "discussion_reason": "Second-Brain-Befürworter können halten, dass ein zentraler Kontext gerade das Chaos auffängt, statt es in Aufgaben zu zerlegen",
+  "situation": "2"
+ }
+}

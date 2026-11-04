@@ -1,0 +1,21 @@
+name: Anton Lytvynenko - Test
+lang: de
+groups:
+- bni-gilching
+llm:
+  auto: true
+slots:
+  personal:
+    days:
+    - Tue
+    time: 08:00
+    lang: de
+engagement:
+  days: []
+  pillars: []
+personal_card:
+  style: 'off'
+orthography: de
+photo_sources: []
+publish:
+  where: server
