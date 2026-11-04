@@ -122,11 +122,16 @@ def next_slot(plan):
         d += timedelta(days=1)
     return None
 
-def network_drafts():
+def network_drafts(force_item=None):
+    """force_item = "owner:kind:id" (CLI --item, demo or admin): that piece, now, regardless of the weekly limit and earlier verdicts."""
     items = material(); used = jload(USED, {}); now = datetime.now().isoformat(timespec="minutes")
     if not items: log("network: nothing shared on the other boards"); return
     week_ago = (datetime.now() - timedelta(days=7)).isoformat(timespec="minutes"); day_ago = (datetime.now() - timedelta(days=1)).isoformat(timespec="minutes")
-    if any(v.get("state") == "drafted" and v.get("ts", "") >= week_ago for v in used.values()): log("network: one post from the network this week already"); return
+    if force_item:
+        items = [i for i in items if i["key"] == force_item]
+        if not items: log("network: item not shared:", force_item); return
+        used.pop(force_item, None)
+    elif any(v.get("state") == "drafted" and v.get("ts", "") >= week_ago for v in used.values()): log("network: one post from the network this week already"); return
     def fresh(i):
         u = used.get(i["key"])
         if not u: return True
@@ -134,6 +139,7 @@ def network_drafts():
         if u.get("state") == "failed": return u.get("ts", "") < day_ago
         return False
     cands = sorted([i for i in items if fresh(i)], key=lambda i: i["date"], reverse=True)[:10]
+    if force_item: cands = items
     if not cands: log("network: nothing new to judge"); return
     from llm import llm_json, allowed
     if not allowed(): log("match waits for process.py"); return
@@ -141,7 +147,8 @@ def network_drafts():
     pos_f = os.path.join(LIB, "positioning.md"); pos = open(pos_f, encoding="utf-8").read()[:1500] if os.path.isfile(pos_f) else ""
     inv_rows, _ = read_csv(os.path.join(LIB, "inventory.csv")); topics = [r["topic"] for r in inv_rows if r.get("status") == "unused"][:15]
     cand = "\n\n".join(f"{n + 1}. {KIND.get(c['kind'], c['kind'])} von {c['owner_name']}, {c['date'] or 'ohne Datum'}: {c['title'][:120]}\n{c['text'][:600]}" for n, c in enumerate(cands))
-    rule = "Nichts nehmen ist die Regel, ein Stück die Ausnahme." if strict else "Gibt es eine echte Brücke, nimm sie: der Autor entscheidet am Ende mit einem Tipp. Nur wenn gar nichts trägt, 0."
+    rule = (f"Dieses Stück ist gesetzt: pick ist 1. Finde die Brücke zu {first}s Themen und Lesern und schreibe den Gedanken dazu." if force_item else
+            "Nichts nehmen ist die Regel, ein Stück die Ausnahme." if strict else "Gibt es eine echte Brücke, nimm sie: der Autor entscheidet am Ende mit einem Tipp. Nur wenn gar nichts trägt, 0.")
     prompt = f"""{who['name']} postet auf LinkedIn für die eigenen Kunden. Worum es in diesen Posts geht:
 {pos or '-'}
 Offene Themen: {'; '.join(topics) or '-'}
@@ -201,6 +208,6 @@ Unten Material, das andere aus dem Netzwerk freigegeben haben (Foto, veröffentl
 def main():
     network()
     if (CFG.get("llm") or {}).get("match_auto"): os.environ["LLM_INTERACTIVE"] = "1"   # Anton 04.11.: matching is the one model step allowed in his background chain
-    network_drafts()
+    network_drafts(sys.argv[sys.argv.index("--item") + 1] if "--item" in sys.argv else None)
 
 if __name__ == "__main__": main()

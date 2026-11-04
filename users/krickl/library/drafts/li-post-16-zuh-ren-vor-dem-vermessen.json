@@ -1,0 +1,34 @@
+{
+ "id": "li-post-16",
+ "channel": "personal",
+ "pillar": "network",
+ "topic": "net-anton:photo:lchingtreffen2",
+ "memo": "",
+ "photo": "lchingtreffen2",
+ "neighbour_shoots": [],
+ "model": "claude-opus-5-5",
+ "created": "2026-11-04T22:43:09",
+ "versions": [],
+ "graphic": null,
+ "card": {
+  "kicker": "Ortho-K Beratung",
+  "headline": "Erst zuhören, dann präsentieren."
+ },
+ "signals": {
+  "lead": "Erst danach reden wir über Technik.",
+  "ai": ""
+ },
+ "editorial": {
+  "reader": "Erwachsene mit Brille oder Tageslinsen, die vor einer Beratung unsicher sind, ob man sie dort nur vermisst und verkauft",
+  "insight": "Eine gute Linsenberatung beginnt beim Alltag des Kunden, nicht bei der Vermessung; wer das Prinzip versteht, entscheidet ruhiger",
+  "discussion_reason": "Ob Zuhören vor der Technik tatsächlich bessere Entscheidungen bringt oder ob Kunden lieber direkt Fakten und Messwerte wollen",
+  "situation": "beide"
+ },
+ "credit": "Anton Lytvynenko",
+ "network": {
+  "owner": "anton",
+  "kind": "photo",
+  "item": "lchingtreffen2",
+  "why": "Du kennst das aus dem Netzwerk: Bei einem BNI-Treffen stellt sich jemand vor, die anderen hören zu, und daraus entsteht Vertrauen, genau wie bei deiner Beratung vor einer Anpassung."
+ }
+}
