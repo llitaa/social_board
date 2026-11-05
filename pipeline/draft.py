@@ -353,6 +353,8 @@ def main(limit=8):
     if not allowed(): log("drafts wait for process.py (config llm.auto false, no memo waiting)"); return
     draft_thoughts(plan, fields, idx)
     slots = open_slots(plan, today)
+    if not slots and memos_waiting():   # 05.11.: a memo is an explicit wish, it gets the next personal slot after the horizon instead of waiting weeks
+        import match; dt = match.next_slot(plan); slots = [(dt, "personal")] if dt else []
     if not slots: log("all slots filled"); return
     memo = fresh_memo(); n = 0
     for dt, c in slots[:limit]:

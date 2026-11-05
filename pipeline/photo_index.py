@@ -98,10 +98,11 @@ def pid_of(path):
     if base.upper().startswith("IMG"): base = re.sub(r"\s*\(\d+\)$|\s+\d$", "", base)   # "IMG_1766 (1)" / "IMG_1221 2" are copies
     return re.sub(r"[^a-z0-9]+", "", base.lower().replace("img_", "img").replace("img-", "img"))[-14:]
 
-def assign_shoot(rows, taken, gps, note):
+def assign_shoot(rows, taken, gps, note, shared=False):
     day = (taken or datetime.now()).strftime("%Y-%m-%d")
     for r in rows:
         if not r["shoot"].startswith(day): continue
+        if bool(r.get("owner")) != shared: continue   # 05.11.: a photo from another board never shares a shoot with the person's own uploads of that day
         rg = tuple(map(float, r["gps"].split(","))) if r.get("gps") else None
         if gps and rg and dist_m(gps, rg) > 500: continue
         return r["shoot"]
@@ -118,7 +119,7 @@ def ingest(path, note="", status="ready", copy=True, src="board"):
         if r["id"] == pid or os.path.basename(r["file"]) == base or (tk and r["taken"] == tk): return None
     im = ImageOps.exif_transpose(Image.open(path)); faces = faces_of(im)
     if src not in ("board", "shared") and not faces: return None       # pool = photos with a person in them
-    shoot = assign_shoot(rows, taken, gps, note)
+    shoot = assign_shoot(rows, taken, gps, note, shared=(src == "shared"))
     sdir = os.path.join(SHOOTS, shoot); os.makedirs(sdir, exist_ok=True); os.makedirs(SQUARE, exist_ok=True); os.makedirs(THUMBS, exist_ok=True)
     dst = os.path.join(sdir, base)
     if not os.path.isfile(dst): (shutil.copy2 if copy else shutil.move)(path, dst)
@@ -148,7 +149,7 @@ def tag_photos(limit=120):
                          '"li_ok": "yes or no: a natural photo a professional could post on LinkedIn"}', files=True)
             r["scene"] = str(d.get("scene", ""))[:120]; r["tags"] = " ".join(str(t) for t in d.get("tags", []))[:120]; r["people"] = str(d.get("people", ""))[:30]
             if SENSITIVE.search(r["scene"] + " " + r["tags"]) or r["people"] in ("child present", "woman only"): purge(r)   # never on the board
-            elif r["status"] == "ready" and (d.get("li_ok") == "no" or r["people"] == "none"): r["status"] = "hold"
+            elif r["status"] == "ready" and r.get("src") != "board" and (d.get("li_ok") == "no" or r["people"] == "none"): r["status"] = "hold"   # 05.11.: an upload from the board is a wish, never held by taste (Andreas's skier picture)
             n += 1
         except Exception as e: log("tag fail", r["id"], e); r["scene"] = "(untagged)"
     write_index(rows); return n
