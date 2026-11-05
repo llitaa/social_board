@@ -220,10 +220,13 @@ switch ($a) {
     }
     $txt = trim((string)($_POST['text'] ?? '')); if ($txt !== '') file_put_contents("$D/uploads/memos/$name.note.txt", $txt);
     $card = preg_replace('/[^\w-]/', '', (string)($_POST['card_id'] ?? ''));   // a spoken note for one post: the Mac transcribes it and applies it like a typed note
+    $skip = $card !== '' && ($_POST['skip'] ?? '') === '1';   // 05.11.: a spoken reason for discarding: the card goes now, the transcript becomes the skip reason (learn.py)
     if ($card !== '') file_put_contents("$D/uploads/memos/$name.card.txt", $card);   // sidecars first, audio last: a pull in between never separates them
+    if ($skip) file_put_contents("$D/uploads/memos/$name.skip.txt", '1');
     move_uploaded_file($_FILES['audio']['tmp_name'], "$D/uploads/memos/$name");
-    if ($card !== '') { set_overlay('cards', $card, ['note_pending' => time()]); }
-    decide(['type'=>'memo','file'=>$name,'seconds'=>(int)($_POST['seconds'] ?? 0),'card_id'=>$card]);
+    if ($skip) { set_overlay('cards', $card, ['status' => 'skipped', 'decided' => date('c')]); decide(['type'=>'post','card_id'=>$card,'decision'=>'skip','reason'=>'','via'=>'voice-pending']); }
+    elseif ($card !== '') { set_overlay('cards', $card, ['note_pending' => time()]); }
+    decide(['type'=>'memo','file'=>$name,'seconds'=>(int)($_POST['seconds'] ?? 0),'card_id'=>$card,'skip'=>$skip]);
     out(['ok'=>true,'file'=>$name]);
 
   case 'external': // a post Anton published or scheduled in LinkedIn himself, outside the board: goes into posts-log so Published is complete

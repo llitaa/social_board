@@ -338,16 +338,15 @@ function fullCardHtml(c){
         <input type="url" id="u-${c.id}" placeholder="LinkedIn-Link (optional)" style="margin-top:12px"><button class="b p" style="width:100%;margin-top:6px" onclick="askPosted('${c.id}')">Als veröffentlicht markieren</button>
         <div class="row"><button class="b s" onclick="decide('${c.id}','unschedule')">Zurück zu entscheiden</button></div>
         <div class="q" style="margin:8px 0 0;font-size:13px">${c.channel==='company'?'die Unternehmensseite postet von selbst, sobald LinkedIn die Community Management API freigibt':(S.me?'LinkedIn-Verbindung für dein Board: mit Anton am Mac':'LinkedIn neu verbinden: pipeline/linkedin_auth.py')}</div>`
-        :act?`<button class="b p" style="width:100%" onclick="askPost('${c.id}')">${isAuto(c)?'Jetzt posten':'Freigeben, selbst posten'}</button>
-        ${isAuto(c)?'':`<div class="q" style="margin:4px 0 0;font-size:13px">${(c.channel==='company'?'Unternehmensseite':'Profil')+' ist nicht mit der API verbunden: die Karte rückt nach oben mit Text kopieren, Bild laden, Als veröffentlicht markieren'}</div>`}
-        <textarea id="n-${c.id}" rows="3" placeholder="Notiz: was ändern, oder eine Regel für alle Posts" style="margin-top:12px"></textarea>
-        <div class="row" style="margin-top:6px;align-items:center"><button class="b" style="flex:1" onclick="decide('${c.id}','change')">Post überarbeiten</button><button class="rec inline" id="rn-${c.id}" onclick="recNote('${c.id}')" title="Notiz sprechen"></button></div>
+        :act?`<button class="b p" style="width:100%" onclick="askPost('${c.id}')">${isAuto(c)?'Posten':'Freigeben'}</button>
+        <textarea id="n-${c.id}" rows="2" placeholder="Was soll anders sein?" style="margin-top:12px"></textarea>
+        <div class="row" style="margin-top:6px;align-items:center"><button class="b" style="flex:1" onclick="decide('${c.id}','change')">Ändern</button><button class="rec inline" id="rn-${c.id}" onclick="recNote('${c.id}')" title="Änderung sprechen"></button><button class="b s" style="flex:1" onclick="skipPost('${c.id}')">Weg damit</button></div>
+        <div class="reasons col" id="r-${c.id}"><div class="row" style="margin:0;align-items:center"><input type="text" id="y-${c.id}" placeholder="Warum? Das System merkt es sich" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')decide('${c.id}','skip',this.value)"><button class="rec inline" id="rs-${c.id}" onclick="recNote('${c.id}','skip')" title="Grund sprechen"></button></div>
+          <div class="row" style="margin:0"><button class="sm s" onclick="decide('${c.id}','skip',$('#y-${c.id}').value||'not the topic')">nicht mein Thema</button><button class="sm s" onclick="decide('${c.id}','skip',$('#y-${c.id}').value||'not the form')">nicht meine Art</button><button class="sm" onclick="decide('${c.id}','skip',$('#y-${c.id}').value)">Weg</button></div></div>
         <button class="more" style="border:0;background:none;padding:12px 0 0;text-align:left" onclick="$('#f-${c.id}').classList.toggle('on')">Mehr …</button><div class="fold" id="f-${c.id}">
         <input type="datetime-local" id="w-${c.id}" value="${esc(c.slot.slice(0,16))}" style="margin-top:8px">
-        <button class="b" style="width:100%;margin-top:6px" onclick="askSchedule('${c.id}')">Planen</button>
-        <div class="row"><button class="b s" onclick="skipPost('${c.id}')">Verwerfen</button></div>
-        <div class="reasons" id="r-${c.id}"><button class="sm s" onclick="decide('${c.id}','skip','not the topic')">nicht das Thema</button><button class="sm s" onclick="decide('${c.id}','skip','not the form')">nicht die Form</button><button class="sm s" onclick="decide('${c.id}','skip','')">ohne Grund</button></div>${self}</div>`
-        :c.status==='approved'?`${past?'':`<button class="b p" style="width:100%" onclick="askPost('${c.id}')">${isAuto(c)?'Jetzt posten':'Freigeben, selbst posten'}</button>`}<div class="row"><button class="b" onclick="decide('${c.id}','unschedule')">Planung aufheben</button></div><div class="q" style="margin:4px 0 0;font-size:13px">zurück zu entscheiden; nichts wird gepostet</div>${self}`
+        <button class="b" style="width:100%;margin-top:6px" onclick="askSchedule('${c.id}')">Planen</button>${self}</div>`
+        :c.status==='approved'?`${past?'':`<button class="b p" style="width:100%" onclick="askPost('${c.id}')">${isAuto(c)?'Posten':'Freigeben'}</button>`}<div class="row"><button class="b" onclick="decide('${c.id}','unschedule')">Planung aufheben</button></div><div class="q" style="margin:4px 0 0;font-size:13px">zurück zu entscheiden; nichts wird gepostet</div>${self}`
         :c.status==='scheduled'?`<div class="row"><button class="b" onclick="decide('${c.id}','unschedule')">Planung aufheben</button></div><div class="q" style="margin:4px 0 0;font-size:13px">den hast du in der LinkedIn-App geplant; das Board kommt nicht dran. Dort zuerst abbrechen, dann hier aufheben, und er kommt zurück zu entscheiden</div>${self}`
         :c.status==='change'?`<div class="q">wird mit deiner Notiz überarbeitet; kommt hierher zurück</div>`
         :`<div class="q">${esc(STATUS[c.status]||c.status)}</div>`}
@@ -457,7 +456,7 @@ async function decide(id,dec,reason){
   if((dec==='post'||dec==='schedule')&&el&&c&&el.isContentEditable&&el.innerText.trim()!==c.text.trim()) o.text=el.innerText.trim();
   if(dec==='schedule'){o.when=($('#w-'+id)||{}).value||'';if(o.when.length<16){toast('erst Datum und Uhrzeit wählen');return}}
   const r=await post(o); if(r.error==='offline')return;
-  toast(r.ok?({post:isAuto(c)?'geht raus …':'freigegeben, selbst posten',schedule:'geplant',change:MANUAL()?'notiert, kommt '+LATER:'notiert, wird überarbeitet …',skip:'verworfen',unschedule:'zurück zu entscheiden',photo_next:'Foto wird getauscht …'}[dec]):'Fehler');
+  toast(r.ok?({post:isAuto(c)?'geht raus …':'freigegeben',schedule:'geplant',change:MANUAL()?'notiert, kommt '+LATER:'notiert, wird überarbeitet …',skip:'verworfen',unschedule:'zurück zu entscheiden',photo_next:'Foto wird getauscht …'}[dec]):'Fehler');
   if(dec==='change'||dec==='photo_next'||dec==='post') watchUntil=Date.now()+240000;
   if(dec==='post'){setTimeout(tick,3000);setTimeout(tick,20000)}load();
 }
@@ -590,27 +589,28 @@ async function startUpload(inp){if(SU&&S.me&&!S.me.confirmed){SU.photos=(SU.phot
 function confirmShare(what){return new Promise(res=>ask(`${what} für das Netzwerk freigeben? Die anderen im Team können daraus einen Post machen, mit deinem Namen drunter. Zurückziehen geht jederzeit.`,'Ja, freigeben',()=>res(true),()=>res(false)))}
 async function pdec(id,dec){if(dec==='share'&&!(await confirmShare('dieses Foto')))return;const r=await post({a:'photo',id,decision:dec});toast(r.ok?({mark_used:'als benutzt markiert',hold:'zurückgehalten',use_friday:'für Freitag geplant',delete:'gelöscht',share:'freigegeben, gilt nach dem nächsten Lauf',unshare:'Freigabe zurückgezogen'}[dec]):'Fehler');load()}
 // --- Record
-let mr=null,chunks=[],t0=0,recCard=null;
+let mr=null,chunks=[],t0=0,recCard=null,recMode='';
 // one recorder for both: the round button (memo or phrase) and "Record a note" on a card. While it runs, a bar at the
 // bottom shows the time with ✕ discard and ✓ send (nothing leaves the phone before ✓); the round button also sends.
 let recDiscard=false,recTimer=null;
-async function startRec(cardId){
-  if(mr&&mr.state==='recording')return;
+async function startRec(cardId,mode){
+  if(mr&&mr.state==='recording')return;recMode=mode||'';
   try{const st=await navigator.mediaDevices.getUserMedia({audio:true});const mime=MediaRecorder.isTypeSupported('audio/mp4')?'audio/mp4':(MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'');mr=new MediaRecorder(st,mime?{mimeType:mime}:{});chunks=[];t0=Date.now();recCard=cardId||null;recDiscard=false;
     mr.ondataavailable=e=>chunks.push(e.data);
     mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());clearInterval(recTimer);$('#recbar').hidden=true;$('#rec').classList.remove('on');const b=recCard&&document.getElementById('rn-'+recCard);if(b)b.classList.remove('on');const mic=$('#su-mic');if(mic){mic.classList.remove('on');mic.textContent='🎙'}
-      const cid=recCard,sec=Math.round((Date.now()-t0)/1000);recCard=null;
+      const cid=recCard,mode=recMode,sec=Math.round((Date.now()-t0)/1000);recCard=null;recMode='';const rs=cid&&document.getElementById('rs-'+cid);if(rs)rs.classList.remove('on');
       if(recDiscard||sec<1){toast('Aufnahme verworfen');return}
-      sendMemo(new Blob(chunks,{type:mr.mimeType||'audio/mp4'}),mr.mimeType||'audio/mp4',sec,cid)};
-    mr.start();$('#rec').classList.add('on');const b=cardId&&document.getElementById('rn-'+cardId);if(b)b.classList.add('on');
-    $('#recwhat').textContent=cardId==='__profile__'?'Erzähl, was du machst':cardId?'Notiz zu diesem Post':'Memo oder Satz für einen Post';const mic=$('#su-mic');if(mic&&cardId==='__profile__'){mic.classList.add('on');mic.textContent='■'}$('#rectime').textContent='0:00';$('#recbar').hidden=false;
+      sendMemo(new Blob(chunks,{type:mr.mimeType||'audio/mp4'}),mr.mimeType||'audio/mp4',sec,cid,mode)};
+    mr.start();$('#rec').classList.add('on');const b=cardId&&document.getElementById((mode==='skip'?'rs-':'rn-')+cardId);if(b)b.classList.add('on');
+    $('#recwhat').textContent=cardId==='__profile__'?'Erzähl, was du machst':mode==='skip'?'Warum weg damit?':cardId?'Was soll anders sein?':'Memo oder Satz für einen Post';const mic=$('#su-mic');if(mic&&cardId==='__profile__'){mic.classList.add('on');mic.textContent='■'}$('#rectime').textContent='0:00';$('#recbar').hidden=false;
     recTimer=setInterval(()=>{const s=Math.round((Date.now()-t0)/1000);$('#rectime').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')},500);
   }catch(e){toast('Mikrofon nicht verfügbar: '+(e.name||e))}
 }
 function stopRec(send){if(!(mr&&mr.state==='recording'))return;recDiscard=!send;mr.stop()}
-async function recNote(id){if(mr&&mr.state==='recording'){stopRec(true);return}startRec(id)}
+async function recNote(id,mode){if(mr&&mr.state==='recording'){stopRec(true);return}startRec(id,mode)}
 $('#rec').onclick=()=>{if(mr&&mr.state==='recording'){stopRec(true);return}startRec(null)};
-async function sendMemo(blob,mime,seconds,cardId){const fd=new FormData();fd.append('a','memo');fd.append('audio',blob,'memo');fd.append('mime',mime);fd.append('seconds',String(seconds));
+async function sendMemo(blob,mime,seconds,cardId,mode){const fd=new FormData();fd.append('a','memo');fd.append('audio',blob,'memo');fd.append('mime',mime);fd.append('seconds',String(seconds));
+  if(mode==='skip'&&cardId){fd.append('card_id',cardId);fd.append('skip','1');toast('weg, der Grund wird notiert');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={}}if(!r.ok)toast('Aufnahme fehlgeschlagen');openCard=null;load();return r}
   if(cardId==='__profile__'){fd.append('profile','1');toast('Aufnahme wird gespeichert …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={}}
     if(r.ok){suLoad();SU.voice=(SU.voice||0)+1;SU.voiceSec=(SU.voiceSec||0)+seconds;suSave();toast('gespeichert. Noch etwas, oder weiter mit Weiter',4000)}else toast('Aufnahme fehlgeschlagen');renderPost();return r}
   if(cardId)fd.append('card_id',cardId);toast(cardId?'Notiz wird gesendet …':'Memo wird gespeichert …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={}}toast(r.ok?(cardId?'Notiz gesendet, der Post wird in etwa einer Minute überarbeitet':(MANUAL()?'Memo gespeichert, wird ein Post '+LATER:'Memo gespeichert, wird auf dem Mac ein Post oder ein Satz')):'Aufnahme fehlgeschlagen',4000);if(cardId)watchUntil=Date.now()+240000;load();return r}

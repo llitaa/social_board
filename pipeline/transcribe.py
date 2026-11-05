@@ -36,7 +36,8 @@ def main():
         src = os.path.join(up, f); dst = os.path.join(MEM, f); shutil.move(src, dst)
         note_f = src + ".note.txt"; note = open(note_f).read().strip() if os.path.isfile(note_f) else ""
         card_f = src + ".card.txt"; card = open(card_f).read().strip() if os.path.isfile(card_f) else ""
-        for x in (note_f, card_f):
+        skip_f = src + ".skip.txt"; skip = os.path.isfile(skip_f)   # 05.11.: spoken reason for discarding the card
+        for x in (note_f, card_f, skip_f):
             if os.path.isfile(x): os.remove(x)
         try: text = transcribe(dst)
         except Exception as e: log("transcribe failed", f, e); text = ""
@@ -45,9 +46,9 @@ def main():
         status = ("new" if len(text.split()) >= 15 else "short") if text else "noise"
         if card and text:
             ld = os.path.join(BOARD_LOCAL, "decisions-local"); os.makedirs(ld, exist_ok=True)
-            d = {"type": "post", "card_id": card, "decision": "change", "note": text, "via": "voice", "ts": datetime.now().astimezone().isoformat(timespec="seconds")}
+            d = ({"type": "post", "card_id": card, "decision": "skip", "reason": text, "via": "voice"} if skip else {"type": "post", "card_id": card, "decision": "change", "note": text, "via": "voice"}) | {"ts": datetime.now().astimezone().isoformat(timespec="seconds")}
             open(os.path.join(ld, datetime.now().strftime("%Y-%m-%d") + ".jsonl"), "a", encoding="utf-8").write(json.dumps(d, ensure_ascii=False) + "\n")
-            status, note = "card-note", f"note for {card}"; log("voice note for", card, "->", text[:80])
+            status, note = ("skip-reason", f"why {card} was dropped") if skip else ("card-note", f"note for {card}"); log("voice", "skip reason" if skip else "note", "for", card, "->", text[:80])
         out.append({"id": f, "file": os.path.relpath(dst, LIB), "recorded": datetime.fromtimestamp(os.path.getmtime(dst)).isoformat(timespec="seconds"),
                     "seconds": "", "words": str(len(text.split())), "status": status, "used_in": card, "note": note}); n += 1
     with open(INDEX, "w", newline="", encoding="utf-8") as fh:
