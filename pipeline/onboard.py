@@ -38,6 +38,15 @@ def propose(req):
     site = fetch(req.get("website", "")) if req.get("website") else ""
     doc = doc_text(os.path.join(REQ, req["doc"])) if req.get("doc") else ""
     words = (req.get("words") or "").strip()
+    spoken = []   # setup (05.11.): what the person told the microphone, transcribed here (whisper, local); the files stay in uploads/profile until the proposal is made
+    for f in sorted(os.listdir(REQ)) if os.path.isdir(REQ) else []:
+        if f.startswith("voice-") and not f.endswith(".txt"):
+            try:
+                import transcribe
+                t = transcribe.transcribe(os.path.join(REQ, f))
+                if t and not transcribe.is_noise(t): spoken.append(t)
+            except Exception as e: log("voice transcription failed:", f, repr(e)[:120])
+    if spoken: words = (words + "\n\n" if words else "") + "Gesprochen:\n" + "\n".join(spoken)
     if not (site or doc or words): log("profile request without content"); return None
     prompt = f"""Build a LinkedIn posting profile for {who['name']} from the material below. Use only what is there; where something is unclear, say so under "uncertain" instead of guessing. Write every field in {'German' if de else 'English'}, short and concrete, in the third person except "facts".
 Answer with one JSON object only:
@@ -50,7 +59,7 @@ Answer with one JSON object only:
  "facts": "10-25 lines of facts a post may use: services, methods, places, years, typical clients described without names, results that are stated. One fact per line, nothing invented.",
  "uncertain": ["points the material does not settle"]}}
 
-=== Their own words ===
+=== Their own words (typed, and "Gesprochen:" = spoken to the microphone, so take the tone from it) ===
 {words or '-'}
 
 === Website text ===
@@ -69,6 +78,8 @@ Answer with one JSON object only:
                "words": words[:4000], "proposed": datetime.now().isoformat(timespec="minutes"), "confirmed": False})
     pr.setdefault("name", who["name"]); pr.setdefault("lang", who["lang"])
     jdump(os.path.join(LIB, "profile.json"), pr); jdump(os.path.join(BOARD_LOCAL, "profile.json"), pr)
+    for f in os.listdir(REQ) if os.path.isdir(REQ) else []:
+        if f.startswith("voice-"): os.rename(os.path.join(REQ, f), os.path.join(LIB, "memos", f)) if os.path.isdir(os.path.join(LIB, "memos")) else os.remove(os.path.join(REQ, f))   # kept with the memos, not a memo
     log(f"profile proposed for {who['name']}: {len(pr['topics'])} topics, {len(pr['uncertain'])} open points")
     return pr
 

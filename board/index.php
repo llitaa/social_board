@@ -136,6 +136,10 @@ button,.b,.sm,label.b{-webkit-user-select:none;user-select:none;-webkit-touch-ca
 .rec.on{background:#d33;animation:p 1s infinite}
 .recbar{position:fixed;left:14px;right:86px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:6;display:flex;align-items:center;gap:10px;background:#111;color:#fff;border-radius:999px;padding:8px 10px 8px 16px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
 .recbar[hidden]{display:none}
+.grid .ph.net .st{background:rgba(15,58,80,.85);color:#fff}.grid .ph.net.sel{outline:3px solid var(--c)}
+.nitem{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid #e3ebf0;font-size:14px}.nitem:first-of-type{border-top:0}.nitem .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.nitem .t b{display:block;font-size:12px;color:var(--m);font-weight:600}
+.voice{display:flex;gap:12px;align-items:center;margin-top:14px;padding:12px;border:1px dashed #b9cdd8;border-radius:10px;background:#f7fbfc}.voice .mic{width:52px;height:52px;border-radius:50%;border:0;background:var(--c);color:#fff;font-size:22px;flex:0 0 auto;cursor:pointer}.voice .mic.on{background:#e33;animation:p 1s infinite}.voice .q{margin:0;font-size:13px}
+.li{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:14px}.li .ok{color:#01884a;font-weight:600}
 .recbar .dot{width:10px;height:10px;border-radius:50%;background:#e33;animation:p 1s infinite;flex:0 0 auto}
 .recbar .t{margin-left:auto;font-variant-numeric:tabular-nums;color:#ccc}
 .recbar button{width:38px;height:38px;border-radius:50%;border:0;font-size:18px;cursor:pointer;flex:0 0 auto}
@@ -376,7 +380,7 @@ async function sendOrder(){const items=[...document.querySelectorAll('#items .it
   let n=0;for(const ch in byCh){const ids=byCh[ch];if(ids.length<2)continue;const prev=before.filter(id=>S.cards.find(c=>c.id===id).channel===ch);if(prev.join()===ids.join())continue;const r=await post({a:'decide',card_id:ids[0],decision:'order',order:ids});if(r.ok)n++}
   if(n){toast('Reihenfolge gespeichert, Slots neu verteilt');watchUntil=Date.now()+60000}load()}
 let SU=null, suStep=0;
-const SU_STEPS=['check','readers','goal','topics','tone','examples','day','photos','done'];
+const SU_STEPS=['check','readers','goal','topics','tone','examples','day','photos','linkedin','done'];
 const DAYS=[['Mon','Montag'],['Tue','Dienstag'],['Wed','Mittwoch'],['Thu','Donnerstag'],['Fri','Freitag'],['Sat','Samstag'],['Sun','Sonntag']];
 function suLoad(){if(SU)return;try{SU=JSON.parse(localStorage.getItem('su-'+((S.me||{}).slug||''))||'null')}catch(e){SU=null}SU=SU||{};suStep=SU._step||0}
 function suSave(){SU._step=suStep;try{localStorage.setItem('su-'+((S.me||{}).slug||''),JSON.stringify(SU))}catch(e){}}
@@ -388,9 +392,10 @@ function chips(k,opts,single){const sel=SU[k]||[];return `<div class="chips2">${
 function suNav(ok,last){return `<div class="nav">${suStep>0?`<button class="b s" onclick="suGo(-1)">Zurück</button>`:''}${last?`<button class="b p" onclick="confirmProfile()">Fertig, ersten Entwurf schreiben</button>`:`<button class="b p" ${ok?'':'disabled style="opacity:.4"'} onclick="suGo(1)">Weiter</button>`}</div>`}
 function onboardingHtml(){
   const m=S.me||{}; suLoad();
-  if(S.profile_pending) return `<div class="card setup" style="padding:16px"><h2>Deine Website wird gelesen</h2><div class="q">Das dauert ein bis zwei Minuten, die Seite aktualisiert sich von selbst. Erfunden wird nichts: was unklar bleibt, siehst du gleich als Liste.</div></div>`;
-  if(!m.proposed) return `<div class="card setup" style="padding:16px"><h2>Hallo ${esc((m.name||'').split(' ')[0])}, kurz zu dir</h2><div class="q">Deine Website reicht für den Anfang. Das System liest sie und schlägt dir vor, wer deine Posts lesen soll und worüber du schreibst.</div>
-    <label class="hint" style="padding:0">Deine Website</label><input type="text" id="su-web" value="${esc(SU.website||'')}" placeholder="firma.de" inputmode="url" oninput="suInput('website',this)">
+  if(S.profile_pending) return `<div class="card setup" style="padding:16px"><h2>Deine Angaben werden gelesen</h2><div class="q">Website, Aufnahme, Dokument: das dauert ein bis zwei Minuten, die Seite aktualisiert sich von selbst. Erfunden wird nichts: was unklar bleibt, siehst du gleich als Liste.</div></div>`;
+  if(!m.proposed) return `<div class="card setup" style="padding:16px"><h2>Hallo ${esc((m.name||'').split(' ')[0])}, kurz zu dir</h2><div class="q">Am schnellsten: erzähl es. Eine Minute, was du machst, für wen, was dir wichtig ist. Oder gib deine Website an.</div>
+    <div class="voice"><button class="mic" id="su-mic" onclick="recNote('__profile__')" title="Aufnehmen">${(mr&&mr.state==='recording'&&recCard==='__profile__')?'■':'🎙'}</button><div class="q">${SU.voice?`<b>${SU.voice} Aufnahme${SU.voice===1?'':'n'}, ${fmtSec(SU.voiceSec||0)}</b>. Noch etwas? Einfach wieder tippen.`:'Tippen, reden, Haken drücken. Das System hört zu und baut daraus deinen Steckbrief.'}</div></div>
+    <label class="hint" style="padding:0;margin-top:14px;display:block">Deine Website</label><input type="text" id="su-web" value="${esc(SU.website||'')}" placeholder="firma.de" inputmode="url" oninput="suInput('website',this)">
     <label class="hint" style="padding:0;margin-top:10px;display:block">Dein LinkedIn-Profil (optional)</label><input type="text" id="su-li" value="${esc(SU.linkedin||'')}" placeholder="linkedin.com/in/…" inputmode="url" oninput="suInput('linkedin',this)">
     <label class="hint" style="padding:0;margin-top:10px;display:block">Wenn LinkedIn uns nicht reinlässt: dein Steckbrief, hier eingefügt (optional)</label><textarea id="su-words" rows="4" placeholder="Was du machst, für wen, was dir wichtig ist" oninput="suInput('words',this)">${esc(SU.words||'')}</textarea>
     <label class="lbl" style="margin-top:10px">Dokument anhängen (optional)<input type="file" id="su-doc" accept=".pdf,.txt,.md,.docx" style="display:none" onchange="$('#su-docname').textContent=this.files[0]?this.files[0].name:''"></label> <span id="su-docname" class="hint"></span>
@@ -417,6 +422,7 @@ function onboardingHtml(){
   else if(step==='examples'){h=`<h2>Zwei, drei Posts, die dir gefallen</h2><div class="q">Deine oder fremde. Wir kopieren nichts, nur den Rhythmus. Optional.</div><textarea rows="8" placeholder="Posts hier einfügen, durch Leerzeilen getrennt" oninput="suInput('examples',this)">${T(SU.examples)}</textarea>${suNav(true)}`}
   else if(step==='day'){if(!SU.day){SU.day='Tue';suSave()}
     h=`<h2>An welchem Tag soll dein Post rausgehen?</h2><div class="q">Einer pro Woche. Du kannst ihn jederzeit ändern.</div><div class="chips2">${DAYS.map(([k,l])=>`<button class="chip2 ${SU.day===k?'on':''}" onclick="suSet('day','${k}')">${l}</button>`).join('')}</div>${suNav(true)}`}
+  else if(step==='linkedin'){h=`<h2>Sollen die Posts von hier aus raus?</h2><div class="q">Verbinde dein LinkedIn-Profil, dann postet das System auf dein Ja hin direkt. Ohne Verbindung kopierst du jeden Post selbst. Geht auch später, unter Profil.</div>${liHtml(true)}${suNav(true)}`}
   else if(step==='photos'){h=`<h2>Ein, zwei Fotos von dir oder deiner Arbeit</h2><div class="q">Ohne Foto geht es auch, dann nimmt der Post Text. Optional.</div>
     <form id="up"><label class="b p" style="display:block;text-align:center;border-radius:8px;padding:12px;background:var(--c);color:#fff;font-weight:600;cursor:pointer">+ Fotos hinzufügen<input type="file" name="photos[]" accept="image/*" multiple style="display:none" onchange="startUpload(this)"><input type="hidden" name="note" value=""><input type="checkbox" name="share" value="1" style="display:none"></label></form>
     ${SU.photos?`<div class="q" style="margin-top:8px">${SU.photos} Foto${SU.photos===1?'':'s'} hochgeladen</div>`:''}${suNav(true)}`}
@@ -425,8 +431,9 @@ function onboardingHtml(){
     <div class="note" style="margin:0"><b>Für</b> ${esc(readers)}<br><b>Ziel</b> ${esc(goal)}<br><b>Ton</b> ${esc(SU.toneLabel||'')}<br><b>Tag</b> ${esc((DAYS.find(d=>d[0]===SU.day)||[])[1]||'Dienstag')}<br><b>Themen</b> ${esc([...(SU.topics||[]),...(SU.topicsX?[SU.topicsX]:[])].slice(0,4).join(', '))}${(SU.topics||[]).length>4?' …':''}</div>${suNav(true,true)}`}
   return `<div class="card setup" style="padding:16px">${prog}${h}</div>`;
 }
-async function sendProfile(){suLoad();const fd=new FormData();fd.append('a','profile');fd.append('website',SU.website||'');fd.append('linkedin',SU.linkedin||'');fd.append('words',SU.words||'');const doc=$('#su-doc');if(doc&&doc.files[0])fd.append('doc',doc.files[0]);
-  if(!(SU.website||SU.words||(doc&&doc.files[0]))){toast('Website, Steckbrief oder Dokument: mindestens eins');return}toast('gesendet …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={error:'keine Verbindung'}}toast(r.ok?'angekommen, der Vorschlag kommt in ein bis zwei Minuten':'Fehler: '+(r.error||''),r.ok?4000:8000);watchUntil=Date.now()+300000;load()}
+function fmtSec(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+async function sendProfile(){suLoad();const fd=new FormData();fd.append('a','profile');fd.append('website',SU.website||'');fd.append('linkedin',SU.linkedin||'');fd.append('words',SU.words||'');fd.append('voice',String(SU.voice||0));const doc=$('#su-doc');if(doc&&doc.files[0])fd.append('doc',doc.files[0]);
+  if(!(SU.website||SU.words||SU.voice||(doc&&doc.files[0]))){toast('Erzähl es, oder Website, Steckbrief, Dokument: mindestens eins');return}toast('gesendet …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={error:'keine Verbindung'}}toast(r.ok?'angekommen, der Vorschlag kommt in ein bis zwei Minuten':'Fehler: '+(r.error||''),r.ok?4000:8000);watchUntil=Date.now()+300000;load()}
 async function confirmProfile(){suLoad();const m=S.me||{};const readers=[...(SU.readers||[]),...(SU.readersX?[SU.readersX]:[])];const topics=[...(SU.topics||[]),...(SU.topicsX?[SU.topicsX]:[])];const goal=(SU.goal||[])[0]||SU.goalX||'';
   const r=await post({a:'profile_confirm',role:SU.role??m.role??'',company:SU.company??m.company??'',website:SU.website||m.website||'',offer:SU.offer??m.offer??'',audience:readers.join(', '),goal,topics,avoid:(SU.avoid||'').split(',').map(x=>x.trim()).filter(Boolean),tone:SU.toneLabel||m.tone||'',style:{register:SU.register==='persoenlich'?'':(SU.register||''),length:'mittel',question:'ja'},examples:SU.examples||'',linkedin:SU.linkedin||m.linkedin||'',day:SU.day||'Tue',facts:m.facts||''});
   toast(r.ok?'gespeichert, dein erster Entwurf kommt in etwa einer Minute':'Fehler: '+(r.error||''),4000);if(r.ok){try{localStorage.removeItem('su-'+(m.slug||''))}catch(e){}SU=null}watchUntil=Date.now()+300000;load()}
@@ -484,17 +491,31 @@ async function qdec(id,dec,reason,silent){await post({a:'queue',card_id:id,decis
 async function copyDraft(id){const t=$('#d-'+id).textContent;try{await navigator.clipboard.writeText(t)}catch(e){}toast('Kommentar kopiert')}
 async function clearAll(){await post({a:'queue',decision:'clear'});toast('geleert');load()}
 let selPhoto=null;
-function photoCell(p,s){const lab=(p.share==='network'?'geteilt, ':'')+(p.owner?'von '+p.owner+', ':'')+(p.status==='used'?(p.used_in||'benutzt')+(p.free_from?', frei ab '+fmtD(p.free_from):''):p.status==='new'?'neu':fmtD(s.date));
+function photoCell(p,s){const lab=(p.share==='network'?'geteilt, ':'')+(p.owner?(s.label&&s.label.startsWith('von ')?s.label.split(' ').slice(0,2).join(' '):'von '+p.owner)+', ':'')+(p.status==='used'?(p.used_in||'benutzt')+(p.free_from?', frei ab '+fmtD(p.free_from):''):p.status==='new'?'neu':fmtD(s.date));
   return `<div class="ph ${selPhoto===p.id?'sel':''}" onclick="selPhoto=selPhoto==='${p.id}'?null:'${p.id}';renderPhotos()"><img src="${esc(p.thumb||p.url)}" loading="lazy">${(p.status==='new'||p.owner)?'':shareBtn(p.id,p.share==='network','pdec')}<span class="st">${esc(lab)}</span></div>`}
+let selNet=null;
+function netBar(items){const x=items.find(i=>i.key===selNet);if(!x)return '';const first=x.owner_name.split(' ')[0];
+  const act=x.card?`<button class="sm" onclick="goCard('${esc(x.card)}')">zu deinem Post</button>`:x.state==='requested'?`<span style="color:var(--m)">dein Post dazu kommt in etwa einer Minute</span>`:`<button class="sm" onclick="netUse('${esc(x.key)}')">Post daraus für mich</button>`;
+  return `<div class="pact"><div>${x.kind==='photo'?'Foto':x.kind==='post'?'Post':'Gedanke'} von ${esc(x.owner_name)}${x.date?', '+fmtD(x.date):''}${x.scene||x.title?', '+esc(x.scene||x.title):''}</div><div class="row">${act}<button class="sm" onclick="selNet=null;renderPhotos();if($('#profile'))renderProfile()">schließen</button></div></div>`}
+function netUse(key){const x=(S.shared||[]).find(i=>i.key===key);if(!x)return;const first=x.owner_name.split(' ')[0];
+  ask(x.kind==='photo'?`Aus diesem Foto von ${first} einen Post für dich schreiben? Die Zeile „Foto: ${x.owner_name}“ steht automatisch drunter.`:`Zu diesem Gedanken von ${first} einen eigenen Post schreiben? ${first} wird im Text mit Namen genannt.`,'Ja, schreiben',async()=>{const r=await post({a:'network',item:key});toast(r.ok?'kommt, in etwa einer Minute als neue Karte':'Fehler: '+(r.error||''),4000);selNet=null;watchUntil=Date.now()+180000;load()})}
 function actionBar(cells){const c=cells.find(x=>x.p.id===selPhoto);if(!c)return '';const {p,s}=c;
   return `<div class="pact"><div>${fmtD(s.date)}, ${esc(p.scene||s.label||'')}${p.status==='used'?', benutzt in '+esc(p.used_in||'')+(p.free_from?', frei ab '+fmtD(p.free_from):''):''}</div><div class="row">${p.status==='new'?'':`<button class="sm s" onclick="pdec('${s.id}','hold')">diese Serie nicht nutzen</button><button class="sm s" onclick="pdec('${p.id}','use_friday')">Freitagspost</button>`}<button class="sm s" onclick="pdec('${p.id}','delete')">löschen</button><button class="sm" onclick="selPhoto=null;renderPhotos()">schließen</button></div>
 </div>`}
+function liHtml(setup){const li=S.li||{},c=li.connected;
+  if(c)return `<div class="li"><span class="ok">LinkedIn verbunden als ${esc(c.name||'')}</span><span style="color:var(--m)">bis ${fmtD(c.expires)}; deine Posts gehen von hier aus raus</span><button class="sm s" onclick="liStart()">neu verbinden</button></div>`;
+  if(li.pending)return `<div class="li"><span style="color:var(--m)">LinkedIn wird verbunden, das dauert bis zu einer Minute …</span></div>`;
+  return `<div class="li">${li.error||li.failed?`<span style="color:#a33">Nicht verbunden: ${esc(li.error||li.failed)}</span>`:''}<button class="b p" style="width:auto;padding:10px 16px" onclick="liStart()">Mit LinkedIn verbinden</button>${setup?'':'<span style="color:var(--m)">Bis dahin kopierst du jeden Post selbst.</span>'}</div>`}
+async function liStart(){const r=await post({a:'li_start'});if(r.url){suSave();location.href=r.url}else toast('Fehler: '+(r.error||''))}
 function networkHtml(){
   const net=netGroups(),inv=S.invites||[];
   const members=g=>g.members.length?g.members.map(x=>`<span class="chip">${esc(x.name)}${(x.shared||x.texts)?` <span style="color:var(--m)">${[x.shared?x.shared+' Fotos':'',x.texts?x.texts+' Texte':''].filter(Boolean).join(', ')}</span>`:''}</span>`).join(''):'<span style="color:var(--m);font-size:13px">noch niemand sonst</span>';
   const teams=net.map(g=>`<div class="team"><div class="team-h"><b style="flex:1">${esc(g.group)}</b>${net.length>1?`<button class="sm s" onclick="team('leave','${esc(g.group)}')">verlassen</button>`:''}<button class="plus" title="Jemanden einladen" onclick="inviteForm('${esc(g.group)}')">+</button></div><div class="chips">${members(g)}</div></div>`).join('');
   const invH=inv.length?`<div style="margin-top:10px;font-size:13px;color:var(--m)">Eingeladen: ${inv.slice().reverse().map(x=>`${esc(x.name)} (${esc(x.team)}, ${fmtD(x.ts)}, ${esc(x.state||'')})`).join(', ')}</div>`:'';
-  return `<div class="card" style="padding:16px"><h2 style="margin:0 0 6px">Teams</h2>${teams}<div class="team-h" style="margin-top:12px"><span style="flex:1;color:var(--m);font-size:14px">Neues Team</span><button class="plus" title="Neues Team" onclick="teamForm()">+</button></div><div id="inv-box"></div>${invH}
+  const sh=(S.shared||[]),txts=sh.filter(x=>x.kind!=='photo').slice(0,8),nph=sh.filter(x=>x.kind==='photo').length;
+  const shared=sh.length?`<div class="card" style="padding:16px"><h2 style="margin:0 0 4px">Geteilt mit dir</h2><div class="q" style="margin:0 0 6px">${nph?`${nph} Foto${nph===1?'':'s'} unter <a onclick="nav('photos')" style="color:var(--c);cursor:pointer">Fotos</a>. `:''}Ein Tipp, und das System schreibt dir dazu einen eigenen Post, mit Namen.</div>
+    ${txts.map(x=>`<div class="nitem"><div class="t"><b>${x.kind==='post'?'Post':'Gedanke'} von ${esc(x.owner_name)}${x.date?', '+fmtD(x.date):''}</b>${esc(x.title)}</div>${x.card?`<button class="sm s" onclick="goCard('${esc(x.card)}')">dein Post</button>`:x.state==='requested'?`<span style="font-size:12px;color:var(--m)">kommt gleich</span>`:`<button class="sm" onclick="netUse('${esc(x.key)}')">Post daraus</button>`}</div>`).join('')}</div>`:'';
+  return shared+`<div class="card" style="padding:16px"><h2 style="margin:0 0 6px">Teams</h2>${teams}<div class="team-h" style="margin-top:12px"><span style="flex:1;color:var(--m);font-size:14px">Neues Team</span><button class="plus" title="Neues Team" onclick="teamForm()">+</button></div><div id="inv-box"></div>${invH}
     ${S.me?`<label style="display:flex;gap:8px;align-items:center;margin-top:14px;font-size:14px"><input type="checkbox" id="pf-share" style="width:auto;margin:0" ${(S.me||{}).share_default?'checked':''}> Neue Fotos standardmäßig für das Netzwerk freigeben</label>`:''}</div>`;
 }
 function netGroups(){return Array.isArray(S.network)?S.network:((S.network||{}).groups||[])}
@@ -513,7 +534,7 @@ function profileHtml(){
   return networkHtml()+`
   <div class="card" style="padding:16px"><h2 style="margin:0 0 4px">Über dich</h2><div class="q" style="margin:0">Daraus baut das System jeden Entwurf. Was hier nicht steht, darf es nicht behaupten.</div>
     ${L('Was du machst','pf-role',m.role)}<div class="row" style="margin-top:0"><div style="flex:1">${L('Firma','pf-company',m.company)}</div><div style="flex:1">${L('Website','pf-website',m.website)}</div></div>
-    ${L('Wer deine Posts lesen soll','pf-audience',m.audience)}${L('Was der Leser danach tun soll','pf-goal',m.goal)}${L('Was hängen bleiben soll','pf-offer',m.offer)}${L('Dein LinkedIn-Profil','pf-linkedin',m.linkedin)}
+    ${L('Wer deine Posts lesen soll','pf-audience',m.audience)}${L('Was der Leser danach tun soll','pf-goal',m.goal)}${L('Was hängen bleiben soll','pf-offer',m.offer)}${L('Dein LinkedIn-Profil','pf-linkedin',m.linkedin)}${liHtml(false)}
     <div class="row" style="flex-wrap:wrap;align-items:center;font-size:14px;margin-top:10px"><span>Posttag</span>${sel('pf-day',m.day||'Tue',[['Mon','Montag'],['Tue','Dienstag'],['Wed','Mittwoch'],['Thu','Donnerstag'],['Fri','Freitag'],['Sat','Samstag'],['Sun','Sonntag']])}</div></div>
   <div class="card" style="padding:16px"><h2 style="margin:0 0 4px">Themen</h2><div class="q" style="margin:0">Eine Zeile je Thema. Ein neues Thema wird beim nächsten Lauf zu einem Entwurf. Was unter „nie“ steht, kommt in keinem Post vor.</div>
     ${L('Worüber du schreiben willst','pf-topics',(m.topics||[]).join('\n'),6)}${L('Worüber nie','pf-avoid',(m.avoid||[]).join('\n'),3)}</div>
@@ -541,9 +562,13 @@ function renderPhotos(){
   const next=[...S.cards].sort((a,b)=>a.slot.localeCompare(b.slot)).filter(c=>c.photo&&byId[c.photo]).map(c=>({c,...byId[c.photo]}));
   h+=`<h2>Auf den nächsten Posts, ${next.length}</h2>`;
   h+=next.length?`<div class="grid">${next.map(x=>`<div class="ph" onclick="goCard('${x.c.id}')"><img src="${esc(x.p.thumb||x.p.url)}" loading="lazy"><span class="st">${fmtDay(x.c.slot)}, ${x.c.channel==='company'?'Unternehmen':'Profil'}</span></div>`).join('')}</div>`:'<div class="q">noch kein Poolfoto auf einem geplanten Post</div>';
+  // shared by the others (match.py, network.json): a tap offers a post from exactly this photo, with "Foto: Name" under it
+  const netp=(S.shared||[]).filter(x=>x.kind==='photo'&&x.thumb);
+  if(netp.length){h+=`<h2>Aus dem Netzwerk, ${netp.length}</h2><div class="grid">${netp.map(x=>`<div class="ph net ${selNet===x.key?'sel':''}" onclick="selNet=selNet==='${esc(x.key)}'?null:'${esc(x.key)}';renderPhotos()"><img src="${esc(x.thumb)}" loading="lazy"><span class="st">${x.card?'dein Post':'von '+esc(x.owner_name.split(' ')[0])}</span></div>`).join('')}</div>${netBar(netp)}`}
   // 2. new: uploaded or shot in the last 30 days and still available
   const cells=[]; for(const p of S.pending) cells.push({p:{id:p.id,url:p.url,status:'new',scene:''},s:{id:'',date:p.ts.slice(0,10),label:'hochgeladen, wartet auf den Mac'}});
-  for(const s of shoots) for(const p of (s.photos||[])) if(p.eligible&&s.date>=cut) cells.push({p,s});
+  const onCard=new Set(next.map(x=>x.p.id));   // a photo already on a planned post is shown there, not again under Neu
+  for(const s of shoots) for(const p of (s.photos||[])) if(p.eligible&&s.date>=cut&&!onCard.has(p.id)) cells.push({p,s});
   h+=`<h2>Neu, ${cells.length}</h2>`;
   h+=cells.length?`<div class="grid">${cells.map(c=>photoCell(c.p,c.s)).join('')}</div>`:'<div class="q">nichts Neues: Fotos aus der Kamerarolle hinzufügen, die Originale bleiben auf dem Handy</div>';
   // 3. archive: the older pool, used and held photos; hidden by default
@@ -573,22 +598,25 @@ async function startRec(cardId){
   if(mr&&mr.state==='recording')return;
   try{const st=await navigator.mediaDevices.getUserMedia({audio:true});const mime=MediaRecorder.isTypeSupported('audio/mp4')?'audio/mp4':(MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'');mr=new MediaRecorder(st,mime?{mimeType:mime}:{});chunks=[];t0=Date.now();recCard=cardId||null;recDiscard=false;
     mr.ondataavailable=e=>chunks.push(e.data);
-    mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());clearInterval(recTimer);$('#recbar').hidden=true;$('#rec').classList.remove('on');const b=recCard&&document.getElementById('rn-'+recCard);if(b)b.classList.remove('on');
+    mr.onstop=()=>{st.getTracks().forEach(t=>t.stop());clearInterval(recTimer);$('#recbar').hidden=true;$('#rec').classList.remove('on');const b=recCard&&document.getElementById('rn-'+recCard);if(b)b.classList.remove('on');const mic=$('#su-mic');if(mic){mic.classList.remove('on');mic.textContent='🎙'}
       const cid=recCard,sec=Math.round((Date.now()-t0)/1000);recCard=null;
       if(recDiscard||sec<1){toast('Aufnahme verworfen');return}
       sendMemo(new Blob(chunks,{type:mr.mimeType||'audio/mp4'}),mr.mimeType||'audio/mp4',sec,cid)};
     mr.start();$('#rec').classList.add('on');const b=cardId&&document.getElementById('rn-'+cardId);if(b)b.classList.add('on');
-    $('#recwhat').textContent=cardId?'Notiz zu diesem Post':'Memo oder Satz für einen Post';$('#rectime').textContent='0:00';$('#recbar').hidden=false;
+    $('#recwhat').textContent=cardId==='__profile__'?'Erzähl, was du machst':cardId?'Notiz zu diesem Post':'Memo oder Satz für einen Post';const mic=$('#su-mic');if(mic&&cardId==='__profile__'){mic.classList.add('on');mic.textContent='■'}$('#rectime').textContent='0:00';$('#recbar').hidden=false;
     recTimer=setInterval(()=>{const s=Math.round((Date.now()-t0)/1000);$('#rectime').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')},500);
   }catch(e){toast('Mikrofon nicht verfügbar: '+(e.name||e))}
 }
 function stopRec(send){if(!(mr&&mr.state==='recording'))return;recDiscard=!send;mr.stop()}
 async function recNote(id){if(mr&&mr.state==='recording'){stopRec(true);return}startRec(id)}
 $('#rec').onclick=()=>{if(mr&&mr.state==='recording'){stopRec(true);return}startRec(null)};
-async function sendMemo(blob,mime,seconds,cardId){const fd=new FormData();fd.append('a','memo');fd.append('audio',blob,'memo');fd.append('mime',mime);fd.append('seconds',String(seconds));if(cardId)fd.append('card_id',cardId);toast(cardId?'Notiz wird gesendet …':'Memo wird gespeichert …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={}}toast(r.ok?(cardId?'Notiz gesendet, der Post wird in etwa einer Minute überarbeitet':(MANUAL()?'Memo gespeichert, wird ein Post '+LATER:'Memo gespeichert, wird auf dem Mac ein Post oder ein Satz')):'Aufnahme fehlgeschlagen',4000);if(cardId)watchUntil=Date.now()+240000;load();return r}
+async function sendMemo(blob,mime,seconds,cardId){const fd=new FormData();fd.append('a','memo');fd.append('audio',blob,'memo');fd.append('mime',mime);fd.append('seconds',String(seconds));
+  if(cardId==='__profile__'){fd.append('profile','1');toast('Aufnahme wird gespeichert …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={}}
+    if(r.ok){suLoad();SU.voice=(SU.voice||0)+1;SU.voiceSec=(SU.voiceSec||0)+seconds;suSave();toast('gespeichert. Noch etwas, oder weiter mit Weiter',4000)}else toast('Aufnahme fehlgeschlagen');renderPost();return r}
+  if(cardId)fd.append('card_id',cardId);toast(cardId?'Notiz wird gesendet …':'Memo wird gespeichert …');let r={};try{r=await (await fetch(api,{method:'POST',body:fd})).json()}catch(e){r={}}toast(r.ok?(cardId?'Notiz gesendet, der Post wird in etwa einer Minute überarbeitet':(MANUAL()?'Memo gespeichert, wird ein Post '+LATER:'Memo gespeichert, wird auf dem Mac ein Post oder ein Satz')):'Aufnahme fehlgeschlagen',4000);if(cardId)watchUntil=Date.now()+240000;load();return r}
 async function tick(){try{const r=await (await fetch(api+'?a=tick&_='+Date.now())).json();if((r.published||[]).length){toast('veröffentlicht');load()}}catch(e){}}
 load(); setInterval(load,60000); setInterval(tick,60000);
-setInterval(()=>{if(document.activeElement&&document.activeElement.isContentEditable)return; if(S&&(Date.now()<watchUntil||S.profile_pending||S.cards.some(c=>(c.status==='change'&&!c.failed&&!MANUAL())||pend(c.image_pending)==='busy'||pend(c.note_pending)==='busy')))load()},5000);
+setInterval(()=>{if(document.activeElement&&document.activeElement.isContentEditable)return; if(S&&(Date.now()<watchUntil||S.profile_pending||(S.li&&S.li.pending)||S.cards.some(c=>(c.status==='change'&&!c.failed&&!MANUAL())||pend(c.image_pending)==='busy'||pend(c.note_pending)==='busy')))load()},5000);
 </script>
 </body>
 </html>

@@ -252,6 +252,9 @@ def main():
                             if ob: append(os.path.join(ob["lib"], "log", "shared-uses.csv"), ["ts", "photo", "used_by", "used_by_name", "card"], {"ts": d["ts"][:16], "photo": row["id"], "used_by": USER or "anton", "used_by_name": profile()["name"], "card": cid})
                             log("proposal accepted", cid, row["id"])
                     except Exception as e: log("proposal accept failed", repr(e)[:300])
+            elif t == "network":   # 05.11.: the person tapped a shared piece on the board: match.py makes a post from exactly that item in this run
+                item = str(d.get("item", ""))[:120]; rf = os.path.join(LIB, "network-request.json"); req = jload(rf, [])
+                if item.count(":") == 2 and all(r.get("item") != item for r in req): req.append({"item": item, "ts": d.get("ts", "")}); jdump(rf, req); log("network request", item)
             elif t == "memo_share":   # a memo offered to the other boards (04.11.): memos/index.csv share = network; match.py reads it
                 mf = os.path.join(LIB, "memos", "index.csv"); mrows, mfields = read_csv(mf)
                 mfields = list(mfields) + (["share"] if "share" not in mfields else [])

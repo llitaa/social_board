@@ -33,6 +33,7 @@ mstep() {  # a step that calls a model: runs only when MODELS=1
 [ -z "$BOARD_USER" ] && [ "$MODE" = full ] && step users $P pipeline/users.py sync   # new boards created in the admin page get their users/<slug>/ here
 step pull        $P pipeline/board_sync.py pull || { $P pipeline/health.py; exit 1; }
 step transcribe  $P pipeline/transcribe.py          # before apply: a spoken note on a card becomes a change decision in this run
+step liconnect   $P pipeline/linkedin_connect.py   # a LinkedIn code from the board (li.php) -> this board's token (05.11.)
 step apply       $P pipeline/apply_decisions.py
 mstep learn      $P pipeline/learn.py
 if [ "$MODE" = full ]; then

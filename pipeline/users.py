@@ -76,6 +76,7 @@ def deploy_code_copy():
     subprocess.run(["rsync", "-az", "--delete", "--exclude", "data/", board + "/", f"{ALIAS}:~/board-worker/code/"], check=True, timeout=120)
     subprocess.run(["rsync", "-az", "--delete", "--exclude", "data/", os.path.join(board, "admin") + "/", f"{ALIAS}:{REMOTE}/admin/"], check=True, timeout=120)
     subprocess.run(["scp", "-q", os.path.join(board, "boards.php"), f"{ALIAS}:{REMOTE}/boards.php"], check=True, timeout=60)   # the admin page requires ../boards.php
+    subprocess.run(["scp", "-q", os.path.join(board, "li.php"), f"{ALIAS}:{REMOTE}/li.php"], check=True, timeout=60)   # LinkedIn OAuth callback for all boards (05.11.)
 
 def sync():
     reg = registry(); n = 0

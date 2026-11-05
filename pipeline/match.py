@@ -90,7 +90,8 @@ def open_drafts():
     return out
 
 def network():
-    """board-data/network.json for the Profil tab: my groups, who else is in each, how many photos and texts they share (no model call)."""
+    """board-data/network.json: my groups, who else is in each, how many photos and texts they share, and the shared material
+    itself (05.11.: the board shows it under Fotos and Netzwerk, a tap makes a post from one piece). No model call."""
     me = USER or "anton"; bs = boards(); out = []
     for g in bs.get(me, {}).get("groups", []):
         members = []
@@ -99,7 +100,27 @@ def network():
             rows, _ = read_csv(os.path.join(b["lib"], "photos", "index.csv"))
             members.append({"name": b["name"], "shared": sum(1 for r in rows if r.get("share") == "network" and r.get("status") not in ("deleted", "hold") and not r.get("owner")), "texts": len(board_texts(slug, b))})
         out.append({"group": g, "members": members})
-    jdump(os.path.join(BOARD_LOCAL, "network.json"), {"groups": out, "ts": datetime.now().isoformat(timespec="minutes")})
+    used = jload(USED, {}); nd = os.path.join(BOARD_LOCAL, "img", "net"); os.makedirs(nd, exist_ok=True); shared = []; keep = set()
+    for it in material():
+        u = used.get(it["key"], {}); e = {"key": it["key"], "kind": it["kind"], "owner": it["owner"], "owner_name": it["owner_name"], "title": it["title"].replace(" · ", ", ").replace("·", ",")[:140], "date": it["date"], "url": it["url"],
+                                          "state": u.get("state", ""), "card": u.get("card", ""), "ts": u.get("ts", "")}
+        if it["kind"] == "photo":
+            c = it["photo"]; fn = f"{it['owner']}-{it['id']}.jpg"; dst = os.path.join(nd, fn); keep.add(fn)
+            if not os.path.isfile(dst):
+                try:
+                    if os.path.isfile(c["thumb"]): shutil.copyfile(c["thumb"], dst)
+                    else:
+                        import photo_index as ph; ph.thumb(c["file"], dst)
+                except Exception as ex: log("network thumb failed", it["key"], repr(ex)[:120])
+            if os.path.isfile(dst): e["thumb"] = f"data/img/net/{fn}"
+            e["scene"] = c["scene"]
+        shared.append(e)
+    for fn in os.listdir(nd):   # a photo no longer shared leaves this board too
+        if fn not in keep: os.remove(os.path.join(nd, fn))
+    shared.sort(key=lambda e: e["date"], reverse=True)
+    jdump(os.path.join(BOARD_LOCAL, "network.json"), {"groups": out, "shared": shared, "ts": datetime.now().isoformat(timespec="minutes")})
+
+REQ = os.path.join(LIB, "network-request.json")   # items the person tapped on the board ("Daraus einen Post machen"), written by apply_decisions, one draft each
 
 def material():
     """Everything the other boards share, as one list: photos, published posts, memos. Website facts stay out (04.11.)."""
@@ -208,6 +229,16 @@ Unten Material, das andere aus dem Netzwerk freigegeben haben (Foto, veröffentl
 def main():
     network()
     if (CFG.get("llm") or {}).get("match_auto"): os.environ["LLM_INTERACTIVE"] = "1"   # Anton 04.11.: matching is the one model step allowed in his background chain
-    network_drafts(sys.argv[sys.argv.index("--item") + 1] if "--item" in sys.argv else None)
+    if "--item" in sys.argv: network_drafts(sys.argv[sys.argv.index("--item") + 1]); network(); return
+    req = jload(REQ, [])
+    if req:
+        from llm import allowed
+        if not allowed(): log("network: requests wait for process.py", len(req)); return
+        left = []
+        for r in req:
+            try: network_drafts(r["item"])
+            except Exception as e: log("network request failed", r.get("item"), repr(e)[:200]); left.append(r)
+        jdump(REQ, left) if left else os.path.isfile(REQ) and os.remove(REQ); network(); return
+    network_drafts()
 
 if __name__ == "__main__": main()

@@ -17,6 +17,12 @@ function decide(array $d): void {
   file_put_contents("$D/decisions/" . date('Y-m-d') . ".jsonl", json_encode($d, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) . "\n", FILE_APPEND|LOCK_EX);
 }
 function out($v): never { echo json_encode($v, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES); exit; }
+const LI_CLIENT_ID = '78nli4pak5l6sm';   // the AlpiType LinkedIn app (public id; the secret stays on the worker, which exchanges the code)
+function li_state(): array {   // LinkedIn connection of this board: pending = the person came back from LinkedIn and the worker has not exchanged the code yet
+  global $D; $ls = jread("$D/li-state.json", []); $pr = jread("$D/profile.json", []); $c = $pr['linkedin_connected'] ?? null;
+  $pending = is_file("$D/uploads/profile/li-code.json") || (!empty($ls['done']) && $ls['done'] > time() - 900 && strtotime($c['ts'] ?? '1970-01-01') < (int)$ls['done'] && empty($ls['error']));
+  return ['pending' => $pending, 'error' => (string)($ls['error'] ?? ''), 'connected' => $c, 'failed' => $pr['linkedin_error'] ?? ''];
+}
 function settings(): array { global $D; return array_merge(['expiry' => '18:00', 'review' => 'Sat 08:00'], jread("$D/settings.json", [])); }
 
 // Overlays = decisions taken here since the last Mac push, so the UI reflects them immediately.
@@ -109,7 +115,7 @@ switch ($a) {
 
   case 'ping': // cheap change stamp: the worker polls this every few seconds and runs the chain when it moves
     $st = 0;
-    foreach (array_merge(glob("$D/decisions/*.jsonl"), glob("$D/uploads/photos/*"), glob("$D/uploads/memos/*")) as $f) $st = max($st, filemtime($f) * 1000 + (filesize($f) % 1000));
+    foreach (array_merge(glob("$D/decisions/*.jsonl"), glob("$D/uploads/photos/*"), glob("$D/uploads/memos/*"), glob("$D/uploads/profile/*")) as $f) $st = max($st, filemtime($f) * 1000 + (filesize($f) % 1000));
     out(['stamp' => $st, 'now' => date('c')]);
 
   case 'state':
@@ -126,11 +132,13 @@ switch ($a) {
     $props = jread("$D/proposals.json", []); $pov = jread("$D/overlay.json", [])['proposals'] ?? [];   // shared photos offered on cards (match.py); a tap here shows before the worker folds it
     foreach ($props as $cid => &$pp) { if (fresh($pov[$cid] ?? null)) $pp['state'] = $pov[$cid]['state']; } unset($pp);
     $profile_pending = is_file("$D/uploads/profile/request.json");
-    $self = boards_self(auth_user()); $net = boards_network($self, jread("$D/network.json", []));   // my groups, who else is in them (registry, immediate), how many photos they share (match.py)
+    $nj = jread("$D/network.json", []); $self = boards_self(auth_user()); $net = boards_network($self, $nj);   // my groups, who else is in them (registry, immediate), how many photos they share (match.py)
+    $shared = $nj['shared'] ?? []; $nov = jread("$D/overlay.json", [])['network'] ?? [];   // what the others share, one entry per piece (match.py); a tap ("Post daraus") shows at once
+    foreach ($shared as &$sh) { if (empty($sh['card']) && fresh($nov[$sh['key']] ?? null)) $sh['state'] = 'requested'; } unset($sh);
     if ($me) $me['groups'] = $self['groups'];
     $inv = jread("$D/invites.json", []); $BD = dirname(__DIR__);
     foreach ($inv as &$iv) { $au = jread("$BD/{$iv['token']}/data/auth.json", []); $iv['state'] = !empty($au['disabled']) ? 'gesperrt' : (empty($au['must_change']) && !empty($au['changed']) ? 'angemeldet' : 'wartet auf erste Anmeldung'); unset($iv['token']); } unset($iv);
-    out(['me' => $me, 'board' => $self, 'network' => $net, 'invites' => $inv, 'proposals' => $props, 'profile_pending' => $profile_pending, 'health' => $health, 'cards' => $cards, 'pipeline' => $pipe, 'queue' => today_queue(), 'photos' => $photos, 'pending' => $pending, 'memos' => $memos, 'settings' => settings(), 'messages' => $msg, 'now' => date('c'), 'build' => (int)filemtime(__DIR__ . '/index.php')]);   // build: the page reloads itself after a deploy
+    out(['me' => $me, 'board' => $self, 'network' => $net, 'shared' => $shared, 'li' => li_state(), 'invites' => $inv, 'proposals' => $props, 'profile_pending' => $profile_pending, 'health' => $health, 'cards' => $cards, 'pipeline' => $pipe, 'queue' => today_queue(), 'photos' => $photos, 'pending' => $pending, 'memos' => $memos, 'settings' => settings(), 'messages' => $msg, 'now' => date('c'), 'build' => (int)filemtime(__DIR__ . '/index.php')]);   // build: the page reloads itself after a deploy
 
   case 'decide': // post card: post (now) | schedule (when) | change (note) | skip | posted | unschedule | photo_next
     $id = (string)($body['card_id'] ?? ''); $dec = (string)($body['decision'] ?? '');
@@ -206,6 +214,10 @@ switch ($a) {
     if (empty($_FILES['audio']) || $_FILES['audio']['error'] !== UPLOAD_ERR_OK) out(['error' => 'no audio']);
     $mime = (string)($_POST['mime'] ?? 'audio/mp4'); $ext = str_contains($mime, 'webm') ? 'webm' : (str_contains($mime, 'ogg') ? 'ogg' : 'm4a');
     $name = date('Y-m-d_His') . ".$ext";
+    if (($_POST['profile'] ?? '') === '1') {   // setup (05.11.): "erzähl einfach, was du machst": the worker transcribes it into the profile proposal, no memo, no post
+      $name = "voice-$name"; move_uploaded_file($_FILES['audio']['tmp_name'], "$D/uploads/profile/$name");
+      decide(['type' => 'profile', 'decision' => 'voice', 'file' => $name, 'seconds' => (int)($_POST['seconds'] ?? 0)]); out(['ok' => true, 'file' => $name]);
+    }
     $txt = trim((string)($_POST['text'] ?? '')); if ($txt !== '') file_put_contents("$D/uploads/memos/$name.note.txt", $txt);
     $card = preg_replace('/[^\w-]/', '', (string)($_POST['card_id'] ?? ''));   // a spoken note for one post: the Mac transcribes it and applies it like a typed note
     if ($card !== '') file_put_contents("$D/uploads/memos/$name.card.txt", $card);   // sidecars first, audio last: a pull in between never separates them
@@ -257,9 +269,19 @@ switch ($a) {
       if ($_FILES['doc']['size'] > 15 * 1048576) out(['error' => 'Dokument größer als 15 MB']);
       $doc = "doc.$ext"; move_uploaded_file($_FILES['doc']['tmp_name'], "$D/uploads/profile/$doc");
     }
-    if ($web === '' && $words === '' && $doc === '') out(['error' => 'Website, ein paar Sätze oder ein Dokument: mindestens eins davon']);
-    jwrite("$D/uploads/profile/request.json", ['website' => $web, 'linkedin' => $li, 'words' => function_exists('mb_substr') ? mb_substr($words, 0, 4000) : substr($words, 0, 4000), 'doc' => $doc, 'ts' => date('c')]);
+    $voice = (int)($_POST['voice'] ?? 0) + count(glob("$D/uploads/profile/voice-*"));   // recordings already pulled by the worker are counted by the board
+    if ($web === '' && $words === '' && $doc === '' && $voice === 0) out(['error' => 'Website, ein paar Sätze, eine Aufnahme oder ein Dokument: mindestens eins davon']);
+    jwrite("$D/uploads/profile/request.json", ['website' => $web, 'linkedin' => $li, 'words' => function_exists('mb_substr') ? mb_substr($words, 0, 4000) : substr($words, 0, 4000), 'doc' => $doc, 'voice' => $voice, 'ts' => date('c')]);
     decide(['type' => 'profile', 'decision' => 'request', 'website' => $web, 'doc' => $doc]); out(['ok' => true]);
+
+  case 'network': // 05.11.: "Post daraus" on a shared photo or text of another board: match.py writes exactly this one in the next run
+    $item = (string)($body['item'] ?? ''); if (!preg_match('/^[\w-]+:(photo|post|memo):[\w.-]+$/', $item)) out(['error' => 'bad request']);
+    set_overlay('network', $item, ['state' => 'requested']); decide(['type' => 'network', 'item' => $item]); out(['ok' => true]);
+
+  case 'li_start': // 05.11.: LinkedIn connection from the board. The person is sent to LinkedIn; li.php (boards root) takes the code, the worker exchanges it with the app secret
+    $n = bin2hex(random_bytes(12)); jwrite("$D/li-state.json", ['nonce' => $n, 'ts' => time()]);
+    $q = http_build_query(['response_type' => 'code', 'client_id' => LI_CLIENT_ID, 'redirect_uri' => boards_url() . 'li.php', 'state' => basename(__DIR__) . '.' . $n, 'scope' => 'openid profile w_member_social']);
+    out(['ok' => true, 'url' => 'https://www.linkedin.com/oauth/v2/authorization?' . $q]);
 
   case 'profile_confirm': // the person corrected the proposal and said yes: profile.json confirmed here at once, the worker writes facts, positioning and inventory
     if (!auth_user()) out(['error' => 'no owner']);
